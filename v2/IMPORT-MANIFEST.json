@@ -2608,7 +2608,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/service.test.ts",
-      "sha256": "f2efb513b318d02615a24f5f84e6baa4cd7a9c9e1a477bc484862dc84244b1f9",
+      "sha256": "60e420f64c8a4cbad1d611e9dab6d54d0013981c8c3759f93636450441429a6f",
       "reason": "ZAR-219 private worker Pi handoff tests; ZAR-237 per-session invalidation, cross-session, restart and bounded-overflow regression; local hash refreshed"
     },
     {
