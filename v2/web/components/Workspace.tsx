@@ -20,6 +20,7 @@ import CalendarWidget from "./widgets/CalendarWidget";
 import InsiderWidget from "./widgets/InsiderWidget";
 import TvWidget from "./widgets/TvWidget";
 import RecapWidget from "./widgets/RecapWidget";
+import SimulationWorkspace from './SimulationWorkspace';
 
 const Grid = WidthProvider(GridLayout);
 
@@ -96,7 +97,7 @@ const TITLES: Record<string, string> = {
   calendar: "Calendar", insider: "Insider Transactions", tv: "Live TV", recap: "Market Recap",
 };
 
-export default function Workspace() {
+function MarketWorkspace() {
   const widgets = useTerminal((s) => s.widgets);
   const layout = useTerminal((s) => s.layout);
   const setLayout = useTerminal((s) => s.setLayout);
@@ -153,3 +154,5 @@ export default function Workspace() {
     </Grid>
   );
 }
+
+export default function Workspace({ simulation = false }: { simulation?: boolean }) { return simulation ? <SimulationWorkspace /> : <MarketWorkspace />; }

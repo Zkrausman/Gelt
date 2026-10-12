@@ -1,6 +1,7 @@
 "use client";
 
 import { useTerminal, type WidgetType } from "../store/terminal";
+import { simulationPanels } from '../../worker/src/simulation-view-contract';
 
 const ITEMS: Array<{ type: WidgetType; label: string; key: string }> = [
   { type: "chart", label: "CHART", key: "⌥1" },
@@ -20,9 +21,16 @@ const ITEMS: Array<{ type: WidgetType; label: string; key: string }> = [
   { type: "recap", label: "MARKET RECAP", key: "" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ simulation = false }: { simulation?: boolean }) {
   const addWidget = useTerminal((s) => s.addWidget);
   const resetWorkspace = useTerminal((s) => s.resetWorkspace);
+  const panel = useTerminal(s => s.simulationPanel);
+  const select = useTerminal(s => s.setSimulationPanel);
+
+  if (simulation) return <nav aria-label="Simulation panels" className="w-24 sm:w-32 bg-[var(--panel)] border-r border-[var(--border)] shrink-0">
+    {simulationPanels.map(p => <button key={p} aria-pressed={panel === p} onClick={() => select(p)} className="w-full text-left px-3 py-3 text-xs uppercase hover:text-[var(--amber)]">{p}</button>)}
+    <p className="dim p-3 text-xs">Recorded fixtures. No live feeds, agent session or order controls.</p>
+  </nav>;
 
   return (
     <nav className="w-32 bg-[var(--panel)] border-r border-[var(--border)] flex flex-col shrink-0">

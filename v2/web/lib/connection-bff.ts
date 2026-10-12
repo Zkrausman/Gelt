@@ -10,13 +10,16 @@ import { opaque, empty, selectionInput, statusSchema, initiatedSchema, callbackI
 import { historyPageInputSchema, historyDetailInputSchema, historyListResponseSchema, historyDetailResponseSchema } from '../../worker/src/history-contract';
 import { orderSurfaceSchema } from '../../worker/src/contract';
 import { handoffDraftSchema, handoffReviewInputSchema, handoffInvalidateInputSchema, handoffResponseSchema, handoffStatusSchema } from '../../worker/src/pi-handoff-contract';
+import { readSimulationSnapshot } from '../../worker/src/simulation-view-reader';
+import { simulationSelectionSchema, simulationListSchema, simulationDetailSchema } from '../../worker/src/simulation-view-contract';
 const ORIGIN = 'http://127.0.0.1:3000';
 const COOKIE = '__Host-gelt';
 const headers = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff' };
 const json = (value: Record<string, unknown>, status = 200, extra = {}) => Response.json({ version: 'v1', ...value }, { status, headers: { ...headers, ...extra } });
 export class ConnectionBff {
   private session: { id: string; csrf: string; expires: number } | null = null;
-  constructor(private configPath?: string, private transport: typeof fetch = fetch, private now = Date.now, private ingressSecret = process.env.GELT_INGRESS_SECRET, private researchRoot = process.env.GELT_RESEARCH_ROOT) {}
+  constructor(private configPath?: string, private transport: typeof fetch = fetch, private now = Date.now, private ingressSecret = process.env.GELT_INGRESS_SECRET, private researchRoot = process.env.GELT_RESEARCH_ROOT,
+    private simulation = process.env.GELT_SIMULATION_VIEW === 'recorded-fixture-only' ? { path: process.env.GELT_SIMULATION_FIXTURE, digest: process.env.GELT_SIMULATION_FIXTURE_SHA256 } : undefined) {}
   private config() { return z.object({ serviceSecret: opaque }).strict().parse(JSON.parse(readPrivate(this.configPath!).toString('utf8'))); }
   async handle(req: Request, operation: string): Promise<Response> {
     let bootstrapStage = 'request';
@@ -80,7 +83,17 @@ export class ConnectionBff {
       const s = this.session;
       if (!s || s.expires <= this.now() || cookies.length !== 1 || !equalSecret(cookies[0].slice(COOKIE.length + 1), s.id)) return respond({ error: 'unauthorized' }, 401);
       if (!callback && !equalSecret(req.headers.get('x-gelt-csrf'), s.csrf)) return respond({ error: 'forbidden' }, 403);
-      if (!['status', 'initiate', 'callback', 'discover', 'select', 'disconnect', 'history', 'intent', 'order-status', 'pi-status', 'pi-prepare', 'pi-review', 'pi-invalidate', 'research-list', 'research-detail'].includes(operation)) return respond({ error: 'unsupported_operation' }, 404);
+      if (!['status', 'initiate', 'callback', 'discover', 'select', 'disconnect', 'history', 'intent', 'order-status', 'pi-status', 'pi-prepare', 'pi-review', 'pi-invalidate', 'research-list', 'research-detail', 'simulation-list', 'simulation-detail'].includes(operation)) return respond({ error: 'unsupported_operation' }, 404);
+      if (operation === 'simulation-list' || operation === 'simulation-detail') {
+        const selected = operation === 'simulation-detail' ? simulationSelectionSchema.parse(input) : (empty.parse(input), null);
+        const result = readSimulationSnapshot(this.simulation?.path, this.simulation?.digest);
+        if (this.session !== s || s.expires <= this.now()) return respond({ error: 'unauthorized' }, 401);
+        if (!selected) return respond(simulationListSchema.parse({ version: 'v1', sessionExpiresAt: s.expires, state: result.state,
+          items: result.state === 'available' ? result.snapshot.runs.map(({ id, label }) => ({ id, label })) : [] }));
+        const run = result.state === 'available' ? result.snapshot.runs.find(r => r.id === selected.runId) : undefined;
+        return respond(simulationDetailSchema.parse({ version: 'v1', sessionExpiresAt: s.expires,
+          ...(run ? { state: 'available', run } : { state: result.state === 'available' ? 'missing' : result.state }) }));
+      }
       // Research reads share only the owner-session boundary. No account lookup,
       // worker dispatch, provisioning, artifact execution or caller-chosen root.
       if (operation === 'research-list' || operation === 'research-detail') {

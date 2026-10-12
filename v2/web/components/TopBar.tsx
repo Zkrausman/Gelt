@@ -37,7 +37,7 @@ function marketStateNY(): { label: string; open: boolean } {
   return { label: open ? "NYSE OPEN" : "NYSE CLOSED", open };
 }
 
-export default function TopBar() {
+function MarketTopBar() {
   const setCommandOpen = useTerminal((s) => s.setCommandOpen);
   const activeSymbol = useTerminal((s) => s.activeSymbol);
   const { data: status } = useQuery({
@@ -72,4 +72,12 @@ export default function TopBar() {
       <span className={status?.ai ? "up" : "dim"}>AI {status?.ai ? "●" : "○"}</span>
     </header>
   );
+}
+
+export default function TopBar({ simulation = false }: { simulation?: boolean }) {
+  return simulation ? <header className="flex flex-wrap items-center gap-3 px-3 py-2 min-h-10 bg-[var(--panel-2)] border-b border-[var(--border)] text-xs shrink-0">
+    <strong className="amber">OPENTERMINAL / GELT</strong><span>RECORDED SIMULATION · READ ONLY</span>
+    <a className="ml-auto amber" href="/connect">Viewer session</a><a href="/research">Research</a>
+    <button className="term-btn" onClick={() => useTerminal.getState().setCommandOpen(true)}>Panels ⌘K</button>
+  </header> : <MarketTopBar />;
 }

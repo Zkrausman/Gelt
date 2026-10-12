@@ -4,10 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { apiGet } from "../lib/api";
 import { useTerminal } from "../store/terminal";
+import { simulationPanels } from '../../worker/src/simulation-view-contract';
 
 type SearchResult = { symbol: string; name: string; exchange: string; type: string };
 
-export default function CommandPalette() {
+function MarketCommandPalette() {
   const open = useTerminal((s) => s.commandOpen);
   const setOpen = useTerminal((s) => s.setCommandOpen);
   const setActiveSymbol = useTerminal((s) => s.setActiveSymbol);
@@ -86,3 +87,25 @@ export default function CommandPalette() {
     </div>
   );
 }
+
+function SimulationCommandPalette() {
+  const open = useTerminal(s => s.commandOpen), setOpen = useTerminal(s => s.setCommandOpen), select = useTerminal(s => s.setSimulationPanel);
+  const dialog = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (!open) return; const previous = document.activeElement;
+    const frame = requestAnimationFrame(() => dialog.current?.querySelector('button')?.focus());
+    const close = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); }; window.addEventListener('keydown', close);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('keydown', close); if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, [open, setOpen]);
+  if (!open) return null;
+  return <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start pt-24" onClick={() => setOpen(false)}>
+    <div ref={dialog} role="dialog" aria-modal="true" aria-label="Simulation panel picker" className="bg-[var(--panel)] border border-[var(--border)] p-4" onClick={e => e.stopPropagation()} onKeyDown={e => {
+      if (e.key !== 'Tab') return; const buttons = dialog.current?.querySelectorAll('button'); if (!buttons?.length) return;
+      const target = e.shiftKey ? buttons[buttons.length - 1] : buttons[0];
+      if (document.activeElement === (e.shiftKey ? buttons[0] : buttons[buttons.length - 1])) { e.preventDefault(); target.focus(); }
+    }}>
+      <p>Recorded simulation panels</p>{simulationPanels.map(p => <button key={p} className="block p-3 uppercase" onClick={() => { select(p); setOpen(false); }}>{p}</button>)}
+      <button onClick={() => setOpen(false)}>Close</button>
+    </div>
+  </div>;
+}
+export default function CommandPalette({ simulation = false }: { simulation?: boolean }) { return simulation ? <SimulationCommandPalette /> : <MarketCommandPalette />; }
