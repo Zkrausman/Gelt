@@ -11,6 +11,9 @@ import { canonical } from './ledger-canonical.js';
 import { decimalSchema, eventSchema, intentSchema, ledgerId, orderSchema, projectionSchema, routingSchema, type Projection, type Result, type WriteReceipt } from './ledger-contract.js';
 import { OrderLifecycle, hasUnresolvedLifecycle, validateLifecycleProjections, type OrderAdapter } from './order-lifecycle.js';
 import { equalSecret } from './security.js';
+import { SyntheticMockRobinhoodAdapter } from './synthetic-mock-robinhood-adapter.js';
+import { SyntheticMockRobinhoodStore } from './synthetic-mock-robinhood-storage.js';
+import { SyntheticMockRobinhoodTransport } from './synthetic-mock-robinhood-transport.js';
 
 const source = 'synthetic-offline-v1' as const;
 const owner = '00000000-0000-4000-8000-000000000001';
@@ -182,8 +185,8 @@ const sessionLifetimeMs = 300000;
 function fixtureEnabled() {
   return process.env.NODE_ENV === 'test' && process.env.GELT_SYNTHETIC_ORDER_HARNESS === 'offline-test-only';
 }
-export function createSyntheticOrderHarness(sessionClock: () => number = Date.now) {
-  if (!fixtureEnabled()) throw new Error('synthetic harness disabled');
+export function createSyntheticOrderHarness(sessionClock: () => number = Date.now, options: { applicationMock?: boolean } = {}) {
+  if (!fixtureEnabled() || (options.applicationMock && process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only')) throw new Error('synthetic harness disabled');
   const root = storageFixture('synthetic-orders-'), dir = join(root, 'data');
   createLedgerDirectory(dir);
   const path = join(dir, 'synthetic-orders.sqlite');
@@ -194,13 +197,26 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     const issuedAt = sessionClock();
     if (!Number.isSafeInteger(issuedAt) || issuedAt < 0 || issuedAt > Number.MAX_SAFE_INTEGER - sessionLifetimeMs) throw new Error('synthetic harness disabled');
     // Validate the test clock before acquiring the persistent private SQLite lock.
+    const mockPath = join(dir, 'synthetic-mock-robinhood.sqlite');
     const facts = new SyntheticFacts(path);
+    let mockStore: SyntheticMockRobinhoodStore | undefined;
+    let mockTransport: SyntheticMockRobinhoodTransport | undefined;
+    let mockAdapter: SyntheticMockRobinhoodAdapter | undefined;
+    try {
+      mockStore = options.applicationMock ? new SyntheticMockRobinhoodStore(mockPath, sessionClock) : undefined;
+      mockTransport = mockStore ? new SyntheticMockRobinhoodTransport(mockStore) : undefined;
+      mockAdapter = mockTransport ? new SyntheticMockRobinhoodAdapter(mockTransport.client, sessionClock) : undefined;
+    } catch (error) {
+      try { mockTransport ? void mockTransport.close() : mockStore?.close(); } catch { /* preserve uncertain writer ownership */ }
+      try { facts.close(); } catch { /* preserve uncertain lifecycle ownership */ }
+      throw error;
+    }
     const auth = { bearer: randomBytes(32).toString('base64url'), session: randomBytes(32).toString('base64url'), expiresAt: issuedAt + sessionLifetimeMs };
     let dispatch: 'accepted' | 'rejected' | 'unknown' = 'accepted';
     let reconcile: 'partial' | 'late-partial' | 'canceled' | 'filled' | 'unknown' = 'unknown';
     const fee = decimalSchema.parse({ value: '0.01', precision: 3, scale: 2 });
-    const adapter: OrderAdapter = {
-      async preview({ order }) { return { previewId: randomUUID(), order, fee, feeCurrency: 'USD', expiresAt: new Date(Date.now() + 60000).toISOString() }; },
+    const adapter: OrderAdapter = mockAdapter ?? {
+      async preview({ order }) { return { previewId: randomUUID(), order, fee, feeCurrency: 'USD', expiresAt: new Date(sessionClock() + 60000).toISOString() }; },
       async dispatch({ dispatchId }) { return dispatch === 'accepted' ? { outcome: 'accepted', brokerOrderId: `synthetic-${dispatchId}` } : { outcome: dispatch }; },
       async reconcile({ brokerOrderId }) {
         if (!brokerOrderId) return { status: 'unknown', executions: [] };
@@ -214,7 +230,25 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
       },
       async cancel() { return { acknowledged: true }; },
     };
-    const lifecycle = new OrderLifecycle(facts, owner, () => ({ accountId: account, routing: route }), adapter);
+    const lifecycle = new OrderLifecycle(facts, owner, () => ({ accountId: account, routing: route }), adapter, sessionClock);
+    let mockPreviewAdmissionTail = Promise.resolve();
+    const previewAndAdmitMock = async (rawOrder: unknown) => {
+      let release!: () => void;
+      const preceding = mockPreviewAdmissionTail;
+      mockPreviewAdmissionTail = new Promise<void>(resolve => { release = resolve; });
+      await preceding;
+      try {
+        try {
+          const preview = await lifecycle.preview(rawOrder);
+          if (!mockAdapter) throw new Error('synthetic mock unavailable');
+          await mockAdapter.admitPreview(preview);
+          return preview;
+        } catch (error) {
+          mockAdapter?.discardUnadmittedPreview();
+          throw error;
+        }
+      } finally { release(); }
+    };
     const server: Server = createServer(async (req, res) => {
       res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff');
       const fail = (status: number) => { res.writeHead(status); res.end(JSON.stringify({ version: 1, source, error: 'synthetic request unavailable' })); };
@@ -229,7 +263,8 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
         || expires !== auth.expiresAt || current < issuedAt || current >= auth.expiresAt) return fail(403);
       if (!req.url?.startsWith('/v1/synthetic-orders/')) return fail(404);
       const operation = req.url.slice('/v1/synthetic-orders/'.length);
-      if (!['resume', 'preview', 'confirm', 'reconcile', 'cancel', 'scenario', 'history'].includes(operation)) return fail(404);
+      if (!['resume', 'preview', 'confirm', 'reconcile', 'cancel', 'scenario', 'history', 'mock-history'].includes(operation)
+        || (operation === 'mock-history' && !mockAdapter) || (operation === 'scenario' && mockAdapter)) return fail(404);
       if (req.method !== 'POST') return fail(405);
       if (req.headers['content-type'] !== 'application/json' || req.headers['transfer-encoding'] !== undefined
         || !/^[0-9]+$/.test(req.headers['content-length'] ?? '') || Number(req.headers['content-length']) > maxBody) return fail(400);
@@ -241,8 +276,15 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
         let value: unknown;
         switch (operation) {
           case 'resume': empty.parse(input); await lifecycle.resumeNewOrders(); value = { ready: true }; break;
-          case 'preview': value = await lifecycle.preview(orderSchema.parse(input)); break;
-          case 'confirm': value = await lifecycle.confirm(input); break;
+          case 'preview': {
+            const order = orderSchema.parse(input);
+            const preview = mockAdapter ? await previewAndAdmitMock(order) : await lifecycle.preview(order);
+            value = preview;
+          } break;
+          case 'confirm': {
+            try { value = await lifecycle.confirm(input); }
+            catch (error) { mockAdapter?.discardRejectedConfirmation(input); throw error; }
+          } break;
           case 'reconcile': empty.parse(input); value = { observations: await lifecycle.reconcileAll() }; break;
           case 'cancel': value = { outcome: await lifecycle.cancel(cancelInput.parse(input).intentId) }; break;
           case 'scenario': {
@@ -256,6 +298,11 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
             if (!result.ok) throw new Error();
             value = { items: result.value.map(syntheticHistoryItem) };
           } break;
+          case 'mock-history': {
+            const query = z.object({ dispatchId: ledgerId }).strict().parse(input);
+            if (!mockAdapter) throw new Error();
+            value = { order: await mockAdapter.readMockOrder(query.dispatchId) };
+          } break;
         }
         res.end(JSON.stringify({ version: 1, source, value }));
       } catch { fail(409); }
@@ -263,12 +310,32 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     server.requestTimeout = 5000; server.headersTimeout = 5000; server.maxHeadersCount = 32;
     return {
       auth, path,
+      mockPath: mockAdapter ? mockPath : undefined,
+      mockStore,
+      mockTransport,
       start: async () => {
         if (!fixtureEnabled()) throw new Error('synthetic harness disabled');
-        await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
-        return (server.address() as { port: number }).port;
+        try {
+          if (mockTransport) await mockTransport.start();
+          await new Promise<void>((resolve, reject) => {
+            server.once('error', reject);
+            server.listen(0, '127.0.0.1', () => { server.removeListener('error', reject); resolve(); });
+          });
+          return (server.address() as { port: number }).port;
+        } catch (error) {
+          try { if (mockTransport) await mockTransport.close(); } catch { /* uncertain mock ownership remains */ }
+          try { facts.close(); } catch { /* uncertain lifecycle ownership remains */ }
+          throw error;
+        }
       },
-      close: async () => { server.closeAllConnections(); if (server.listening) await new Promise<void>(resolve => server.close(() => resolve())); facts.close(); },
+      close: async () => {
+        server.closeAllConnections();
+        if (server.listening) await new Promise<void>(resolve => server.close(() => resolve()));
+        let failure: unknown;
+        try { if (mockTransport) await mockTransport.close(); } catch (error) { failure = error; }
+        try { facts.close(); } catch (error) { failure ??= error; }
+        if (failure) throw failure;
+      },
       reopen: open,
     };
   };

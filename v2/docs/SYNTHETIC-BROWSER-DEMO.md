@@ -17,6 +17,7 @@ receives a five-minute nonrenewable HttpOnly SameSite cookie plus page CSRF valu
 Exact loopback Host/Origin and no forwarding headers are required. Only named
 resume/preview/confirm/history/reconcile/cancel operations are available. Scenario
 selection is available only to test runner code, never the browser bridge.
+Application-mock mode adds only the `mock-state` read operation.
 
 From `v2/`, on Node 22 with installed lockfile dependencies and **an explicitly
 provisioned trusted Windows private parent** (`GELT_WINDOWS_PRIVATE_PARENT`, per
@@ -27,10 +28,39 @@ provisioned trusted Windows private parent** (`GELT_WINDOWS_PRIVATE_PARENT`, per
 NODE_ENV=test node scripts/synthetic-browser-demo.mjs --offline-test-only
 ```
 
+The optional application-protocol mock is selected explicitly by adding
+`--application-mock-test-only`. This enables only the versioned local synthetic
+mock adapter and its separate private SQLite file for the disposable demo fixture:
+
+```sh
+NODE_ENV=test node scripts/synthetic-browser-demo.mjs --offline-test-only --application-mock-test-only
+```
+
+In this mode the fixed instrument is `SYNTH-RH-USD` with the mock's named test
+quote and starting limit `0.90 USD` and fee `0.01 USD`; the fallback demo keeps
+its `1.00 USD` starting limit. After explicit preview and confirmation, the page
+shows lifecycle history and provides a separate read of durable mock state
+using the confirmed synthetic intent ID. The mock section is labeled as an
+application protocol mock, not official Robinhood or MCP, and is not broker
+evidence. A cancellation acknowledgement remains separate from terminal
+cancellation. An unknown outcome remains unresolved and is never retried.
+
+Editing an admitted mock draft clears confirmation consent but keeps the exact
+preview visible and reserved through its expiry. Restore the displayed terms to
+confirm them, or wait until expiry before requesting a replacement. A stale
+preview ID or mismatched terms hash does not consume a newer bridge preview.
+Fallback-mode wrong-hash confirmation attempts retain the original single-use
+consumption behavior. Public synthetic history omits preview IDs; the authored
+integration regression verifies the preview-to-intent binding from the
+test-only persisted lifecycle events instead.
+
 Open the printed `http://127.0.0.1:<ephemeral-port>/` only in a local browser.
 Use Resume, Preview, review exact synthetic order/fee/expiry, tick confirmation,
-Confirm, then Refresh synthetic history. Ctrl-C/SIGTERM closes both listeners and
-removes this run's private fixture; no persistent service should be left running.
+Confirm, then Refresh synthetic history. In application-mock mode, use the
+separate durable mock state button after confirmation. Ctrl-C/SIGTERM closes both
+listeners before removing this run's private fixture. Cleanup is bounded to five
+seconds; if closure does not finish, the launcher exits with failure and retains
+the fixture for manual review. No persistent service should be left running.
 On Windows PowerShell set `$env:NODE_ENV='test'` before invoking `node` instead
 of the POSIX inline environment syntax. This intentionally refuses startup when
 private storage guardrails are not satisfied. A successful confirmation means only

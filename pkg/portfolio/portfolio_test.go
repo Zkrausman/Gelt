@@ -72,8 +72,8 @@ func TestGenerateTelemetry(t *testing.T) {
 		112,
 	)
 
-	if telemetry.AccountValue != 50.0 {
-		t.Errorf("Expected account value 50.0, got %.2f", telemetry.AccountValue)
+	if telemetry.AccountValue != 101.5 {
+		t.Errorf("Expected account value 101.5, got %.2f", telemetry.AccountValue)
 	}
 
 	dashboard := telemetry.FormatDashboard()

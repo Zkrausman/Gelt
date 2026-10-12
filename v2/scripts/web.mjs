@@ -2,6 +2,7 @@
 import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
 import next from 'next';
+import { sendWebListeningAcknowledgement } from './web-ipc.mjs';
 process.env.GELT_INGRESS_SECRET = randomBytes(32).toString('base64url');
 const app = next({ dev: false, dir: './web', hostname: '127.0.0.1', port: 3000 });
 await app.prepare();
@@ -15,7 +16,6 @@ const server = createServer((req, res) => {
   void handler(req, res).catch(() => { res.writeHead(500); res.end(); });
 });
 server.requestTimeout = 10000; server.headersTimeout = 5000; server.maxHeadersCount = 32;
-server.listen(3000, '127.0.0.1');
 let stopping = false;
 const stop = () => {
   if (stopping) return; stopping = true;
@@ -24,3 +24,8 @@ const stop = () => {
 for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, stop);
 process.on('message', message => { if (message?.type === 'gelt:shutdown') stop(); });
 process.on('disconnect', stop);
+server.listen(3000, '127.0.0.1', () => {
+  // The temporary owner launcher uses its private IPC channel to distinguish
+  // this process binding successfully from a competing loopback listener.
+  sendWebListeningAcknowledgement(process, stop);
+});

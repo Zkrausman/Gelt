@@ -151,3 +151,46 @@ record and retry the identical import only after verifying no writer is active.
 
 No broker execution status, execution-MVP acceptance, shadow completion,
 promotion eligibility or profitability follows from this research milestone.
+
+## Temporary protected owner inspection
+
+The opt-in, local-only temporary viewer composes the existing private fixture,
+research import/store, one-use bootstrap, protected ConnectionBff, and guarded
+web entry. It is not part of the normal supervisor and never installs packages,
+builds the application, starts market/worker/V1 services, or opens a browser.
+
+From the V2 directory, after the supported Node 22 locked build is already
+available, the owner explicitly starts it with:
+
+    node scripts/research-owner-demo.mjs --owner-demo-only
+
+The launcher refuses unless loopback ports 3000 and 4100 are free, and the
+required prebuilt web and worker modules are present. It creates random private temporary roots through the
+existing storageFixture guard and provisions the store separately from five
+temporary synthetic roots for the key, worker, BFF, owner-bootstrap, and ledger
+roles. It verifies the fixed adopted artifact's 12,160 bytes, digest, and
+evidence ID, and imports those exact bytes. It does not execute or reproduce the
+scientific artifact. The private BFF config and one-use grant are synthetic and
+temporary. The grant expires after 30 minutes; the in-memory owner session is
+created only through the existing /connect flow.
+
+The launcher starts only web.mjs on 127.0.0.1:3000, preloaded with the existing
+offline guard and a minimal child environment. It prints the one-use synthetic
+grant once. The owner opens http://127.0.0.1:3000/connect, enters the grant,
+then opens /research and inspects the read-only evidence. Research remains
+insufficient_evidence, scientificReproduction remains not_run, and
+promotionAllowed remains false. No broker or market data is involved.
+
+Ctrl-C, SIGTERM, or the 30-minute deadline sends the existing web shutdown
+message to the owned child and waits at most one second for the IPC send
+callback. Callback failure or timeout falls back to bounded TERM/KILL
+escalation against that child only. After confirmed child exit, the launcher re-reads the store through the
+existing validated read function and checks the owned BFF directory for
+`bootstrap.json.lock` using the existing private-directory check plus a
+no-follow marker inspection. Temporary roots are removed only if both research
+readbacks bind the exact digest and length and no bootstrap consumption marker
+remains. If storage mutation, either inspection, or child termination is
+uncertain, all remaining fixture roots are retained and reported for operator
+review; no marker repair or process-by-port kill is attempted. After the service stops, close the local browser tab so the page's
+navigation cleanup clears its protected in-memory display. This temporary flow
+does not configure persistent owner access or change launcher settings.

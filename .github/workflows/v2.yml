@@ -31,6 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v5
         with:
@@ -73,6 +74,21 @@ jobs:
           NODE_ENV: test
           GELT_OFFLINE_RESEARCH: fixture-only
           GELT_RESEARCH_SCREENSHOTS: ${{ runner.temp }}/gelt-research-playwright
+      - name: Prepare private G01 browser fixture parent
+        run: mkdir -m 700 "${RUNNER_TEMP}/gelt-g01-private-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: G01 synthetic owner entry and protected research browser regression
+        run: node v2/tests/research-owner-entry/run.mjs
+        env:
+          GELT_TEST_APP_ROOT: ${{ github.workspace }}/v2
+          GELT_TEST_SOURCE_ROOT: ${{ github.workspace }}
+          GELT_TEST_PLAYWRIGHT_ROOT: ${{ github.workspace }}/tests/research-browser
+          GELT_TEST_BROWSER_PATH: ${{ env.GELT_TEST_BROWSER_PATH }}
+          GELT_TEST_BROWSERS_PATH: ${{ runner.temp }}/gelt-g01-browsers
+          GELT_TEST_PRIVATE_PARENT: ${{ runner.temp }}/gelt-g01-private-${{ github.run_id }}-${{ github.run_attempt }}
+          GELT_TEST_SOURCE_BASE: 9debdf6d055137d4f4f6e0121bd5930a43e18755
+      - name: Remove empty private G01 browser fixture parent after verified success
+        if: ${{ success() }}
+        run: rmdir -- "${RUNNER_TEMP}/gelt-g01-private-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
       - name: Retain private research Playwright evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

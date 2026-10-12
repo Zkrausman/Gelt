@@ -94,7 +94,8 @@ export default function Connect() {
         headers: { 'Content-Type': 'application/json', 'X-Gelt-CSRF': csrf },
         body: JSON.stringify(body),
       });
-      const value: unknown = await response.json();
+      let value: unknown = null;
+      try { value = await response.json(); } catch { /* Keep the HTTP response so bootstrap failures retain their status. */ }
       const record = typeof value === 'object' && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : {};
 
       if (operation === 'bootstrap') {
@@ -105,7 +106,14 @@ export default function Connect() {
           setMessage('Owner session opened. Read status; this does not enable an order.');
         } else {
           setCsrf('');
-          setMessage('Owner session unavailable. No connection or order outcome is assumed.');
+          // A denied or malformed bootstrap does not invalidate a session that
+          // may already be live. Keep its saved CSRF so the owner can restore it.
+          const stage = response.headers.get('x-gelt-bootstrap-stage');
+          const outcome = response.headers.get('x-gelt-bootstrap-outcome');
+          const safeStage = stage && /^(request|host-validated|ingress-validated|origin-validated|path-validated|method-validated|configuration-validated|body-validated|grant-read|grant-validated|grant-consumed|session-created)$/.test(stage) ? `; stage ${stage}` : '';
+          const safeOutcome = outcome && /^(unavailable|grant-expired|grant-mismatch|grant-expired-after-consumption|session-created)$/.test(outcome) ? `; outcome ${outcome}` : '';
+          const responseShape = value === null || (typeof value !== 'object' || Array.isArray(value)) ? '; response body invalid' : response.ok ? '; response shape invalid' : '';
+          setMessage(`Owner session unavailable (HTTP ${response.status}${safeStage}${safeOutcome}${responseShape}). No connection or order outcome is assumed.`);
         }
         return;
       }
@@ -146,7 +154,11 @@ export default function Connect() {
       setStatus(null);
       setStatusReadAt(null);
       setStatusMessage('Unknown / unavailable: protected connection status could not be read.');
-      setMessage('Unavailable. No broker or order outcome is assumed.');
+      if (operation === 'bootstrap') {
+        setBootstrap('');
+        setCsrf('');
+        setMessage('Owner session unavailable (no HTTP response). No connection or order outcome is assumed.');
+      } else setMessage('Unavailable. No broker or order outcome is assumed.');
     } finally {
       requestInFlight.current = false;
       setBusy(false);

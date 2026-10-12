@@ -19,24 +19,38 @@ export class ConnectionBff {
   constructor(private configPath?: string, private transport: typeof fetch = fetch, private now = Date.now, private ingressSecret = process.env.GELT_INGRESS_SECRET, private researchRoot = process.env.GELT_RESEARCH_ROOT) {}
   private config() { return z.object({ serviceSecret: opaque }).strict().parse(JSON.parse(readPrivate(this.configPath!).toString('utf8'))); }
   async handle(req: Request, operation: string): Promise<Response> {
+    let bootstrapStage = 'request';
+    let bootstrapOutcome = 'unavailable';
+    const respond = (value: Record<string, unknown>, status = 200, extra = {}) => json(value, status, {
+      ...extra,
+      ...(operation === 'bootstrap' && process.env.GELT_SIMULATION_DIAGNOSTICS === '1'
+        ? { 'X-Gelt-Bootstrap-Stage': bootstrapStage, 'X-Gelt-Bootstrap-Outcome': bootstrapOutcome }
+        : {}),
+    });
     try {
       const url = new URL(req.url);
       // Next synthesizes request.url with localhost; authority comes from raw gated Host, never that synthetic origin.
-      if (req.headers.get('host') !== '127.0.0.1:3000') return json({ error: 'forbidden' }, 403);
-      if (!this.ingressSecret || !equalSecret(req.headers.get('x-gelt-ingress'), this.ingressSecret)) return json({ error: 'forbidden' }, 403);
+      if (req.headers.get('host') !== '127.0.0.1:3000') return respond({ error: 'forbidden' }, 403);
+      bootstrapStage = 'host-validated';
+      if (!this.ingressSecret || !equalSecret(req.headers.get('x-gelt-ingress'), this.ingressSecret)) return respond({ error: 'forbidden' }, 403);
+      bootstrapStage = 'ingress-validated';
       const generated: Record<string, string> = { 'x-forwarded-host': '127.0.0.1:3000', 'x-forwarded-port': '3000', 'x-forwarded-proto': 'http', 'x-forwarded-for': '127.0.0.1' };
-      if ([...req.headers].some(([k, v]) => (k === 'forwarded' || k.startsWith('x-forwarded-')) && generated[k] !== v)) return json({ error: 'forbidden' }, 403);
+      if ([...req.headers].some(([k, v]) => (k === 'forwarded' || k.startsWith('x-forwarded-')) && generated[k] !== v)) return respond({ error: 'forbidden' }, 403);
       const callback = operation === 'callback';
-      if (!callback && req.headers.get('origin') !== ORIGIN) return json({ error: 'forbidden' }, 403);
-      if (url.pathname !== `/api/connection/${operation}` || (!callback && url.search)) return json({ error: 'invalid_request' }, 400);
-      if (callback ? req.method !== 'GET' : req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
-      if (!this.configPath) return json({ error: 'setup_required' }, 503);
+      if (!callback && req.headers.get('origin') !== ORIGIN) return respond({ error: 'forbidden' }, 403);
+      bootstrapStage = 'origin-validated';
+      if (url.pathname !== `/api/connection/${operation}` || (!callback && url.search)) return respond({ error: 'invalid_request' }, 400);
+      bootstrapStage = 'path-validated';
+      if (callback ? req.method !== 'GET' : req.method !== 'POST') return respond({ error: 'method_not_allowed' }, 405);
+      bootstrapStage = 'method-validated';
+      if (!this.configPath) return respond({ error: 'setup_required' }, 503);
       const config = this.config();
+      bootstrapStage = 'configuration-validated';
       let input: unknown = {};
       if (!callback) {
-        if (req.headers.get('content-type') !== 'application/json') return json({ error: 'invalid_request' }, 400);
+        if (req.headers.get('content-type') !== 'application/json') return respond({ error: 'invalid_request' }, 400);
         // Stream bound rather than trusting Content-Length from the browser.
-        if (!req.body) return json({ error: 'invalid_request' }, 400);
+        if (!req.body) return respond({ error: 'invalid_request' }, 400);
         const reader = req.body.getReader(); let bytes = 0; const parts: Uint8Array[] = [];
         let timedOut = false;
         const timeout = setTimeout(() => { timedOut = true; void reader.cancel(); }, 3000);
@@ -44,36 +58,43 @@ export class ConnectionBff {
         finally { clearTimeout(timeout); await reader.cancel(); }
       }
       if (operation === 'bootstrap') {
+        bootstrapStage = 'body-validated';
         const { bootstrap } = z.object({ bootstrap: opaque }).strict().parse(input);
         const path = join(dirname(this.configPath), 'bootstrap.json');
+        bootstrapStage = 'grant-read';
         const grantBytes = readPrivate(path);
         const grant = z.object({ digest: z.string().regex(/^[a-f0-9]{64}$/), expiresAt: z.number().int() }).strict().parse(JSON.parse(grantBytes.toString('utf8')));
-        if (grant.expiresAt <= this.now() || !equalSecret(createHash('sha256').update(bootstrap).digest('hex'), grant.digest)) return json({ error: 'forbidden' }, 403);
+        if (grant.expiresAt <= this.now()) { bootstrapOutcome = 'grant-expired'; return respond({ error: 'forbidden' }, 403); }
+        if (!equalSecret(createHash('sha256').update(bootstrap).digest('hex'), grant.digest)) { bootstrapOutcome = 'grant-mismatch'; return respond({ error: 'forbidden' }, 403); }
+        bootstrapStage = 'grant-validated';
         // Synchronous durable consumption before granting a session; restarts cannot replay.
         consumePrivate(path, grantBytes);
-        if (grant.expiresAt <= this.now()) return json({ error: 'forbidden' }, 403);
+        bootstrapStage = 'grant-consumed';
+        if (grant.expiresAt <= this.now()) { bootstrapOutcome = 'grant-expired-after-consumption'; return respond({ error: 'forbidden' }, 403); }
         this.session = { id: randomBytes(32).toString('base64url'), csrf: randomBytes(32).toString('base64url'), expires: this.now() + 3600000 };
-        return json({ version: 'v1', csrf: this.session.csrf }, 200, { 'Set-Cookie': `${COOKIE}=${this.session.id}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600` });
+        bootstrapStage = 'session-created';
+        bootstrapOutcome = 'session-created';
+        return respond({ version: 'v1', csrf: this.session.csrf }, 200, { 'Set-Cookie': `${COOKIE}=${this.session.id}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600` });
       }
       const cookies = (req.headers.get('cookie') ?? '').split(';').map(s => s.trim()).filter(s => s.startsWith(COOKIE + '='));
       const s = this.session;
-      if (!s || s.expires <= this.now() || cookies.length !== 1 || !equalSecret(cookies[0].slice(COOKIE.length + 1), s.id)) return json({ error: 'unauthorized' }, 401);
-      if (!callback && !equalSecret(req.headers.get('x-gelt-csrf'), s.csrf)) return json({ error: 'forbidden' }, 403);
-      if (!['status', 'initiate', 'callback', 'discover', 'select', 'disconnect', 'history', 'intent', 'order-status', 'pi-status', 'pi-prepare', 'pi-review', 'pi-invalidate', 'research-list', 'research-detail'].includes(operation)) return json({ error: 'unsupported_operation' }, 404);
+      if (!s || s.expires <= this.now() || cookies.length !== 1 || !equalSecret(cookies[0].slice(COOKIE.length + 1), s.id)) return respond({ error: 'unauthorized' }, 401);
+      if (!callback && !equalSecret(req.headers.get('x-gelt-csrf'), s.csrf)) return respond({ error: 'forbidden' }, 403);
+      if (!['status', 'initiate', 'callback', 'discover', 'select', 'disconnect', 'history', 'intent', 'order-status', 'pi-status', 'pi-prepare', 'pi-review', 'pi-invalidate', 'research-list', 'research-detail'].includes(operation)) return respond({ error: 'unsupported_operation' }, 404);
       // Research reads share only the owner-session boundary. No account lookup,
       // worker dispatch, provisioning, artifact execution or caller-chosen root.
       if (operation === 'research-list' || operation === 'research-detail') {
         const selected = operation === 'research-detail' ? researchDetailInput.parse(input) : (empty.parse(input), null);
         const result = !this.researchRoot ? { state: 'unavailable' as const } : selected
           ? readResearch(this.researchRoot, selected.evidenceId) : listResearch(this.researchRoot);
-        if (this.session !== s || s.expires <= this.now()) return json({ error: 'unauthorized' }, 401);
+        if (this.session !== s || s.expires <= this.now()) return respond({ error: 'unauthorized' }, 401);
         const value = operation === 'research-list' && result.state === 'available' && 'items' in result
           ? { state: 'available', items: result.items.map(item => ({ evidenceId: item.evidenceId, state: item.result.state })) }
           : result;
         const schema = operation === 'research-list' ? researchListResponse : researchDetailResponse;
         const payload = schema.parse({ ...value, version: 'v1', sessionExpiresAt: s.expires });
         if (Buffer.byteLength(JSON.stringify(payload), 'utf8') > MAX_RESEARCH_RESPONSE_BYTES) throw new Error('research response too large');
-        return json(payload);
+        return respond(payload);
       }
       if (callback) {
         const keys = [...url.searchParams.keys()];
@@ -98,22 +119,22 @@ export class ConnectionBff {
       // History may finish after the authoritative owner session expires or is
       // replaced. Classify only that known denial; private-worker errors remain
       // generic and never become a claim about the browser's authenticated state.
-      if ((operation === 'history' || operation === 'intent') && (this.session !== s || s.expires <= this.now())) return json({ error: 'unauthorized' }, 401);
+      if ((operation === 'history' || operation === 'intent') && (this.session !== s || s.expires <= this.now())) return respond({ error: 'unauthorized' }, 401);
       if (!response.ok || this.session !== s || s.expires <= this.now()) throw new Error('worker unavailable');
       const value = JSON.parse(Buffer.concat(parts).toString('utf8'));
-      if (operation === 'history') return json(historyListResponseSchema.parse(value) as unknown as Record<string, unknown>);
-      if (operation === 'intent') return json(historyDetailResponseSchema.parse(value) as unknown as Record<string, unknown>);
-      if (operation === 'order-status') return json(orderSurfaceSchema.parse(value) as unknown as Record<string, unknown>);
-      if (operation.startsWith('pi-')) return json((operation === 'pi-prepare' || operation === 'pi-review' ? handoffResponseSchema : handoffStatusSchema).parse(value) as unknown as Record<string, unknown>);
+      if (operation === 'history') return respond(historyListResponseSchema.parse(value) as unknown as Record<string, unknown>);
+      if (operation === 'intent') return respond(historyDetailResponseSchema.parse(value) as unknown as Record<string, unknown>);
+      if (operation === 'order-status') return respond(orderSurfaceSchema.parse(value) as unknown as Record<string, unknown>);
+      if (operation.startsWith('pi-')) return respond((operation === 'pi-prepare' || operation === 'pi-review' ? handoffResponseSchema : handoffStatusSchema).parse(value) as unknown as Record<string, unknown>);
       const output = operation === 'initiate' ? initiatedSchema.parse(value) : statusSchema.parse(value);
       if ('expiresAt' in output && output.expiresAt !== null && output.expiresAt <= this.now()) throw new Error('expired output');
       if (callback) return new Response(null, { status: 303, headers: { ...headers, Location: '/connect' } });
-      if (operation === 'disconnect') { this.session = null; return json(output, 200, { 'Set-Cookie': `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0` }); }
-      return json(output);
+      if (operation === 'disconnect') { this.session = null; return respond(output, 200, { 'Set-Cookie': `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0` }); }
+      return respond(output);
     } catch {
       // Never include callback URLs, codes, Zod issues, transport errors or provider output.
       if (operation === 'callback') return new Response(null, { status: 303, headers: { ...headers, Location: '/connect' } });
-      return json({ version: 'v1', error: 'connection_unavailable' }, 409);
+      return respond({ version: 'v1', error: 'connection_unavailable' }, 409);
     }
   }
 }

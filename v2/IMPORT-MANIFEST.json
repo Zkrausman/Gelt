@@ -62,42 +62,42 @@
     {
       "upstreamPath": "docs/screenshots/chart.png",
       "upstreamSha256": "08695c8f03a2b66cb26ec5c07d3177b6729ce31e97dda24e09f0b0cd3ae4c5cf",
-      "status": "retained",
+      "status": "modified",
       "path": "docs/screenshots/chart.png",
-      "sha256": "08695c8f03a2b66cb26ec5c07d3177b6729ce31e97dda24e09f0b0cd3ae4c5cf",
-      "reason": "Verbatim upstream source/asset"
+      "sha256": "b737ba4fc02eb53a83ceb007a471711e98e3d8a6e49588c6c4f2915a52f05472",
+      "reason": "Local privacy sanitization; original upstream digest retained as provenance"
     },
     {
       "upstreamPath": "docs/screenshots/crypto.png",
       "upstreamSha256": "7a78846130a573edb63f7942bdd3d9bdacde9c1096a282aa8aaf2203ac01d376",
-      "status": "retained",
+      "status": "modified",
       "path": "docs/screenshots/crypto.png",
-      "sha256": "7a78846130a573edb63f7942bdd3d9bdacde9c1096a282aa8aaf2203ac01d376",
-      "reason": "Verbatim upstream source/asset"
+      "sha256": "974432dd01bcecc3612c43ca9264c335425e4065f057b130cc334fff86320ec4",
+      "reason": "Local privacy sanitization; original upstream digest retained as provenance"
     },
     {
       "upstreamPath": "docs/screenshots/dashboard.png",
       "upstreamSha256": "86ad41a88ba94770912e2fcbf593cd8502b6f5e0b34b0cea5500486fab5bb692",
-      "status": "retained",
+      "status": "modified",
       "path": "docs/screenshots/dashboard.png",
-      "sha256": "86ad41a88ba94770912e2fcbf593cd8502b6f5e0b34b0cea5500486fab5bb692",
-      "reason": "Verbatim upstream source/asset"
+      "sha256": "71e6ef0a15c9f03a3174638de377dcc0be219a0b5e6aae25617cd4939e0e7d08",
+      "reason": "Local privacy sanitization; original upstream digest retained as provenance"
     },
     {
       "upstreamPath": "docs/screenshots/heatmap.png",
       "upstreamSha256": "e30e0b73315e50d6bdc8b031fc778f8a67b2a2efd6a1685db1039aa295254736",
-      "status": "retained",
+      "status": "modified",
       "path": "docs/screenshots/heatmap.png",
-      "sha256": "e30e0b73315e50d6bdc8b031fc778f8a67b2a2efd6a1685db1039aa295254736",
-      "reason": "Verbatim upstream source/asset"
+      "sha256": "d3ad45c07cf83c71a57af3e722ec73560f621f5731e62a2b36aad2957bf3d57c",
+      "reason": "Local privacy sanitization; original upstream digest retained as provenance"
     },
     {
       "upstreamPath": "docs/screenshots/news.png",
       "upstreamSha256": "6fef7493f540b09566bfac89c70c98a337c4062eaa03b93160a1fce0f9d7a460",
-      "status": "retained",
+      "status": "modified",
       "path": "docs/screenshots/news.png",
-      "sha256": "6fef7493f540b09566bfac89c70c98a337c4062eaa03b93160a1fce0f9d7a460",
-      "reason": "Verbatim upstream source/asset"
+      "sha256": "21f06441cb58581b73dafcbf8bf91009799aabc97ae9af8dda04083af2a8d2f2",
+      "reason": "Local privacy sanitization; original upstream digest retained as provenance"
     },
     {
       "upstreamPath": "package-lock.json",
@@ -270,10 +270,10 @@
     {
       "upstreamPath": "server/src/providers/secedgar.ts",
       "upstreamSha256": "6e43420c231baecd64374113650b4b8b40cdb5c8244ca2d1a5557a1dac147d2e",
-      "status": "retained",
+      "status": "modified",
       "path": "server/src/providers/secedgar.ts",
-      "sha256": "6e43420c231baecd64374113650b4b8b40cdb5c8244ca2d1a5557a1dac147d2e",
-      "reason": "Verbatim upstream source/asset"
+      "sha256": "15b4b41075fc85246f1fbd16c51302215f1f5b810b544be7ad79397cbca7f020",
+      "reason": "Local privacy sanitization; original upstream digest retained as provenance"
     },
     {
       "upstreamPath": "server/src/providers/stooq.ts",
@@ -2608,7 +2608,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/service.test.ts",
-      "sha256": "60e420f64c8a4cbad1d611e9dab6d54d0013981c8c3759f93636450441429a6f",
+      "sha256": "f2efb513b318d02615a24f5f84e6baa4cd7a9c9e1a477bc484862dc84244b1f9",
       "reason": "ZAR-219 private worker Pi handoff tests; ZAR-237 per-session invalidation, cross-session, restart and bounded-overflow regression; local hash refreshed"
     },
     {
@@ -2664,7 +2664,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/web.mjs",
-      "sha256": "88ea12d5a48ed44acf1b85c3a9876c8c834eebf7805d68da627103f9c238a08f",
+      "sha256": "e76cd3292b925f43211b512162323126416f534fd73a202c44028d85bf555d44",
       "reason": "Gelt local M2 foundation plus M3 protected account boundary"
     },
     {
@@ -2680,7 +2680,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "web/app/connect/page.tsx",
-      "sha256": "6ce617e1dfb939a131d20011cd387f953d4e2c2cc4ee7aef54ca0b19a8401dd2",
+      "sha256": "e2668793e246c30bdc82ae1db51d239899fd424a6df1e4eb6393a1cdc2cf730a",
       "reason": "Gelt local M2 foundation plus M3 protected account boundary; ZAR-218 read-only history navigation; ZAR-217 connection card and offline BUY UI"
     },
     {
@@ -2688,7 +2688,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "web/lib/connection-bff.test.ts",
-      "sha256": "178f0e6fab829dc9d95aad0107e2528a8b7fa17a9e315f9740b3dfee418cea22",
+      "sha256": "8aaf4761e68ac7768e139175f077d4f23986a7568b2a81e43d57cd80134f7fc6",
       "reason": "ZAR-219 BFF authorization, strict fixture DTO and actual loopback worker round-trip regression tests"
     },
     {
@@ -2696,7 +2696,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "web/lib/connection-bff.ts",
-      "sha256": "cb7ca57a2e63ac8d2882d0b8bb272b6b7c4d9b1062fef6493d5ca3d697421746",
+      "sha256": "cc5caa045e61c4a89ef8d76a2b4d61cd66d0fbaccfd4dbf0a1766ee1a3128343",
       "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
     },
     {
@@ -2816,7 +2816,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "CONNECTION-OPERATIONS.md",
-      "sha256": "4769ecb918b817f811dbcf174867af4c4e35419d8d96b19f05b50f9739f89924",
+      "sha256": "bc8b76bf660578feb65d4b53916d785252f488aa75136d6dd7df3495942213d5",
       "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
     },
     {
@@ -3192,32 +3192,32 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "docs/SYNTHETIC-BROWSER-DEMO.md",
-      "sha256": "6ad8bd53f6b81952af1d4c6bc58fa05ede5cdd0ddf86b5d274f48bed78ec52a7",
-      "reason": "ZAR-219 demo specification with ZAR-238 isolated kernel addendum; refreshed local hash and import verification passed"
+      "sha256": "ede860168ffd90a4d9754cab00a8aac99421bf8f601a0ca5088a53334f76ad8a",
+      "reason": "ZAR-219 demo documentation with opt-in application-mock selection, fixture-aligned price, preview preservation, fallback single-use behavior, public-history redaction, provenance, and bounded cleanup"
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/synthetic-browser-demo.mjs",
-      "sha256": "910c911f6d01bc8d9c9c547cc6a8bac4b08e898f7328807f60a70f824eee1ac3",
-      "reason": "ZAR-219 explicit test-only browser launcher outside production startup"
+      "sha256": "5cb8cb5dd39b854fb1a6833c2d07f7abc42a44471ba471e3961b6d39c3f763f5",
+      "reason": "ZAR-219 loopback browser launcher with opt-in application-mock flag and bounded cleanup"
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-browser-demo.test.ts",
-      "sha256": "da0b2ca11cb6e530bab9085e8da66533422f9f237923c1562db5fe72c1677310",
-      "reason": "ZAR-219 isolated synthetic browser bridge and shipped-script regression tests"
+      "sha256": "de9ef94af54c7d2070355b9bbe92bb38d370ccc639b8d8314edc6bab692db119",
+      "reason": "ZAR-219 bridge regressions for fallback wrong-hash consumption, stale mock-preview preservation, and redacted public history bound through persisted test-only lifecycle facts"
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-browser-demo.ts",
-      "sha256": "ed2f181c3a18c4c8e6cd750da2d126a8e1a13c362924cc120677c9a2d4c04e67",
-      "reason": "ZAR-219 opt-in test-only loopback browser bridge with synthetic provenance"
+      "sha256": "9e836fce3b9425f0aca19be9270df9a56eda253ba4edf3394874a6a451c83ecb",
+      "reason": "Mode-specific single-use confirmation consumption; stale application-mock IDs/hashes preserve the current bridge preview"
     },
     {
       "upstreamPath": null,
@@ -3232,8 +3232,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "a47237e5341c22dbffb21201e5f3a2bfa1e196d419478c2840c00c0d9093371f",
-      "reason": "ZAR-219 test-only synthetic adapter and isolated SQLite lifecycle, not broker facts"
+      "sha256": "d30e20d040b70e189616a344a93ed041db90bfed1243f2c52f74aea82007b707",
+      "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route"
     },
     {
       "upstreamPath": null,
@@ -3360,7 +3360,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "RESEARCH-OPERATIONS.md",
-      "sha256": "329fe1e644946652badc2c1d23cb71e794463d76c4868ce1ff3742f3e75084e4",
+      "sha256": "a6fe15a31d5dea55e434b3e5a229a90062a0ab43ab2f41c5499212c85c43f56c",
       "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
     },
     {
@@ -3538,6 +3538,86 @@
       "path": "scripts/history-startup-diagnostics.test.mjs",
       "sha256": "ff72f4a401341517788f09b4eea224dfb6d6ecae684054bd1496842169960582",
       "reason": "Gelt ZAR-218 deterministic startup diagnostics and browser discovery tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/research-owner-demo.mjs",
+      "sha256": "9ddfbb23bd6260871fd5d8babfebd3255da27f861282bd1a4a4a33ffe990cb1c",
+      "reason": "Gelt P1.3 G01 isolated synthetic protected-owner browser entry and startup regression"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/research-owner-demo.test.mjs",
+      "sha256": "999aa4100d635e5cc437f852bb8735ede8a554413486bfd4e673345564e29ad5",
+      "reason": "Gelt P1.3 G01 isolated synthetic protected-owner browser entry and startup regression"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/web-ipc.mjs",
+      "sha256": "c5938ceaefbbb373dbf556b6b1a5d4f97c8250aeabf4c90f422082e2e0f87692",
+      "reason": "Gelt P1.3 G01 isolated synthetic protected-owner browser entry and startup regression"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "tests/research-owner-entry/run.mjs",
+      "sha256": "b7f1a51eabd0ec4096d48fc27aad9e256a4519e32c8cb9686f981566098dd627",
+      "reason": "Gelt P1.3 G01 isolated synthetic protected-owner browser entry and startup regression"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-mock-robinhood-transport.ts",
+      "sha256": "179d7c203def9fef74b0305f6d9d5b0f21cea38336a35217bc0323e50493c26d",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-mock-robinhood.test.ts",
+      "sha256": "59124e0609174ec7237c93690d025247985c4ae425123da1bed27c6ee34449c4",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-mock-robinhood-contract.ts",
+      "sha256": "c0f3046e51475ce9faa5f9716a1854d67fc0d2625d0d66ad22630eb48bc97c6e",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-mock-robinhood-adapter.ts",
+      "sha256": "70725ebe34a09124f41d795815832691a047711fcb264d30c3e9d95e2cfe2339",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/synthetic-mock-acceptance.mjs",
+      "sha256": "ea953cae67407f6879b80a41475dcd49cfa2a5af45d18e71e41a77a84aff1461",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-mock-robinhood-storage.ts",
+      "sha256": "49cb31a592afa267e2eeb058fc7e7ae71999a712402cd7b71bee4afd22aa7108",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     }
   ]
 }

@@ -1,10 +1,12 @@
 ---
 title: Privacy-safe publication snapshot
-status: Snapshot review passed; private history and publication decisions remain open
+status: Baseline snapshot reviewed; combined-candidate review status is in the external receipt
 updated: 2026-10-12
 ---
 
 # Privacy-safe publication snapshot
+
+This document describes the earlier 896-file sanitized baseline, whose exact inventory SHA-256 is `755bc39d7db43e1e916cd16a0fe62a95010b0d96bde670008104d53b7260f937`. The local candidate containing this file also layers the G01/G02 source delta from `580756993da733d6bd6eb86166a1de672e7829e5`, producing a separate 907-file tree. The earlier review does not clear this combined tree. The current combined-candidate review status is recorded with its exact inventory in the external local receipt. No combined-candidate import, test, smoke, browser, or runtime gate has run.
 
 ## Implemented behavior
 
@@ -23,7 +25,7 @@ updated: 2026-10-12
 - CI uses only the read-only `contents` workflow token scope; checkout steps do not persist their token in Git configuration.
 - A public snapshot must be exported without the private repository history, local receipts, generated binaries, databases, or machine-specific files.
 
-## Changed files
+## Original privacy-baseline changed files
 
 - `.github/workflows/ci.yml`
 - `.github/workflows/v2.yml`
@@ -73,6 +75,33 @@ updated: 2026-10-12
 - `v2/docs/screenshots/news.png`
 - `v2/server/src/providers/secedgar.ts`
 - `v2/worker/src/service.test.ts`
+
+## Additional local G01/G02 integration files
+
+- `.github/workflows/v2.yml` (merged with the privacy protections above)
+- `docs/specs/Synthetic-Mock-Robinhood-Rebuild.md`
+- `docs/specs/ZAR-231-Research-Evidence-Read-View.md`
+- `v2/IMPORT-MANIFEST.json`
+- `v2/RESEARCH-OPERATIONS.md`
+- `v2/docs/SYNTHETIC-BROWSER-DEMO.md`
+- `v2/scripts/research-owner-demo.mjs`
+- `v2/scripts/research-owner-demo.test.mjs`
+- `v2/scripts/synthetic-browser-demo.mjs`
+- `v2/scripts/synthetic-mock-acceptance.mjs`
+- `v2/scripts/web-ipc.mjs`
+- `v2/scripts/web.mjs`
+- `v2/tests/research-owner-entry/run.mjs`
+- `v2/web/app/connect/page.tsx`
+- `v2/web/lib/connection-bff.test.ts`
+- `v2/web/lib/connection-bff.ts`
+- `v2/worker/src/synthetic-browser-demo.test.ts`
+- `v2/worker/src/synthetic-browser-demo.ts`
+- `v2/worker/src/synthetic-mock-robinhood-adapter.ts`
+- `v2/worker/src/synthetic-mock-robinhood-contract.ts`
+- `v2/worker/src/synthetic-mock-robinhood-storage.ts`
+- `v2/worker/src/synthetic-mock-robinhood-transport.ts`
+- `v2/worker/src/synthetic-mock-robinhood.test.ts`
+- `v2/worker/src/synthetic-order-harness.ts`
 
 ## Verification evidence
 

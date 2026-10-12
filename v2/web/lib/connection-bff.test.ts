@@ -8,16 +8,16 @@ import { offlinePiHandoff } from '../../worker/src/pi-handoff';
 import { storageFixture } from '../../worker/src/storage-fixture';
 import { writePrivateNew, readPrivate } from '../../worker/src/private-files';
 const dirs: string[] = [];
-afterEach(() => { dirs.splice(0).forEach(d => rmSync(d, { recursive: true, force: true })); });
+afterEach(() => { vi.unstubAllEnvs(); dirs.splice(0).forEach(d => rmSync(d, { recursive: true, force: true })); });
 const bootstrap = 'b'.repeat(43), serviceSecret = 's'.repeat(43), ingress = 'i'.repeat(43);
-function fixture(realClock = false) {
+function fixture(realClock = false, readNow?: () => number) {
   const dir = storageFixture('gelt-bff-'); dirs.push(dir);
   let now = realClock ? Date.now() : 10000;
   writePrivateNew(join(dir, 'bff.json'), JSON.stringify({ serviceSecret }));
   writePrivateNew(join(dir, 'bootstrap.json'), JSON.stringify({ digest: createHash('sha256').update(bootstrap).digest('hex'), expiresAt: now + (realClock ? 60000 : 10000) }));
   const status = { version: 'v1', state: 'disconnected', reason: 'not_connected', expiresAt: null, accounts: [], selected: null, execution: false };
   const transport = vi.fn(async () => Response.json(status));
-  const bff = new ConnectionBff(join(dir, 'bff.json'), transport, () => now, ingress);
+  const bff = new ConnectionBff(join(dir, 'bff.json'), transport, readNow ?? (() => now), ingress);
   let cookie = '', csrf = '';
   const request = (operation: string, body: unknown = {}, overrides: Record<string, string> = {}, query = '') => new Request(`http://127.0.0.1:3000/api/connection/${operation}${query}`, { method: operation === 'callback' ? 'GET' : 'POST', headers: { host: '127.0.0.1:3000', origin: 'http://127.0.0.1:3000', 'content-type': 'application/json', 'x-gelt-ingress': ingress, cookie, 'x-gelt-csrf': csrf, ...overrides }, ...(operation === 'callback' ? {} : { body: JSON.stringify(body) }) });
   const call = (operation: string, body: unknown = {}, overrides = {}, query = '') => bff.handle(request(operation, body, overrides, query), operation);
@@ -34,6 +34,56 @@ it('one-use protected bootstrap, secure opaque cookie, actual session + CSRF; no
   f.transport.mockResolvedValueOnce(Response.json({ ...f.status, access_token: 'SECRET' })); const response = await f.call('status'); expect(response.status).toBe(409); expect(await response.text()).not.toContain('SECRET');
   f.time(); expect((await f.call('status')).status).toBe(401);
 });
+it('simulation bootstrap diagnostics report safe stages, status and outcomes without changing one-use behavior', async () => {
+  vi.stubEnv('GELT_SIMULATION_DIAGNOSTICS', '1');
+  const f = fixture();
+  const mismatch = await f.call('bootstrap', { bootstrap: 'x'.repeat(43) });
+  expect(mismatch.status).toBe(403);
+  expect(mismatch.headers.get('x-gelt-bootstrap-stage')).toBe('grant-read');
+  expect(mismatch.headers.get('x-gelt-bootstrap-outcome')).toBe('grant-mismatch');
+  expect(await mismatch.text()).not.toContain('x'.repeat(43));
+
+  const success = await f.login();
+  expect(success.status).toBe(200);
+  expect(success.headers.get('x-gelt-bootstrap-stage')).toBe('session-created');
+  expect(success.headers.get('x-gelt-bootstrap-outcome')).toBe('session-created');
+  const replay = await f.call('bootstrap', { bootstrap });
+  expect(replay.status).toBe(409);
+  expect(replay.headers.get('x-gelt-bootstrap-stage')).toBe('grant-read');
+  expect(replay.headers.get('x-gelt-bootstrap-outcome')).toBe('unavailable');
+  expect(await replay.text()).not.toContain(bootstrap);
+
+  const expired = fixture(); expired.time();
+  const denial = await expired.call('bootstrap', { bootstrap });
+  expect(denial.status).toBe(403);
+  expect(denial.headers.get('x-gelt-bootstrap-stage')).toBe('grant-read');
+  expect(denial.headers.get('x-gelt-bootstrap-outcome')).toBe('grant-expired');
+  expect(existsSync(join(expired.dir, 'bootstrap.json'))).toBe(true);
+  expect(existsSync(join(expired.dir, 'bootstrap.json.lock'))).toBe(false);
+});
+it('simulation diagnostics identify a denial after the one-use grant was consumed', async () => {
+  vi.stubEnv('GELT_SIMULATION_DIAGNOSTICS', '1');
+  const clock = [19999, 20000];
+  const f = fixture(false, () => clock.shift() ?? 20000);
+  const response = await f.call('bootstrap', { bootstrap });
+  expect(response.status).toBe(403);
+  expect(response.headers.get('x-gelt-bootstrap-stage')).toBe('grant-consumed');
+  expect(response.headers.get('x-gelt-bootstrap-outcome')).toBe('grant-expired-after-consumption');
+  if (process.platform === 'win32') expect(JSON.parse(readPrivate(join(f.dir, 'bootstrap.json')).toString())).toEqual({ consumed: true });
+  else expect(existsSync(join(f.dir, 'bootstrap.json'))).toBe(false);
+  expect(existsSync(join(f.dir, 'bootstrap.json.lock'))).toBe(false);
+  expect((await f.call('status')).status).toBe(401);
+});
+
+it('simulation bootstrap diagnostics stay absent outside the temporary demo mode', async () => {
+  vi.stubEnv('GELT_SIMULATION_DIAGNOSTICS', '');
+  const f = fixture();
+  const response = await f.login();
+  expect(response.status).toBe(200);
+  expect(response.headers.has('x-gelt-bootstrap-stage')).toBe(false);
+  expect(response.headers.has('x-gelt-bootstrap-outcome')).toBe(false);
+});
+
 it('rejects hostile host/origin/forwarded/CSRF/ingress and generic tools before private transport', async () => {
   const f = fixture(); await f.login();
   for (const h of [{ host: 'evil' }, { origin: 'https://evil.test' }, { origin: '' }, { 'x-gelt-csrf': '' }, { 'x-gelt-csrf': 'wrong' }, { forwarded: 'host=evil' }, { 'x-forwarded-host': 'evil' }, { 'x-forwarded-extra': 'evil' }, { 'x-gelt-ingress': '' }]) expect((await f.call('status', {}, h)).status).toBe(403);
