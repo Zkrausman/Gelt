@@ -6,7 +6,7 @@ import { rmSync } from 'node:fs';
 import { createSyntheticOrderHarness } from '../worker/dist/synthetic-order-harness.js';
 import { storageFixture } from '../worker/dist/storage-fixture.js';
 import { privateDirectory, writePrivateNew, readPrivate } from '../worker/dist/private-files.js';
-import { simulationSnapshotSchema, simulationViewMaxBytes } from '../worker/dist/simulation-view-contract.js';
+import { recordedSimulationSchema, simulationSnapshotSchema, simulationViewMaxBytes } from '../worker/dist/simulation-view-contract.js';
 
 // Fresh G03 recorded fixtures only. No agent/market input or new ledger is introduced.
 export async function createRecordedSimulationFixture() {
@@ -51,8 +51,8 @@ export async function createRecordedSimulationFixture() {
       assert.equal(independent.order.status, scenario === 'unknown' ? 'accepted' : 'canceled');
       assert.equal(independent.order.executions.length, scenario === 'unknown' ? 0 : 1);
       assert.equal(history.items[0].facts.some(f => f.syntheticType === 'dispatch-outcome-unknown'), scenario === 'unknown');
-      runs.push({ id: `recorded-${scenario}`, label: scenario === 'unknown' ? 'Unknown dispatch · no observed fill' : 'Partial fill · cancellation settled', recordedAt: new Date(now).toISOString(), decision: 'scripted_fixture_not_agent', paper: 'not_linked',
-        requested: { instrument: order.instrumentId, quantity: order.requestedQuantity, limitPrice: order.requestedLimitPrice, currency: order.currency }, history: history.items[0], mock: independent.order });
+      runs.push(recordedSimulationSchema.parse({ id: `recorded-${scenario}`, label: scenario === 'unknown' ? 'Unknown dispatch · no observed fill' : 'Partial fill · cancellation settled', recordedAt: new Date(now).toISOString(), decision: 'scripted_fixture_not_agent', paper: 'not_linked',
+        requested: { instrument: order.instrumentId, quantity: order.requestedQuantity, limitPrice: order.requestedLimitPrice, currency: order.currency }, history: history.items[0], mock: independent.order }));
       closeAttempted = true; await fixture.close(); closed = true;
     } finally {
       if (!closeAttempted) { closeAttempted = true; try { await fixture.close(); closed = true; } catch { /* retain uncertain root; never retry close */ } }

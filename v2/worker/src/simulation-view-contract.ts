@@ -21,8 +21,16 @@ export const recordedSimulationSchema = z.object({
   history: z.object({ source: z.literal('synthetic-offline-v1'), syntheticIntentId: z.string().uuid(), eventCount: z.number().int().min(0).max(100), facts: z.array(fact).max(100) }).strict(),
   mock: z.object({ source: z.literal('gelt-synthetic-robinhood-mock-v1'), dispatchId: z.string().uuid(), mockOrderId: z.string().min(1).max(64).regex(/^[A-Za-z0-9-]+$/), previewId: z.string().uuid(), status: z.enum(['accepted', 'open', 'partially-filled', 'pending-cancel', 'filled', 'canceled']), executions: z.array(execution).max(16), cancelAcknowledged: z.boolean() }).strict(),
 }).strict().superRefine((v, ctx) => {
+  const observed = v.history.facts.flatMap(f => f.syntheticType === 'execution-observed' ? [f] : []);
+  const decimalEqual = (a: z.infer<typeof decimalSchema> | undefined, b: z.infer<typeof decimalSchema> | undefined) => a?.value === b?.value && a?.precision === b?.precision && a?.scale === b?.scale;
   if (v.history.syntheticIntentId !== v.mock.dispatchId || v.history.eventCount !== v.history.facts.length
-    || new Set(v.mock.executions.map(e => e.executionId)).size !== v.mock.executions.length) ctx.addIssue({ code: 'custom', message: 'Inconsistent recorded fixture' });
+    || new Set(v.mock.executions.map(e => e.executionId)).size !== v.mock.executions.length
+    || new Set(observed.map(f => f.syntheticExecutionId)).size !== observed.length
+    || observed.length !== v.mock.executions.length || observed.some(f => {
+      const execution = v.mock.executions.find(e => e.executionId === f.syntheticExecutionId);
+      return !execution || execution.currency !== f.currency || !decimalEqual(execution.quantity, f.observedQuantity)
+        || !decimalEqual(execution.price, f.observedPrice) || !decimalEqual(execution.fee, f.observedFee);
+    })) ctx.addIssue({ code: 'custom', message: 'Inconsistent recorded fixture' });
 });
 export const simulationSnapshotSchema = z.object({ version: z.literal(1), source: z.literal(simulationViewSource), runs: z.array(recordedSimulationSchema).min(1).max(8) }).strict().superRefine((v, ctx) => {
   if (new Set(v.runs.map(r => r.id)).size !== v.runs.length) ctx.addIssue({ code: 'custom', message: 'Duplicate fixture selection' });

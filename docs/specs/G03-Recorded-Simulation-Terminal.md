@@ -48,7 +48,11 @@ missing. Session validity is rechecked before response publication.
 
 The strict synthetic view schema binds the history intent to the independent
 mock dispatch, verifies event count and unique selections/executions, preserves
-decimal strings and reserves serialized-response headroom. Integrity proves
+decimal strings and reserves serialized-response headroom. Recorded pairs must
+agree on every execution ID, exact quantity/price/fee value, precision, scale,
+fee presence and currency. The generator applies this same consistency gate
+before recording a run; disagreement cannot be published as available.
+Integrity proves
 the selected bytes, not independent authenticity or a paper/strategy outcome.
 
 ## Browser behavior

@@ -3624,7 +3624,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/recorded-simulation-fixture.mjs",
-      "sha256": "5edca2e91c507cc2b07657a220637838b379114f91f274660cdf8246e04188f3",
+      "sha256": "b8a16f1a14cd6bced4228df1dee4ec790ee35c3cffdea1a3b697287818ad21b9",
       "reason": "G03 protected recorded simulation terminal and focused acceptance; no agent or live effects"
     },
     {
@@ -3696,7 +3696,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/simulation-view-contract.ts",
-      "sha256": "639a9e19b705c2e5a411d66457cd8e5b43804bbfd4114b8bd347c67428c54787",
+      "sha256": "ca62bda19fc7eb255cf8ca6c9107df3564422d29629832150b2407da677e6c29",
       "reason": "G03 protected recorded simulation terminal and focused acceptance; no agent or live effects"
     },
     {
@@ -3712,7 +3712,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/simulation-view.test.ts",
-      "sha256": "aee5f7d16af8aec00a3f29a93a4e7dd7980120dc4a619bb8e8ebe0d328dc9aaf",
+      "sha256": "5a91d166f9dca0ecf6e1146d1a45147727e1e68f798a01c5d080887d10a7e365",
       "reason": "G03 protected recorded simulation terminal and focused acceptance; no agent or live effects"
     }
   ]
