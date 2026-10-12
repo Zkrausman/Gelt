@@ -141,6 +141,32 @@ whitespace check pass locally. Fresh independent and adversarial acceptance of
 this corrected candidate and required hosted CI remain pending; the earlier
 privacy PASS does not establish runtime acceptance.
 
+### Harness caller deadline follow-up (2026-10-12)
+
+PR #1 head `5198dbaeb5ba7e786eff3649efc723c053a1e004` passed all four required
+checks, including native Windows test/build/smoke in run `38272129918`. Its
+ordinary merge `c2b0c0cd0280841ec040d011b352ec20d24faa9c` has the identical tree.
+The separate post-merge run `38280708678` passed Go, Linux/G01 browser and
+scientific checks, but Windows reported two application-mock failures: fresh
+confirmation returned UNKNOWN and late-fill reconciliation omitted its expected
+execution fact. Build and smoke were skipped. These new-head failures are
+retained independently from the prior pass; no unchanged rerun was requested.
+
+The direct concurrency client already selected a bounded 30-second deadline,
+but the harness adapter still captured its transport's default five-second
+client. Storage-backed mock integration fixtures now explicitly select the same
+30-second budget at harness construction, including after reopen. The harness
+validates the option before private fixture/lock acquisition and rejects it in
+fallback mode, outside the existing mock gate, or outside the integer 5000–30000
+range. Unspecified harness/transport and browser-demo clients retain five seconds;
+the independent streaming-response regression still exercises that default.
+Fixed-clock expiry, admission identity, fail-closed UNKNOWN/no-retry semantics,
+late-fill/cancellation assertions, authentication and private-storage checks are
+unchanged. The generic failure responses do not by themselves prove every
+underlying cause; exact-candidate review and native runtime acceptance of this
+caller correction remain pending. The pure import verifier and whitespace check
+pass for this source revision. No local listener/ownership/cleanup probe ran.
+
 ## ✨ Result
 
 The application-mock browser integration is authored and awaits review. Runtime
