@@ -3640,7 +3640,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "tests/simulation-terminal/run.mjs",
-      "sha256": "36e32fa0345f3692710e463a2cbdb8e0805431c5c10321a3e563a91fc725d7c6",
+      "sha256": "d3dd372a7cdfa77c152acc16c1f30c942f48039be8f0fc2740224604fee86941",
       "reason": "G03 protected recorded simulation terminal and focused acceptance; no agent or live effects"
     },
     {

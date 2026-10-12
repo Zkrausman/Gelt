@@ -22,6 +22,10 @@ try {
   await runRecordedTerminal(async ({ grant, snapshot }) => {
     browser = await chromium.launch({ headless: true, executablePath: process.env.GELT_TEST_BROWSER_PATH, chromiumSandbox: true });
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    await context.addInitScript(() => localStorage.setItem('openterminal-workspace', JSON.stringify({ version: 0, state: {
+      widgets: [{ id: 'old-ai', type: 'ai', linked: false }, { id: 'old-portfolio', type: 'portfolio', linked: false }],
+      layout: [{ i: 'old-ai', x: 0, y: 0, w: 4, h: 8 }, { i: 'old-portfolio', x: 4, y: 0, w: 4, h: 8 }],
+    } })));
     await context.route('**/*', async route => { const url = new URL(route.request().url()); if (url.origin !== 'http://127.0.0.1:3000' && !['data:', 'blob:'].includes(url.protocol)) { externalOrigins.push(url.origin); await route.abort(); } else await route.continue(); });
     const page = await context.newPage(); page.setDefaultTimeout(10000);
     try {
@@ -43,6 +47,8 @@ try {
       await expect(page.locator('tbody tr')).toHaveCount(a.mock.executions.length);
       await expect(page.locator('tbody tr').first()).toContainText(a.mock.executions[0].quantity.value);
       await expect(page.locator('tbody tr').first()).toContainText(a.mock.executions[0].fee.value);
+      const layoutOnly = await page.evaluate(() => localStorage.getItem('openterminal-workspace') ?? '');
+      assert.equal(layoutOnly.includes(a.mock.dispatchId), false); assert.equal(layoutOnly.includes(a.id), false); assert.equal(layoutOnly.includes(grant), false);
       await page.screenshot({ path: join(screenshots, 'SYNTHETIC-orders-desktop.png'), fullPage: true });
       pass('real G01 login -> protected BFF -> recorded G02 independent partial fill and cancellation');
       // Old cached widgets never activate on the simulation route.
