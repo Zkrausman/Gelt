@@ -59,13 +59,13 @@ export class SyntheticMockRobinhoodTransport {
   readonly client: SyntheticMockRobinhoodClient;
   get port(): number | undefined { return this.portValue; }
 
-  constructor(private readonly store: SyntheticMockRobinhoodStore) {
+  constructor(private readonly store: SyntheticMockRobinhoodStore, requestTimeoutMsForTest = 5000) {
     if (!enabled()) throw new Error('synthetic mock disabled');
+    this.client = new SyntheticMockRobinhoodClient(() => this.portValue, this.bearer, requestTimeoutMsForTest);
     this.server = createServer((req, res) => { void this.handle(req, res); });
     this.server.requestTimeout = 5000;
     this.server.headersTimeout = 5000;
     this.server.maxHeadersCount = 24;
-    this.client = new SyntheticMockRobinhoodClient(() => this.portValue, this.bearer);
   }
 
   async start(): Promise<number> {

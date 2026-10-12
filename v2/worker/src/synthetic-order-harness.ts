@@ -185,8 +185,12 @@ const sessionLifetimeMs = 300000;
 function fixtureEnabled() {
   return process.env.NODE_ENV === 'test' && process.env.GELT_SYNTHETIC_ORDER_HARNESS === 'offline-test-only';
 }
-export function createSyntheticOrderHarness(sessionClock: () => number = Date.now, options: { applicationMock?: boolean } = {}) {
+export function createSyntheticOrderHarness(sessionClock: () => number = Date.now, options: { applicationMock?: boolean; mockRequestTimeoutMsForTest?: number } = {}) {
   if (!fixtureEnabled() || (options.applicationMock && process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only')) throw new Error('synthetic harness disabled');
+  const mockRequestTimeoutMsForTest = options.mockRequestTimeoutMsForTest === undefined ? 5000 : options.mockRequestTimeoutMsForTest;
+  // Validate the explicit test budget before creating any private fixture/lock.
+  if (!Number.isSafeInteger(mockRequestTimeoutMsForTest) || mockRequestTimeoutMsForTest < 5000 || mockRequestTimeoutMsForTest > 30000
+    || (options.mockRequestTimeoutMsForTest !== undefined && !options.applicationMock)) throw new Error('synthetic harness disabled');
   const root = storageFixture('synthetic-orders-'), dir = join(root, 'data');
   createLedgerDirectory(dir);
   const path = join(dir, 'synthetic-orders.sqlite');
@@ -204,7 +208,7 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     let mockAdapter: SyntheticMockRobinhoodAdapter | undefined;
     try {
       mockStore = options.applicationMock ? new SyntheticMockRobinhoodStore(mockPath, sessionClock) : undefined;
-      mockTransport = mockStore ? new SyntheticMockRobinhoodTransport(mockStore) : undefined;
+      mockTransport = mockStore ? new SyntheticMockRobinhoodTransport(mockStore, mockRequestTimeoutMsForTest) : undefined;
       mockAdapter = mockTransport ? new SyntheticMockRobinhoodAdapter(mockTransport.client, sessionClock) : undefined;
     } catch (error) {
       try { mockTransport ? void mockTransport.close() : mockStore?.close(); } catch { /* preserve uncertain writer ownership */ }

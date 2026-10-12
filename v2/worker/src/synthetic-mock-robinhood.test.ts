@@ -54,7 +54,7 @@ async function post(fixture: Fixture, port: number, operation: string, input: un
 function enabled(clock: () => number = Date.now): Fixture {
   process.env.GELT_SYNTHETIC_ORDER_HARNESS = 'offline-test-only';
   process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD = 'offline-test-only';
-  return createSyntheticOrderHarness(clock, { applicationMock: true });
+  return createSyntheticOrderHarness(clock, { applicationMock: true, mockRequestTimeoutMsForTest: 30000 });
 }
 async function cleanup(fixture: Fixture): Promise<void> {
   try { await fixture.close(); } catch { /* uncertain fixture ownership stays until test-root cleanup */ }
@@ -108,12 +108,31 @@ async function rejectCorruptedAcceptedTimestamp(offsetFromExpiryMs: number): Pro
   }
 }
 
+it('rejects invalid or non-mock fixture deadlines before acquiring private storage', () => {
+  process.env.GELT_SYNTHETIC_ORDER_HARNESS = 'offline-test-only';
+  process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD = 'offline-test-only';
+  try {
+    for (const mockRequestTimeoutMsForTest of [4000, 30001, 5000.5, NaN, Infinity]) {
+      expect(() => createSyntheticOrderHarness(Date.now, { applicationMock: true, mockRequestTimeoutMsForTest }))
+        .toThrow('synthetic harness disabled');
+    }
+    expect(() => createSyntheticOrderHarness(Date.now, { mockRequestTimeoutMsForTest: 30000 }))
+      .toThrow('synthetic harness disabled');
+    delete process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD;
+    expect(() => createSyntheticOrderHarness(Date.now, { applicationMock: true, mockRequestTimeoutMsForTest: 30000 }))
+      .toThrow('synthetic harness disabled');
+  } finally {
+    delete process.env.GELT_SYNTHETIC_ORDER_HARNESS;
+    delete process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD;
+  }
+});
+
 it('keeps the opt-in mock separate, scopes exact previews, persists single-use admission, and displays durable order history', async () => {
   delete process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD;
   process.env.GELT_SYNTHETIC_ORDER_HARNESS = 'offline-test-only';
   expect(() => createSyntheticOrderHarness(Date.now, { applicationMock: true })).toThrow('synthetic harness disabled');
   process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD = 'offline-test-only';
-  const fixture = createSyntheticOrderHarness(Date.now, { applicationMock: true });
+  const fixture = createSyntheticOrderHarness(Date.now, { applicationMock: true, mockRequestTimeoutMsForTest: 30000 });
   const port = await listen(fixture);
   try {
     expect((await post(fixture, port, 'resume')).status).toBe(200);
@@ -166,7 +185,9 @@ it('uses one fixed fixture clock at the exact preview expiry boundary and for a 
     process.env.GELT_SYNTHETIC_ORDER_HARNESS = 'offline-test-only';
     if (applicationMock) process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD = 'offline-test-only';
     else delete process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD;
-    const fixture = createSyntheticOrderHarness(() => now, { applicationMock });
+    const fixture = createSyntheticOrderHarness(() => now, { applicationMock,
+      ...(applicationMock ? { mockRequestTimeoutMsForTest: 30000 } : {}),
+    });
     try {
       const port = await listen(fixture);
       expect((await post(fixture, port, 'resume')).status).toBe(200);
