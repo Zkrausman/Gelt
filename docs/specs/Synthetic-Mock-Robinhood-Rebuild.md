@@ -130,6 +130,17 @@ suite steps and operation deadlines; its job cap is 90 minutes to allow the
 complete test, build, and smoke sequence. Successor-candidate local package tests
 and hosted CI results remain pending at this specification revision.
 
+### Import manifest follow-up (2026-10-12)
+
+The original auditor found two stale import hashes on candidate
+`f173c62b51108f2f928239edbcf553448ccf3da7`: the synthetic transport and its test.
+Their `v2/IMPORT-MANIFEST.json` entries now match the exact file bytes. The
+manifest verifier remains unchanged; upstream pins, path accounting, dependency
+versions, and runtime safety gates are preserved. The pure import verifier and
+whitespace check pass locally. Fresh independent and adversarial acceptance of
+this corrected candidate and required hosted CI remain pending; the earlier
+privacy PASS does not establish runtime acceptance.
+
 ## ✨ Result
 
 The application-mock browser integration is authored and awaits review. Runtime

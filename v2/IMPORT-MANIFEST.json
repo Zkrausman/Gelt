@@ -3576,7 +3576,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-transport.ts",
-      "sha256": "179d7c203def9fef74b0305f6d9d5b0f21cea38336a35217bc0323e50493c26d",
+      "sha256": "972458c0511a9bbf4f95c007c742b3af6d5b579e7efa4400bf45b1d1eb4b7dac",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3584,7 +3584,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood.test.ts",
-      "sha256": "59124e0609174ec7237c93690d025247985c4ae425123da1bed27c6ee34449c4",
+      "sha256": "9e80546092ec38e8fda216fdd929f73050b1a30b646f4aedc208b9cb8f1f3165",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
