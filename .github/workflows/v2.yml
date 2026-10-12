@@ -107,9 +107,10 @@ jobs:
           retention-days: 7
   native-windows:
     runs-on: windows-2022
-    # Serial native private-helper tests add ~10 minutes of research coverage.
-    # Preserve operation/test deadlines; bound the complete test/build/smoke job.
-    timeout-minutes: 60
+    # Keep the native suite serial to avoid cross-file helper contention. The
+    # exact PR run hit the old job cap with the Vitest suite still incomplete;
+    # retain every test and operation deadline, with room for build and smoke.
+    timeout-minutes: 90
     env:
       # Explicit ancestor only: helper creates fresh owner-private scratch/fixtures.
       # Never use/repair runner TEMP or home ACLs. C:\ must pass unchanged checks.

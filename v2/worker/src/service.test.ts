@@ -29,7 +29,7 @@ function call(path: string, method = "GET", headers = {}, body?: string, targetP
 describe('private offline Pi fixture handoff', () => {
   it('defaults disabled; rejects forged, stale, oversized, cross-session and post-restart reviews without dispatch', async () => {
     const expires = String(Date.now() + 60000), session = 'a'.repeat(43), other = 'b'.repeat(43);
-    const headers = { authorization: 'Bearer test-token', 'x-gelt-session': session, 'x-gelt-session-expires': expires, 'content-type': 'application/json' };
+    const headers = { authorization: 'Bearer service-secret-for-test-only', 'x-gelt-session': session, 'x-gelt-session-expires': expires, 'content-type': 'application/json' };
     const post = (path: string, value: unknown, extra: Record<string, string> = {}, target = privatePort) => {
       const body = JSON.stringify(value);
       return call('/v1/pi-handoff/' + path, 'POST', { ...headers, 'content-length': String(Buffer.byteLength(body)), ...extra }, body, target);
@@ -152,7 +152,7 @@ describe("real local HTTP", () => {
   it("keeps the named private order-surface status explicitly disabled", async () => {
     const session = 'a'.repeat(43), expires = String(Date.now() + 60_000);
     const headers = {
-      authorization: 'Bearer test-token', 'x-gelt-session': session,
+      authorization: 'Bearer service-secret-for-test-only', 'x-gelt-session': session,
       'x-gelt-session-expires': expires, 'content-type': 'application/json', 'content-length': '2',
     };
     expect((await call('/v1/orders/status', 'POST', { ...headers, authorization: 'Bearer wrong' }, '{}', privatePort)).code).toBe(403);
