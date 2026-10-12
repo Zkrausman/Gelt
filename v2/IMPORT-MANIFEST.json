@@ -3656,7 +3656,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "web/components/SimulationWorkspace.tsx",
-      "sha256": "496c87587e77f50ffa1c6ce1de8bd464834683a0a01bf77e18b95d40cf06239f",
+      "sha256": "82bfb2429de01fcfb1ae2b1e3a77c06102a5aa5825bf5e89aaa88b704c284afd",
       "reason": "G03 protected recorded simulation terminal and focused acceptance; no agent or live effects"
     },
     {

@@ -83,9 +83,13 @@ G03 protected-browser acceptance in the existing Linux CI job.
 
 Pure import verification, JavaScript syntax checks and whitespace checks pass on
 the authored candidate. No local listener, ownership, cleanup, installed-owner
-acceptance or held historical workload was run. Required candidate Go build/race/
-vet, full V2/native Windows tests/build/smoke, fresh independent/adversarial source
-review and exact-head hosted browser evidence remain pending. CI results must be
+acceptance or held historical workload was run. The first candidate passed exact-head Go, Linux unit/build/smoke, scientific and
+G03 protected-browser checks. Its desktop screenshot exposed concatenated table
+labels/values; the correction adds a full-width fixed-column table with cell
+padding and compact unit-aware headings. These earlier results are historical
+for that candidate only. Required corrected-candidate Go build/race/vet, full
+V2/native Windows tests/build/smoke, fresh independent/adversarial review and
+exact-head hosted browser/pixel evidence remain pending. CI results must be
 bound to the eventual reviewed head; earlier G01/G02 passes are not transferred.
 
 The hosted browser gate uses the real existing viewer login, Next/BFF and fresh
