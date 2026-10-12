@@ -110,7 +110,7 @@ func TestShadowTelemetrySelfDoc(t *testing.T) {
 		t.Fatalf("SyncShadowTelemetry failed: %v", err)
 	}
 
-	targetFile := filepath.Join(tmpDir, "shadow_telemetry_intradayalphaplan.md")
+	targetFile := filepath.Join(tmpDir, "shadow_telemetry_syntheticrangeplan.md")
 	if _, err := os.Stat(targetFile); err != nil {
 		t.Fatalf("expected telemetry file at %s, got error: %v", targetFile, err)
 	}

@@ -113,7 +113,7 @@ func TestThneedBackend_NonBlocking(t *testing.T) {
 		t.Errorf("Expected 1 file written, got %d", len(files))
 	} else {
 		fileName := files[0].Name()
-		if !strings.HasPrefix(fileName, "trade_telemetry_msft_") {
+		if !strings.HasPrefix(fileName, "trade_telemetry_demo_") {
 			t.Errorf("Unexpected file name: %s", fileName)
 		}
 	}
