@@ -138,7 +138,18 @@ export class SyntheticMockRobinhoodTransport {
 }
 
 export class SyntheticMockRobinhoodClient {
-  constructor(private readonly port: () => number | undefined, private readonly bearer: string) {}
+  constructor(private readonly port: () => number | undefined, private readonly bearer: string,
+    private readonly requestTimeoutMs = 5000) {
+    if (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 5000 || requestTimeoutMs > 30000
+      || (requestTimeoutMs !== 5000 && !enabled())) throw new Error('synthetic mock disabled');
+  }
+
+  withRequestTimeoutForTest(timeoutMs: number): SyntheticMockRobinhoodClient {
+    if (!enabled() || !Number.isSafeInteger(timeoutMs) || timeoutMs <= 5000 || timeoutMs > 30000)
+      throw new Error('synthetic mock disabled');
+    return new SyntheticMockRobinhoodClient(this.port, this.bearer, timeoutMs);
+  }
+
   admit(input: SyntheticMockAdmissionInput) { return this.call('POST', '/admissions', 'orders:admit', input, syntheticMockAdmissionSchema); }
   submit(input: SyntheticMockSubmitInput) { return this.call('POST', '/orders', 'orders:submit', input, syntheticMockOrderViewSchema); }
   read(dispatchId: string) { return this.call('GET', `/orders/${dispatchId}`, 'orders:read', undefined, syntheticMockOrderViewSchema); }
@@ -178,7 +189,7 @@ export class SyntheticMockRobinhoodClient {
       const request = httpRequest({ hostname: '127.0.0.1', port, path, method, headers: {
         Host: `127.0.0.1:${port}`, Authorization: `Bearer ${this.bearer}`, 'X-Gelt-Mock-Claims': canonical(claims(claimedScope)),
         ...(input === undefined ? {} : { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body, 'utf8') }),
-      }, timeout: 5000 }, res => {
+      }, timeout: this.requestTimeoutMs }, res => {
         responseReceived = true;
         const declared = res.headers['content-length'];
         if (declared !== undefined && (typeof declared !== 'string' || !/^(0|[1-9][0-9]*)$/.test(declared)
@@ -209,7 +220,7 @@ export class SyntheticMockRobinhoodClient {
         res.once('close', () => { if (!responseEnded || !res.complete) fail(); });
       });
       req = request;
-      deadline = setTimeout(fail, 5000);
+      deadline = setTimeout(fail, this.requestTimeoutMs);
       request.on('timeout', fail);
       request.on('error', fail);
       request.once('close', () => { if (!responseReceived) fail(); });

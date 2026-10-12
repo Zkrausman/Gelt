@@ -24,6 +24,7 @@ changed_files:
   - v2/worker/src/synthetic-browser-demo.test.ts
   - v2/scripts/synthetic-browser-demo.mjs
   - v2/docs/SYNTHETIC-BROWSER-DEMO.md
+  - .github/workflows/v2.yml
   - docs/specs/Synthetic-Mock-Robinhood-Rebuild.md
 ---
 
@@ -110,6 +111,25 @@ typecheck, build, application runtime, validator, or browser campaign was run.
 The integration regression is authored but unexecuted. A fresh complete source
 and evidence review is required for this successor identity.
 
+### Windows CI follow-up (2026-10-12)
+
+The native Windows run on PR head `ee30b792afe2e8026b50d47bb66a19bd054c1f67`
+reproduced the concurrent loopback submission failure in the opt-in fixture.
+The prior run's retained trace identifies the client's hard five-second request
+deadline as the failure path. The focused concurrency case now uses a bounded
+30-second test-only client while the default remains five seconds; the separate
+continuous-response regression still verifies the default absolute five-second
+deadline. The timeout override requires the existing test-only mock gate and
+cannot be selected outside that mode. The integration assertions, loopback
+binding, request authentication, storage ownership checks, and cleanup are
+unchanged.
+
+The same Windows run reached the 60-minute job deadline while Vitest remained
+incomplete, before build and smoke. The native job remains serial and retains all
+suite steps and operation deadlines; its job cap is 90 minutes to allow the
+complete test, build, and smoke sequence. Successor-candidate local package tests
+and hosted CI results remain pending at this specification revision.
+
 ## ✨ Result
 
 The application-mock browser integration is authored and awaits review. Runtime
@@ -119,4 +139,4 @@ separate gates. No Gelt trial points are claimed or reallocated by this rebuild.
 
 ## Changed files
 
-The source changes include the mock contract, independent storage, loopback transport, test adapter, existing test-only harness selection, focused regressions, opt-in browser demo mode, launcher and cleanup, V2 import accounting, and the specifications. No production lifecycle/service/provider/BFF/UI, research parser/store, companion package, CI workflow, credential/configuration, or dependency file is changed.
+The source changes include the mock contract, independent storage, loopback transport, test adapter, existing test-only harness selection, focused regressions, opt-in browser demo mode, launcher and cleanup, V2 import accounting, and the specifications. The native Windows workflow timeout was raised from 60 to 90 minutes after the prior run reached its one-hour limit with tests incomplete; the existing tests, build, and smoke gates remain required. No production lifecycle/service/provider/BFF/UI, research parser/store, companion package, credential/configuration, or dependency file is changed.

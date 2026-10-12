@@ -270,13 +270,14 @@ it('replays concurrent identical submissions through the loopback HTTP route exa
   const fixture = enabled();
   try {
     await listen(fixture);
+    const client = fixture.mockTransport!.client.withRequestTimeoutForTest(30000);
     const preview = mockPreview('00000000-0000-4000-8000-000000000013', new Date(Date.now() + 60000).toISOString());
     const termsHash = 'd'.repeat(64);
     const confirmationToken = 'H'.repeat(43);
-    const admission = await fixture.mockTransport!.client.admit({ preview, termsHash, confirmationToken });
+    const admission = await client.admit({ preview, termsHash, confirmationToken });
     const input = { dispatchId: '00000000-0000-4000-8000-000000000014', preview, termsHash, confirmationToken, admissionHandle: admission.handle };
     const [left, right] = await Promise.all([
-      fixture.mockTransport!.client.submit(input), fixture.mockTransport!.client.submit(input),
+      client.submit(input), client.submit(input),
     ]);
     expect(left).toEqual(right);
     const db = new Database(fixture.mockPath!, { readonly: true });
