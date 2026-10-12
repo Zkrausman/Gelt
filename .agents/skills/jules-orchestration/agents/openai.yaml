@@ -1,0 +1,4 @@
+interface:
+  display_name: "Orchestrate Jules Work"
+  short_description: "Monitor Jules sessions and report human actions separately from status"
+  default_prompt: "Use $jules-orchestration to inspect active Jules sessions, remediate or finalize work as needed, and report using the required Your actions and Status updates tables."

@@ -1,0 +1,3543 @@
+{
+  "source": "https://github.com/ErTasselli/OpenTerminal",
+  "commit": "6feb4869489c8ac9537b1405547983591e1d3263",
+  "hashAlgorithm": "sha256",
+  "entries": [
+    {
+      "upstreamPath": ".claude/launch.json",
+      "upstreamSha256": "b3539eb05e331b9f66baf557ff6c42c9c35d82935df6f1ea97748a1f4b026765",
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Local editor/host configuration excluded"
+    },
+    {
+      "upstreamPath": ".github/workflows/ci.yml",
+      "upstreamSha256": "de2c1a0754dc2bc6a2436a5b24d9bc1a8b8679045958741213f16cfeca7e8250",
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Do not activate upstream CI/deployment; Gelt CI is separate"
+    },
+    {
+      "upstreamPath": ".gitignore",
+      "upstreamSha256": "4583d7d5025cfe0e8f70b3024fae8938b2380e7367fce83c6d7a8402b42f4dfc",
+      "status": "modified",
+      "path": ".gitignore",
+      "sha256": "a0480140f88cc930ebb5f37a4a3d134e5b50ebeb783f1fe8ed66ab5a32842e15",
+      "reason": "Scoped JSON source exception and build-cache ignore"
+    },
+    {
+      "upstreamPath": "LICENSE",
+      "upstreamSha256": "fc4c6ba276448615c3bc38a151030c130cf775ced3ea599e3b026e1cfe544f50",
+      "status": "retained",
+      "path": "LICENSE",
+      "sha256": "fc4c6ba276448615c3bc38a151030c130cf775ced3ea599e3b026e1cfe544f50",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "README.md",
+      "upstreamSha256": "badaa00acc49135a2c1654b02f3c2956905dc170d9a9182fc2cc2001dde8a83f",
+      "status": "modified",
+      "path": "README.md",
+      "sha256": "ef5f81cdf68dc5c0824a78f85f349680c13a1a32d2e4d78d87c4eba85cb69138",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-216 offline M5 boundary"
+    },
+    {
+      "upstreamPath": "data/readme.md",
+      "upstreamSha256": "1ce44573d2fa0b17656a61e48da51d5f724ddee3ed7ae070bd16093a1bbabf24",
+      "status": "retained",
+      "path": "data/readme.md",
+      "sha256": "1ce44573d2fa0b17656a61e48da51d5f724ddee3ed7ae070bd16093a1bbabf24",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "docker-compose.yml",
+      "upstreamSha256": "f6efcf3852f23e7c922d035e51cd4e010733b94e050364a91dae40276e5e6a8e",
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Deployment activation out of scope"
+    },
+    {
+      "upstreamPath": "docs/screenshots/chart.png",
+      "upstreamSha256": "08695c8f03a2b66cb26ec5c07d3177b6729ce31e97dda24e09f0b0cd3ae4c5cf",
+      "status": "retained",
+      "path": "docs/screenshots/chart.png",
+      "sha256": "08695c8f03a2b66cb26ec5c07d3177b6729ce31e97dda24e09f0b0cd3ae4c5cf",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "docs/screenshots/crypto.png",
+      "upstreamSha256": "7a78846130a573edb63f7942bdd3d9bdacde9c1096a282aa8aaf2203ac01d376",
+      "status": "retained",
+      "path": "docs/screenshots/crypto.png",
+      "sha256": "7a78846130a573edb63f7942bdd3d9bdacde9c1096a282aa8aaf2203ac01d376",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "docs/screenshots/dashboard.png",
+      "upstreamSha256": "86ad41a88ba94770912e2fcbf593cd8502b6f5e0b34b0cea5500486fab5bb692",
+      "status": "retained",
+      "path": "docs/screenshots/dashboard.png",
+      "sha256": "86ad41a88ba94770912e2fcbf593cd8502b6f5e0b34b0cea5500486fab5bb692",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "docs/screenshots/heatmap.png",
+      "upstreamSha256": "e30e0b73315e50d6bdc8b031fc778f8a67b2a2efd6a1685db1039aa295254736",
+      "status": "retained",
+      "path": "docs/screenshots/heatmap.png",
+      "sha256": "e30e0b73315e50d6bdc8b031fc778f8a67b2a2efd6a1685db1039aa295254736",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "docs/screenshots/news.png",
+      "upstreamSha256": "6fef7493f540b09566bfac89c70c98a337c4062eaa03b93160a1fce0f9d7a460",
+      "status": "retained",
+      "path": "docs/screenshots/news.png",
+      "sha256": "6fef7493f540b09566bfac89c70c98a337c4062eaa03b93160a1fce0f9d7a460",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "package-lock.json",
+      "upstreamSha256": "ea53b5ddb62cf7f8180bc81ae72e4d00b81e7fe8e127926cbf728f528f5a3f87",
+      "status": "modified",
+      "path": "package-lock.json",
+      "sha256": "b2330e24bd86f36757c260541d1cbd9d585da46f6de92312a3ead82ac1ba4945",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": "package.json",
+      "upstreamSha256": "f1ef5a54ea2d8e887c6c0ebad56470329c5aba43e310c1ef3afd99cda40b875d",
+      "status": "modified",
+      "path": "package.json",
+      "sha256": "b3cc2af48efb222eb176d51781272d1ccfd118d4428b6baf279c81d65c6f37b1",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": "server/Dockerfile",
+      "upstreamSha256": "009f7d6258dbbd3c505b839573e3f56d7a26d45c8bdef7006b9c97f8715cd367",
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Deployment activation out of scope"
+    },
+    {
+      "upstreamPath": "server/package.json",
+      "upstreamSha256": "2186f47e7faf8b5e16368ccb1fe5adf3e6dabae45eba29d1e7e3913f8ba6d136",
+      "status": "retained",
+      "path": "server/package.json",
+      "sha256": "2186f47e7faf8b5e16368ccb1fe5adf3e6dabae45eba29d1e7e3913f8ba6d136",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/auth.ts",
+      "upstreamSha256": "9441580399606cf7d7ed2eff9967f597413ecc6fc986c3bfc5ac1a39227e4a89",
+      "status": "retained",
+      "path": "server/src/auth.ts",
+      "sha256": "9441580399606cf7d7ed2eff9967f597413ecc6fc986c3bfc5ac1a39227e4a89",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/cache.test.ts",
+      "upstreamSha256": "ae92e41d9f82b805bc0576f7d56db02853bccaeafc70c49a33bd82fea74378c9",
+      "status": "retained",
+      "path": "server/src/cache.test.ts",
+      "sha256": "ae92e41d9f82b805bc0576f7d56db02853bccaeafc70c49a33bd82fea74378c9",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/cache.ts",
+      "upstreamSha256": "549071165dbd6e8a9e12c85f6871366035fc034462c89775fef7381885177818",
+      "status": "modified",
+      "path": "server/src/cache.ts",
+      "sha256": "b881871e1a3199e2df679b6fe0c5482927846b9cdc6ff814061ac3075dbe08c9",
+      "reason": "Remove upstream extra EOF blank line for diff hygiene; no behavior change"
+    },
+    {
+      "upstreamPath": "server/src/concurrency.test.ts",
+      "upstreamSha256": "212605db75f742ebdb44be58795dfd5df39aed60aefbd2f59d3a5917b070f32f",
+      "status": "retained",
+      "path": "server/src/concurrency.test.ts",
+      "sha256": "212605db75f742ebdb44be58795dfd5df39aed60aefbd2f59d3a5917b070f32f",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/concurrency.ts",
+      "upstreamSha256": "e9451eb94f4fbb955fb46b06fc4b4e5b09e247c3c2cbd206b795512b25ef9e91",
+      "status": "retained",
+      "path": "server/src/concurrency.ts",
+      "sha256": "e9451eb94f4fbb955fb46b06fc4b4e5b09e247c3c2cbd206b795512b25ef9e91",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/db.test.ts",
+      "upstreamSha256": "dc7fff10f9d06f35ff38dfc1c5ae1bed1619877e43e8af72528bbd368f766837",
+      "status": "retained",
+      "path": "server/src/db.test.ts",
+      "sha256": "dc7fff10f9d06f35ff38dfc1c5ae1bed1619877e43e8af72528bbd368f766837",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/db.ts",
+      "upstreamSha256": "e64436131cf22734c7bfc4e90f8c8c50fac7f7e0e7d2c9b3d4f3e266c6e15978",
+      "status": "retained",
+      "path": "server/src/db.ts",
+      "sha256": "e64436131cf22734c7bfc4e90f8c8c50fac7f7e0e7d2c9b3d4f3e266c6e15978",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/index.ts",
+      "upstreamSha256": "b1014e2109d5e3982015509b063a5bd88f041498c3a9240438ffe92cf6e4d74d",
+      "status": "modified",
+      "path": "server/src/index.ts",
+      "sha256": "93ad4f0de63f5511a7ff7b426a75be93fe9c8d4f71a2b833a795329d8019af74",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": "server/src/providers/binance.test.ts",
+      "upstreamSha256": "b1c889c09a663470d479f94d30857687496dbb2449b8553e543b148410a38d2b",
+      "status": "retained",
+      "path": "server/src/providers/binance.test.ts",
+      "sha256": "b1c889c09a663470d479f94d30857687496dbb2449b8553e543b148410a38d2b",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/binance.ts",
+      "upstreamSha256": "1d6a26aaf436b96ca2b001c8c8423a6e07b8b9ac54c3996e8fac0429d9ff456c",
+      "status": "retained",
+      "path": "server/src/providers/binance.ts",
+      "sha256": "1d6a26aaf436b96ca2b001c8c8423a6e07b8b9ac54c3996e8fac0429d9ff456c",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/coingecko.ts",
+      "upstreamSha256": "a53721a2fc3c191bf4020b85ff55a4d5375b0d41be0106e4f595af9710b638e5",
+      "status": "retained",
+      "path": "server/src/providers/coingecko.ts",
+      "sha256": "a53721a2fc3c191bf4020b85ff55a4d5375b0d41be0106e4f595af9710b638e5",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/econcalendar.ts",
+      "upstreamSha256": "b455eaaba05b169a587f54e7e633306c605cec94e8a5d1061095a642ee38c76f",
+      "status": "retained",
+      "path": "server/src/providers/econcalendar.ts",
+      "sha256": "b455eaaba05b169a587f54e7e633306c605cec94e8a5d1061095a642ee38c76f",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/finra.ts",
+      "upstreamSha256": "8f3f8997a683b5667da6913e17c53cda3d07b4aaacb3b35eda14d975c1b49a61",
+      "status": "retained",
+      "path": "server/src/providers/finra.ts",
+      "sha256": "8f3f8997a683b5667da6913e17c53cda3d07b4aaacb3b35eda14d975c1b49a61",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/fred.ts",
+      "upstreamSha256": "38076119c097f224668f87bfae9a87d51cfa677c752dce172a044d2dc66460a2",
+      "status": "retained",
+      "path": "server/src/providers/fred.ts",
+      "sha256": "38076119c097f224668f87bfae9a87d51cfa677c752dce172a044d2dc66460a2",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/nasdaq.ts",
+      "upstreamSha256": "984ee6a60d1a2f06246f3c737df3bc4dcabe37dccaae7fc5cadc2f6c23d8ca05",
+      "status": "modified",
+      "path": "server/src/providers/nasdaq.ts",
+      "sha256": "453af6087fb517c30e94c1c02f1a6b3047e716ff56624e62b135091f435ffe82",
+      "reason": "Remove upstream extra EOF blank line for diff hygiene; no behavior change"
+    },
+    {
+      "upstreamPath": "server/src/providers/news.ts",
+      "upstreamSha256": "5fbcf5cdf924935dbd16acd8e874f51beb391741346f3af9ebb548ef7365c616",
+      "status": "retained",
+      "path": "server/src/providers/news.ts",
+      "sha256": "5fbcf5cdf924935dbd16acd8e874f51beb391741346f3af9ebb548ef7365c616",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/registry.ts",
+      "upstreamSha256": "7992cd145cbb9f0128118483ece922657c8af6901777b198ae4263bc5579dc83",
+      "status": "retained",
+      "path": "server/src/providers/registry.ts",
+      "sha256": "7992cd145cbb9f0128118483ece922657c8af6901777b198ae4263bc5579dc83",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/secedgar.ts",
+      "upstreamSha256": "6e43420c231baecd64374113650b4b8b40cdb5c8244ca2d1a5557a1dac147d2e",
+      "status": "retained",
+      "path": "server/src/providers/secedgar.ts",
+      "sha256": "6e43420c231baecd64374113650b4b8b40cdb5c8244ca2d1a5557a1dac147d2e",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/stooq.ts",
+      "upstreamSha256": "2bc81544da005dba9a609a0c695e51273eb1f6feac8f4471b2bc9cb66007ddb9",
+      "status": "retained",
+      "path": "server/src/providers/stooq.ts",
+      "sha256": "2bc81544da005dba9a609a0c695e51273eb1f6feac8f4471b2bc9cb66007ddb9",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/tradingview.ts",
+      "upstreamSha256": "76e520870cbfe771af79502a4672d2f0d1379ef7ebdc37fb8e7314b0feab9621",
+      "status": "retained",
+      "path": "server/src/providers/tradingview.ts",
+      "sha256": "76e520870cbfe771af79502a4672d2f0d1379ef7ebdc37fb8e7314b0feab9621",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/providers/yahoo.ts",
+      "upstreamSha256": "aab9621d9d53a857101805d3b6656442d23bec706c4f358b598b0e52bf434107",
+      "status": "modified",
+      "path": "server/src/providers/yahoo.ts",
+      "sha256": "1d250d32393cb26731eea24a33c08620b2ab9cab91a107aba6760ac3ddda9ad9",
+      "reason": "Remove upstream extra EOF blank line for diff hygiene; no behavior change"
+    },
+    {
+      "upstreamPath": "server/src/rateLimit.test.ts",
+      "upstreamSha256": "9503be5c1913eb59c91d0b2ae478bd846b7d226448107e6744380094c781e976",
+      "status": "retained",
+      "path": "server/src/rateLimit.test.ts",
+      "sha256": "9503be5c1913eb59c91d0b2ae478bd846b7d226448107e6744380094c781e976",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/rateLimit.ts",
+      "upstreamSha256": "92c889965eb28f516a94c046c21356e16a3f741430213e59562f5a7f7c80aa6b",
+      "status": "retained",
+      "path": "server/src/rateLimit.ts",
+      "sha256": "92c889965eb28f516a94c046c21356e16a3f741430213e59562f5a7f7c80aa6b",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/routes/ai.ts",
+      "upstreamSha256": "3a2e999582884598cf62f6dfe5f101c55e8e33c845ee505b98bb6cab46de5a49",
+      "status": "retained",
+      "path": "server/src/routes/ai.ts",
+      "sha256": "3a2e999582884598cf62f6dfe5f101c55e8e33c845ee505b98bb6cab46de5a49",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/routes/market.test.ts",
+      "upstreamSha256": "d7c5904fdd08be842727bda2b86ef63db685df28c2ba4ba5f21d1ad2d8046535",
+      "status": "retained",
+      "path": "server/src/routes/market.test.ts",
+      "sha256": "d7c5904fdd08be842727bda2b86ef63db685df28c2ba4ba5f21d1ad2d8046535",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/routes/market.ts",
+      "upstreamSha256": "db960b2bb52e3ff14b09bcd0ba7a426d289b65e7c9dd232d738ad83c424c028b",
+      "status": "retained",
+      "path": "server/src/routes/market.ts",
+      "sha256": "db960b2bb52e3ff14b09bcd0ba7a426d289b65e7c9dd232d738ad83c424c028b",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/src/routes/portfolio.ts",
+      "upstreamSha256": "a032712cfe71324ce9cb9cf5e22bb867f027eb99ad8962ce0f456fca8a18edf6",
+      "status": "retained",
+      "path": "server/src/routes/portfolio.ts",
+      "sha256": "a032712cfe71324ce9cb9cf5e22bb867f027eb99ad8962ce0f456fca8a18edf6",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "server/tsconfig.json",
+      "upstreamSha256": "082deeac349f4fecd9d1125a9f20335d253d831d9e5013780ac76223edbb6175",
+      "status": "retained",
+      "path": "server/tsconfig.json",
+      "sha256": "082deeac349f4fecd9d1125a9f20335d253d831d9e5013780ac76223edbb6175",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/Dockerfile",
+      "upstreamSha256": "433004f6c24611c41183e5c3ae9011db7036c39dfcec6e75b88f82c09bc35405",
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Deployment activation out of scope"
+    },
+    {
+      "upstreamPath": "web/app/api/[...path]/route.ts",
+      "upstreamSha256": "82468c8ade93af4136ee841146555789e09be09c96eb624bd7ab8eb7896e2e9b",
+      "status": "modified",
+      "path": "web/app/api/[...path]/route.ts",
+      "sha256": "52d7b2f2f3997639b8290e7bc95ac00f21a0835bffc482d1a6ee5692ba9f595c",
+      "reason": "Remove generic proxy/credential relay; all API surfaces disabled"
+    },
+    {
+      "upstreamPath": "web/app/globals.css",
+      "upstreamSha256": "23c5f7e2a1ab1016141b2de1f0994db08accf40e8e1d58ae99bc3de732a33d50",
+      "status": "retained",
+      "path": "web/app/globals.css",
+      "sha256": "23c5f7e2a1ab1016141b2de1f0994db08accf40e8e1d58ae99bc3de732a33d50",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/app/layout.tsx",
+      "upstreamSha256": "7f76e16380451ace46619c151bba3abb7a5d0c867d184088f28fb153f8656c90",
+      "status": "retained",
+      "path": "web/app/layout.tsx",
+      "sha256": "7f76e16380451ace46619c151bba3abb7a5d0c867d184088f28fb153f8656c90",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/app/page.tsx",
+      "upstreamSha256": "108687feab6c956af2bdb2326bb3bf5d1fbbeab53c7bf73addbd557e9a853e2f",
+      "status": "modified",
+      "path": "web/app/page.tsx",
+      "sha256": "3a80ba9f3077e9d83b716901f1dda6f18e477b7ab9f7a489f6b1fdb6ecf0a79f",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": "web/app/providers.tsx",
+      "upstreamSha256": "f1cc94d61d4808f317c72627394fcdcf9ff4c325eaa6870b0c9d8ed4e19ede86",
+      "status": "retained",
+      "path": "web/app/providers.tsx",
+      "sha256": "f1cc94d61d4808f317c72627394fcdcf9ff4c325eaa6870b0c9d8ed4e19ede86",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/CommandPalette.tsx",
+      "upstreamSha256": "f44b0acbf6c3c8038445c65b952b5025cff0d90878223dc826c30d7ef64bd125",
+      "status": "retained",
+      "path": "web/components/CommandPalette.tsx",
+      "sha256": "f44b0acbf6c3c8038445c65b952b5025cff0d90878223dc826c30d7ef64bd125",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/Flash.tsx",
+      "upstreamSha256": "f1a0ef90d3a98740c1676bdf839aef1628bc1bd2c512d74ca365d093eab7f80d",
+      "status": "retained",
+      "path": "web/components/Flash.tsx",
+      "sha256": "f1a0ef90d3a98740c1676bdf839aef1628bc1bd2c512d74ca365d093eab7f80d",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/Sidebar.tsx",
+      "upstreamSha256": "14afa736c31d280b25cf0dc2205e9ddc018c5ed28305c0d017fcf5579076ff5a",
+      "status": "retained",
+      "path": "web/components/Sidebar.tsx",
+      "sha256": "14afa736c31d280b25cf0dc2205e9ddc018c5ed28305c0d017fcf5579076ff5a",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/Terminal.tsx",
+      "upstreamSha256": "161226f0cdab4e2d805c441af09914ece9ffda91d9fe493f7e6d38f34e8ae982",
+      "status": "retained",
+      "path": "web/components/Terminal.tsx",
+      "sha256": "161226f0cdab4e2d805c441af09914ece9ffda91d9fe493f7e6d38f34e8ae982",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/TopBar.tsx",
+      "upstreamSha256": "f515edaaf8be4e6246ee4a9a3f8b19f53ac2a2ca5f3cabd9bcc349caa8445c0c",
+      "status": "retained",
+      "path": "web/components/TopBar.tsx",
+      "sha256": "f515edaaf8be4e6246ee4a9a3f8b19f53ac2a2ca5f3cabd9bcc349caa8445c0c",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/Workspace.tsx",
+      "upstreamSha256": "e02e6f334dbb8fcb8ccf582866f970e22a41f6e79cd687feb9a9b6dcce5a59e6",
+      "status": "retained",
+      "path": "web/components/Workspace.tsx",
+      "sha256": "e02e6f334dbb8fcb8ccf582866f970e22a41f6e79cd687feb9a9b6dcce5a59e6",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/AiWidget.tsx",
+      "upstreamSha256": "8d3076c499c325d1a87fbd8a23e73bf793aa06af9c192f2978ba2f3526aae03e",
+      "status": "retained",
+      "path": "web/components/widgets/AiWidget.tsx",
+      "sha256": "8d3076c499c325d1a87fbd8a23e73bf793aa06af9c192f2978ba2f3526aae03e",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/CalendarWidget.tsx",
+      "upstreamSha256": "705c11a5281e5d6a54c778b74ff6269e5242f798180c2a510f39611cae913629",
+      "status": "retained",
+      "path": "web/components/widgets/CalendarWidget.tsx",
+      "sha256": "705c11a5281e5d6a54c778b74ff6269e5242f798180c2a510f39611cae913629",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/ChartWidget.tsx",
+      "upstreamSha256": "34b6eab357152912c59705020949016504a03b7c3c65df67041bdfa19150ef60",
+      "status": "retained",
+      "path": "web/components/widgets/ChartWidget.tsx",
+      "sha256": "34b6eab357152912c59705020949016504a03b7c3c65df67041bdfa19150ef60",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/CryptoWidget.tsx",
+      "upstreamSha256": "d3889f172cc2560b44c76e06d28199fed97c28acfe41e70d1926b35c1127475a",
+      "status": "retained",
+      "path": "web/components/widgets/CryptoWidget.tsx",
+      "sha256": "d3889f172cc2560b44c76e06d28199fed97c28acfe41e70d1926b35c1127475a",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/HeatmapWidget.tsx",
+      "upstreamSha256": "66979c654f48cbd5786744af6d82eb85de3aa8f25ed54c8d7e54884a8ba52a60",
+      "status": "retained",
+      "path": "web/components/widgets/HeatmapWidget.tsx",
+      "sha256": "66979c654f48cbd5786744af6d82eb85de3aa8f25ed54c8d7e54884a8ba52a60",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/InsiderWidget.tsx",
+      "upstreamSha256": "c131fba6bc322f7ba682e68a4f089268fd09d1bd60a7d71d5d5d1ce91d6a0d0f",
+      "status": "retained",
+      "path": "web/components/widgets/InsiderWidget.tsx",
+      "sha256": "c131fba6bc322f7ba682e68a4f089268fd09d1bd60a7d71d5d5d1ce91d6a0d0f",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/MacroWidget.tsx",
+      "upstreamSha256": "d09ddb5f2d20e181eeb2dfa547cc9d1512b8bcc3f3ff478a0495454c1e59331a",
+      "status": "retained",
+      "path": "web/components/widgets/MacroWidget.tsx",
+      "sha256": "d09ddb5f2d20e181eeb2dfa547cc9d1512b8bcc3f3ff478a0495454c1e59331a",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/NewsWidget.tsx",
+      "upstreamSha256": "303625279f6a8d8cde42309ddadabbbb0eb2afbc32513355768ff1364b23301a",
+      "status": "retained",
+      "path": "web/components/widgets/NewsWidget.tsx",
+      "sha256": "303625279f6a8d8cde42309ddadabbbb0eb2afbc32513355768ff1364b23301a",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/OptionsWidget.tsx",
+      "upstreamSha256": "6a5e451ce933139ba6c20b51001c5496b24dc3b2240a4b625241ed171989d850",
+      "status": "retained",
+      "path": "web/components/widgets/OptionsWidget.tsx",
+      "sha256": "6a5e451ce933139ba6c20b51001c5496b24dc3b2240a4b625241ed171989d850",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/PortfolioWidget.tsx",
+      "upstreamSha256": "a91068b3bbffb4d30644ed0ec97ec5eb4ab80ac12afe4725d08112339679e51e",
+      "status": "retained",
+      "path": "web/components/widgets/PortfolioWidget.tsx",
+      "sha256": "a91068b3bbffb4d30644ed0ec97ec5eb4ab80ac12afe4725d08112339679e51e",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/QuoteWidget.tsx",
+      "upstreamSha256": "3cbd80c0c084326b9a60b780c83ab2216b51daca9c584a8c7af21c661676dccc",
+      "status": "retained",
+      "path": "web/components/widgets/QuoteWidget.tsx",
+      "sha256": "3cbd80c0c084326b9a60b780c83ab2216b51daca9c584a8c7af21c661676dccc",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/RecapWidget.tsx",
+      "upstreamSha256": "d1b9c7c6490a4c82663a877e9e973976031607a2d7eeff585fc07e450a636cf1",
+      "status": "retained",
+      "path": "web/components/widgets/RecapWidget.tsx",
+      "sha256": "d1b9c7c6490a4c82663a877e9e973976031607a2d7eeff585fc07e450a636cf1",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/ScreenerWidget.tsx",
+      "upstreamSha256": "b5822cab9f2ee0d92c5921192d31051e22da418faf8baa550ed8183ad79bd2cc",
+      "status": "retained",
+      "path": "web/components/widgets/ScreenerWidget.tsx",
+      "sha256": "b5822cab9f2ee0d92c5921192d31051e22da418faf8baa550ed8183ad79bd2cc",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/TvWidget.tsx",
+      "upstreamSha256": "78f5b6d90319d7929ed886318dca5bdbed710bf8938e2aead2d1db406594ba7b",
+      "status": "retained",
+      "path": "web/components/widgets/TvWidget.tsx",
+      "sha256": "78f5b6d90319d7929ed886318dca5bdbed710bf8938e2aead2d1db406594ba7b",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/components/widgets/WatchlistWidget.tsx",
+      "upstreamSha256": "3d793f7645e85d5671bf3c84b740044ad2eab47f46549f22af60d3bcf61c86bf",
+      "status": "retained",
+      "path": "web/components/widgets/WatchlistWidget.tsx",
+      "sha256": "3d793f7645e85d5671bf3c84b740044ad2eab47f46549f22af60d3bcf61c86bf",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/lib/api-key.ts",
+      "upstreamSha256": "ff053a649bad2e219982afe56b8026dedf69cd1f53944e70896a28602b84b4a6",
+      "status": "retained",
+      "path": "web/lib/api-key.ts",
+      "sha256": "ff053a649bad2e219982afe56b8026dedf69cd1f53944e70896a28602b84b4a6",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/lib/api.ts",
+      "upstreamSha256": "f77ea59cc34df2c5ca27ee44a14e602b0a9bd45521217741e24bf2720feafde9",
+      "status": "retained",
+      "path": "web/lib/api.ts",
+      "sha256": "f77ea59cc34df2c5ca27ee44a14e602b0a9bd45521217741e24bf2720feafde9",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/lib/indicators.ts",
+      "upstreamSha256": "b223dff2bece3fd5ff485dbf31552e3784091bd96bc487017761c99a432e2d29",
+      "status": "retained",
+      "path": "web/lib/indicators.ts",
+      "sha256": "b223dff2bece3fd5ff485dbf31552e3784091bd96bc487017761c99a432e2d29",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/lib/links.ts",
+      "upstreamSha256": "83ba583a8e79811df2ae981b7f409db25e2fd3a31ef4ba931c9c6e95dd9c50b6",
+      "status": "retained",
+      "path": "web/lib/links.ts",
+      "sha256": "83ba583a8e79811df2ae981b7f409db25e2fd3a31ef4ba931c9c6e95dd9c50b6",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/next-env.d.ts",
+      "upstreamSha256": "85ae5aee75f011967cf2d25cbc342f62d69314e9d925f7f4aa3456fc2cffcca6",
+      "status": "retained",
+      "path": "web/next-env.d.ts",
+      "sha256": "85ae5aee75f011967cf2d25cbc342f62d69314e9d925f7f4aa3456fc2cffcca6",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/next.config.ts",
+      "upstreamSha256": "466a1dd1218595d3e45570e83b1fc3e7b666ead6cb86374d7ac820cf1b45a5c7",
+      "status": "modified",
+      "path": "web/next.config.ts",
+      "sha256": "c134615cfa8a4008b486aee0bc09d33fe540f674fa803279d9789b2d3717568d",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": "web/package.json",
+      "upstreamSha256": "ce0fc9e933195be6f47a0cf8f2635c1fd19b926c2031be87f044b19daec09803",
+      "status": "modified",
+      "path": "web/package.json",
+      "sha256": "76676e4171a33f644e8ce8015202f29244ac7bf364267ecc59b2360f042b9430",
+      "reason": "Loopback-only direct web script defaults; unchanged dependencies"
+    },
+    {
+      "upstreamPath": "web/postcss.config.mjs",
+      "upstreamSha256": "dfac7ac2d86d326a0e5adb024e7943c181393ed17a5fcb8f0315b24c7da6ddde",
+      "status": "retained",
+      "path": "web/postcss.config.mjs",
+      "sha256": "dfac7ac2d86d326a0e5adb024e7943c181393ed17a5fcb8f0315b24c7da6ddde",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/store/terminal.ts",
+      "upstreamSha256": "7f756ee9fcbf65ecea4594ebf3d5fa0204c2a58e88e65bc16c82c5710916e909",
+      "status": "retained",
+      "path": "web/store/terminal.ts",
+      "sha256": "7f756ee9fcbf65ecea4594ebf3d5fa0204c2a58e88e65bc16c82c5710916e909",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/tsconfig.json",
+      "upstreamSha256": "f6c45b018bb65e857354f73bf3282ee39208d00b07f081d9467fed8af020afb5",
+      "status": "retained",
+      "path": "web/tsconfig.json",
+      "sha256": "f6c45b018bb65e857354f73bf3282ee39208d00b07f081d9467fed8af020afb5",
+      "reason": "Verbatim upstream source/asset"
+    },
+    {
+      "upstreamPath": "web/tsconfig.tsbuildinfo",
+      "upstreamSha256": "50cf40fb76a343074e0bb7262ed8ceae1aba5058d4b885303b662c10210bd2f9",
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Generated build cache excluded"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": ".gitattributes",
+      "sha256": "9ca774b07518b199585a112c75f19e5b27c16e1e45ae83295dc2d74f87a643d5",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "DEPENDENCY-NOTICES.json",
+      "sha256": "42da48e004c8987b45e899632cf39e00513bf4e4843448a7a67864406f46ab85",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/03cc9a630489a2544b799548a0e8b134f382fe09fa06dc22b339091b28b8f4a8.txt",
+      "sha256": "03cc9a630489a2544b799548a0e8b134f382fe09fa06dc22b339091b28b8f4a8",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/04512a63dce4d2d506ad612dc0bd7681ccf6e3655f7b6eaef7dfac8323d1ec0b.txt",
+      "sha256": "04512a63dce4d2d506ad612dc0bd7681ccf6e3655f7b6eaef7dfac8323d1ec0b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/04d9940b3b8b372bff74437c3b153eda8a89642669c4209a4f67135eb3132bc9.txt",
+      "sha256": "04d9940b3b8b372bff74437c3b153eda8a89642669c4209a4f67135eb3132bc9",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/06bafa45fdad2579ba0e43b0c9b2c6290287c99c4203c300254a462b38a307f6.txt",
+      "sha256": "06bafa45fdad2579ba0e43b0c9b2c6290287c99c4203c300254a462b38a307f6",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/09856b52897c91ab67e7456ef43067019f31dfd3b87fda72e655736b1ebdee55.txt",
+      "sha256": "09856b52897c91ab67e7456ef43067019f31dfd3b87fda72e655736b1ebdee55",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/0986d93944902cca9af86824b6a641b4b7c2d10602fc510c433a8bcd443919fe.txt",
+      "sha256": "0986d93944902cca9af86824b6a641b4b7c2d10602fc510c433a8bcd443919fe",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/0ab21426fad1e8b819ea8ab4c7faf5a24d4fca9c01572fe722490d600bba0d22.txt",
+      "sha256": "0ab21426fad1e8b819ea8ab4c7faf5a24d4fca9c01572fe722490d600bba0d22",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/0b31f3a6ab66b272b7de451df39835f310a309a06b1a8aafb3a2fdab20adc166.txt",
+      "sha256": "0b31f3a6ab66b272b7de451df39835f310a309a06b1a8aafb3a2fdab20adc166",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/0b348fff56384b43dbb37593906904e56d0f9deb51eae590d4dc6d427fbf1808.txt",
+      "sha256": "0b348fff56384b43dbb37593906904e56d0f9deb51eae590d4dc6d427fbf1808",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/0d506ca1b2adc4ee63a9e2384a85d6cf9f014b4cf3d00c162cd60216450324fa.txt",
+      "sha256": "0d506ca1b2adc4ee63a9e2384a85d6cf9f014b4cf3d00c162cd60216450324fa",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76.txt",
+      "sha256": "117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/11d017c3b9f1ee3f44caf7203035f0461d5b57e0db8ce1bc03a9af34fa7d3f6b.txt",
+      "sha256": "11d017c3b9f1ee3f44caf7203035f0461d5b57e0db8ce1bc03a9af34fa7d3f6b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/11d55bd4541c75ee7879547ac49089c489163dae49551389713c3d026cab383e.txt",
+      "sha256": "11d55bd4541c75ee7879547ac49089c489163dae49551389713c3d026cab383e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/11f2aafb37d06b3ee5bdaf06e9811141d0da05263c316f3d627f45c20d43261b.txt",
+      "sha256": "11f2aafb37d06b3ee5bdaf06e9811141d0da05263c316f3d627f45c20d43261b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/1605b77bebe018db1fc27bd22fbcdeed1335c617937a124299a8b042b42b0fb6.txt",
+      "sha256": "1605b77bebe018db1fc27bd22fbcdeed1335c617937a124299a8b042b42b0fb6",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/1662fae9b5314d11cf51284e2dcd1f006a354f7343f08712a730fcff9a359801.txt",
+      "sha256": "1662fae9b5314d11cf51284e2dcd1f006a354f7343f08712a730fcff9a359801",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/18a2bfd070b08bd1cc538c90f59989a9523e070e72fe9a9068593c3e82f44fa7.txt",
+      "sha256": "18a2bfd070b08bd1cc538c90f59989a9523e070e72fe9a9068593c3e82f44fa7",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/1a526fbe8d8577f5a4b1c2821842b55b7c0e18862531c62ae4ce69c9b19b74b6.txt",
+      "sha256": "1a526fbe8d8577f5a4b1c2821842b55b7c0e18862531c62ae4ce69c9b19b74b6",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/1aa9a12863eefb583779b2ca0e5d73c610b6e6d07529ae0472721769a6ea0a32.txt",
+      "sha256": "1aa9a12863eefb583779b2ca0e5d73c610b6e6d07529ae0472721769a6ea0a32",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/1b0a9ba95a67bc484e028b13c61b83fc5aa1ca7957d1e2d43c2b0f70d9e9dd45.txt",
+      "sha256": "1b0a9ba95a67bc484e028b13c61b83fc5aa1ca7957d1e2d43c2b0f70d9e9dd45",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/1cbe51b907662f6cb1492b16c359384a595180bf0e4d101603ed525e75c4e484.txt",
+      "sha256": "1cbe51b907662f6cb1492b16c359384a595180bf0e4d101603ed525e75c4e484",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/1da7f0788d14d545b2b953f78a27b916d320dfa174c2fcfa124c5aaffa81056e.txt",
+      "sha256": "1da7f0788d14d545b2b953f78a27b916d320dfa174c2fcfa124c5aaffa81056e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5.txt",
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2034cce3b6fafcddd642c4175e01d3ddfc332a53b9f20fdc46b1466dc89ac469.txt",
+      "sha256": "2034cce3b6fafcddd642c4175e01d3ddfc332a53b9f20fdc46b1466dc89ac469",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/206c1adcf206dc0031b11232f5b054ec5f1662407ab1ca415247921cab2068ab.txt",
+      "sha256": "206c1adcf206dc0031b11232f5b054ec5f1662407ab1ca415247921cab2068ab",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2088f55c6731498410b20c95ebd345ed4a4a800bf74c0fba4d282fd2a021daaa.txt",
+      "sha256": "2088f55c6731498410b20c95ebd345ed4a4a800bf74c0fba4d282fd2a021daaa",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/210b19e543130388c68654b7497e967119ce17145f66ab7d85688fbd70f08751.txt",
+      "sha256": "210b19e543130388c68654b7497e967119ce17145f66ab7d85688fbd70f08751",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2130216d5ab4c02134f8247f32999feda0abe1eaf028218baeac445c19ce4cea.txt",
+      "sha256": "2130216d5ab4c02134f8247f32999feda0abe1eaf028218baeac445c19ce4cea",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2144eb6894cb440fde6b2b3aaae3b617c8f1dc9bb19813079dcf62ec6c517042.txt",
+      "sha256": "2144eb6894cb440fde6b2b3aaae3b617c8f1dc9bb19813079dcf62ec6c517042",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/214d0ac13edb475ec426df1979d96fd46b443debc466c0fb592e32152ae5a940.txt",
+      "sha256": "214d0ac13edb475ec426df1979d96fd46b443debc466c0fb592e32152ae5a940",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2213d91c606205c71eb051a199478cdc2adde945893404d7f1421436dd6d5cc1.txt",
+      "sha256": "2213d91c606205c71eb051a199478cdc2adde945893404d7f1421436dd6d5cc1",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/23d466b1b134b415b66fa50c6526b4cf3e7b9258554da88d3abb371721e7ce68.txt",
+      "sha256": "23d466b1b134b415b66fa50c6526b4cf3e7b9258554da88d3abb371721e7ce68",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/24d4a4580df855c345705b3016404f0c9da7e7674dc3b21a3ce7d0e5d0c37e2d.txt",
+      "sha256": "24d4a4580df855c345705b3016404f0c9da7e7674dc3b21a3ce7d0e5d0c37e2d",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/255aa557a1f55224ce522f311629c0bf20854740a67955cefd798fbd1d3d1ded.txt",
+      "sha256": "255aa557a1f55224ce522f311629c0bf20854740a67955cefd798fbd1d3d1ded",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/257aed98914108e91a337912727b6a802eef218248507f74b76faffaff517a38.txt",
+      "sha256": "257aed98914108e91a337912727b6a802eef218248507f74b76faffaff517a38",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/258fe95d585e52a42eb5bec05b103a78400532103c4d01f94bc4cfca59486540.txt",
+      "sha256": "258fe95d585e52a42eb5bec05b103a78400532103c4d01f94bc4cfca59486540",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/25a328069fe771f8ed5b6f983ed4b0e6c84b3312ac0f69b28c3d52dc277962c9.txt",
+      "sha256": "25a328069fe771f8ed5b6f983ed4b0e6c84b3312ac0f69b28c3d52dc277962c9",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/25bd22427e27b0d3f1c3da2670bb44b622bcced22ebdf4777d5488ac129370a1.txt",
+      "sha256": "25bd22427e27b0d3f1c3da2670bb44b622bcced22ebdf4777d5488ac129370a1",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2a6d2d5f32ba0b755ddbc1c833f766e30cdbe6ebe9a6d4e3e24427721f0b63d3.txt",
+      "sha256": "2a6d2d5f32ba0b755ddbc1c833f766e30cdbe6ebe9a6d4e3e24427721f0b63d3",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2aa16be0f4fad003a352a955a43314e9d1d8deef7034060a82ac9c49f32b81e2.txt",
+      "sha256": "2aa16be0f4fad003a352a955a43314e9d1d8deef7034060a82ac9c49f32b81e2",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2af12ca8b612a22e6659ae68e0e59ee7ac792718c45524a989b512c49c5f5879.txt",
+      "sha256": "2af12ca8b612a22e6659ae68e0e59ee7ac792718c45524a989b512c49c5f5879",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2b770a704c15de238c3f622b01b0044ddd60b49ee30608ea6991ebf19db7a7a1.txt",
+      "sha256": "2b770a704c15de238c3f622b01b0044ddd60b49ee30608ea6991ebf19db7a7a1",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2d3aa48a8d1d3b93093680e8e68d3a64cfb590c3ade377ffcaefc69dac7c2ce5.txt",
+      "sha256": "2d3aa48a8d1d3b93093680e8e68d3a64cfb590c3ade377ffcaefc69dac7c2ce5",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2dc0465729366c3a7890dfa9e972a1ba7048a26c02116fb8b419a6a1ac110149.txt",
+      "sha256": "2dc0465729366c3a7890dfa9e972a1ba7048a26c02116fb8b419a6a1ac110149",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2e440dfce9b15e91e0d687c314940c28058637a299d9231fbbf79fc02165c7de.txt",
+      "sha256": "2e440dfce9b15e91e0d687c314940c28058637a299d9231fbbf79fc02165c7de",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/2f1a503bfab84b3ba7393627308b3274501e459e3b5185bbb56bbf16cb1602d4.txt",
+      "sha256": "2f1a503bfab84b3ba7393627308b3274501e459e3b5185bbb56bbf16cb1602d4",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3109783dad7527b490aabc49c3cb148573c19b41b843e70cf9388a93f3d7fccd.txt",
+      "sha256": "3109783dad7527b490aabc49c3cb148573c19b41b843e70cf9388a93f3d7fccd",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/33eba3cb810ee4b03426ec7fecf22e7529e2fe95f8163e7213016459bee7a276.txt",
+      "sha256": "33eba3cb810ee4b03426ec7fecf22e7529e2fe95f8163e7213016459bee7a276",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/365496ca1f56da40b23c9815fc40fa9005847b2f8f8fd1c1a4929ef25ec8cd1d.txt",
+      "sha256": "365496ca1f56da40b23c9815fc40fa9005847b2f8f8fd1c1a4929ef25ec8cd1d",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3687447039151857a6ba378db062172c7f33d4aa70a615c87a43a9c50e990485.txt",
+      "sha256": "3687447039151857a6ba378db062172c7f33d4aa70a615c87a43a9c50e990485",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/37876d7de8bdf5e5b9b58a697ebc34044624e493e6f49eff5c938e5226dcac6b.txt",
+      "sha256": "37876d7de8bdf5e5b9b58a697ebc34044624e493e6f49eff5c938e5226dcac6b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3883d1bc08d302413bf1b7a65e4f699f8aa68f96a5b71df3f9a0262a76a65c17.txt",
+      "sha256": "3883d1bc08d302413bf1b7a65e4f699f8aa68f96a5b71df3f9a0262a76a65c17",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/39c5ec504cf6bd5cd782a7c695828e09189df79f5d94840e4f08feb97b9fd416.txt",
+      "sha256": "39c5ec504cf6bd5cd782a7c695828e09189df79f5d94840e4f08feb97b9fd416",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3a61c6c96caf5c1d9b623fb9b04c822b783dfcb78aa7e49c76a3f643e6ed7f95.txt",
+      "sha256": "3a61c6c96caf5c1d9b623fb9b04c822b783dfcb78aa7e49c76a3f643e6ed7f95",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3a62887f73cd035ac1068bc0127ce94291f7a03843391f56df3520e2ca2037f8.txt",
+      "sha256": "3a62887f73cd035ac1068bc0127ce94291f7a03843391f56df3520e2ca2037f8",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3a6d6de49d284a36c5d271ef0e62eca1838cc460dd7630e3f2c347c8f5b2232a.txt",
+      "sha256": "3a6d6de49d284a36c5d271ef0e62eca1838cc460dd7630e3f2c347c8f5b2232a",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3aecc12b1cb28832b5f65ab64291de96568c3f236a74d646281b4491f7bcadbf.txt",
+      "sha256": "3aecc12b1cb28832b5f65ab64291de96568c3f236a74d646281b4491f7bcadbf",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3bdddf0b9b08aaa2fe4365b803fc958ed32c0597ca0bd727be8d9fcb8b248d18.txt",
+      "sha256": "3bdddf0b9b08aaa2fe4365b803fc958ed32c0597ca0bd727be8d9fcb8b248d18",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3e3edc1224eec9c39cd26491a21304a62883c1e5b6a65c5283ccc7a6cc94baee.txt",
+      "sha256": "3e3edc1224eec9c39cd26491a21304a62883c1e5b6a65c5283ccc7a6cc94baee",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4.txt",
+      "sha256": "3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8.txt",
+      "sha256": "3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/435a6722c786b0a56fbe7387028f1d9d3f3a2d0fb615bb8fee118727c3f59b7b.txt",
+      "sha256": "435a6722c786b0a56fbe7387028f1d9d3f3a2d0fb615bb8fee118727c3f59b7b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/46231df5a7733c3f52f11b71f3df61813007745b62b09031acfb45fb42d75082.txt",
+      "sha256": "46231df5a7733c3f52f11b71f3df61813007745b62b09031acfb45fb42d75082",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/47dcccf62bf40469d23849b0b1dc8df9fc91bce219b880c638d4dc4596e6b5cf.txt",
+      "sha256": "47dcccf62bf40469d23849b0b1dc8df9fc91bce219b880c638d4dc4596e6b5cf",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/483acb265f182907d1caf6cff9c16c96f31325ed23792832cc5d8b12d5f88c8a.txt",
+      "sha256": "483acb265f182907d1caf6cff9c16c96f31325ed23792832cc5d8b12d5f88c8a",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
+      "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/498d39c83164cf8de195090f5564fc0308ab271344ca2f95484a7f1020952d00.txt",
+      "sha256": "498d39c83164cf8de195090f5564fc0308ab271344ca2f95484a7f1020952d00",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/49fad6f35ac45600d018ee56051c63e52103820d97d5ad512fe7018ec395b3df.txt",
+      "sha256": "49fad6f35ac45600d018ee56051c63e52103820d97d5ad512fe7018ec395b3df",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/4bc935e71be198c67ddf3c2b5fddb195f6edc182bfc155a96a6db61b44b494b9.txt",
+      "sha256": "4bc935e71be198c67ddf3c2b5fddb195f6edc182bfc155a96a6db61b44b494b9",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/4eb7543b08d955a6d23fcc224601d43ff566e775be918805e26210d7f6eb4893.txt",
+      "sha256": "4eb7543b08d955a6d23fcc224601d43ff566e775be918805e26210d7f6eb4893",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b.txt",
+      "sha256": "4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/4eeb3271453a891df609e5a9f4ee79a68307f730c13417a3bfeffa604ac8cf25.txt",
+      "sha256": "4eeb3271453a891df609e5a9f4ee79a68307f730c13417a3bfeffa604ac8cf25",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/512cfa4d5e7a7569c7ae4dd95241cb6ae2aaf648ef9ebd080c01bd24868d26e9.txt",
+      "sha256": "512cfa4d5e7a7569c7ae4dd95241cb6ae2aaf648ef9ebd080c01bd24868d26e9",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/51887a3d47051ac2fce1210562e5b9fe0830a8a8fabeb272c2d586eeb18a05fd.txt",
+      "sha256": "51887a3d47051ac2fce1210562e5b9fe0830a8a8fabeb272c2d586eeb18a05fd",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/52412d7bc7ce4157ea628bbaacb8829e0a9cb3c58f57f99176126bc8cf2bfc85.txt",
+      "sha256": "52412d7bc7ce4157ea628bbaacb8829e0a9cb3c58f57f99176126bc8cf2bfc85",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/553d4d20029a24e315b428a1a54a9e109eaa340f2e958a4f50a92362c2c4070b.txt",
+      "sha256": "553d4d20029a24e315b428a1a54a9e109eaa340f2e958a4f50a92362c2c4070b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/582c3022bd01942336095f92b58a90b1be624dc547d987555c6c956512dd24c1.txt",
+      "sha256": "582c3022bd01942336095f92b58a90b1be624dc547d987555c6c956512dd24c1",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/589850dfc0a1d39a97c592d618d5772f84aec2b11c6898e020acb985299f3bab.txt",
+      "sha256": "589850dfc0a1d39a97c592d618d5772f84aec2b11c6898e020acb985299f3bab",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/592141f7b861426ceeff937d85ad04ada5f66e386c5a8696ed1bd680f2cdb552.txt",
+      "sha256": "592141f7b861426ceeff937d85ad04ada5f66e386c5a8696ed1bd680f2cdb552",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/59a400d04c5078579acc27ddd6452c1bdf763f9506e01364700935fbb1a7c91b.txt",
+      "sha256": "59a400d04c5078579acc27ddd6452c1bdf763f9506e01364700935fbb1a7c91b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/5be1f3465bba68a626777f984878814aaf35e7ef8e9fd314d469bcf887050fb8.txt",
+      "sha256": "5be1f3465bba68a626777f984878814aaf35e7ef8e9fd314d469bcf887050fb8",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
+      "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/5d45910e7ed82fecc3e29b40a5b3a17ceb609fda19f860aa2ec180d87f4f9d4a.txt",
+      "sha256": "5d45910e7ed82fecc3e29b40a5b3a17ceb609fda19f860aa2ec180d87f4f9d4a",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/5e325595b4ea8cfec3802f545b1def5d7b73e4a5b8e9ba63e32a320f67732292.txt",
+      "sha256": "5e325595b4ea8cfec3802f545b1def5d7b73e4a5b8e9ba63e32a320f67732292",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/5eba353fe5076ac3432177f8ab1cf75e3afcd0584251e37c3bfead5f447d040e.txt",
+      "sha256": "5eba353fe5076ac3432177f8ab1cf75e3afcd0584251e37c3bfead5f447d040e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/5ffe28e7ade7d8f10d85d5337a73fd793dac5c462fb9a28fbf8c5046c7fbca3b.txt",
+      "sha256": "5ffe28e7ade7d8f10d85d5337a73fd793dac5c462fb9a28fbf8c5046c7fbca3b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985.txt",
+      "sha256": "60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6134c69bc22c8289252e70de3af20bd67071233459055be74d83acfcc4865e7e.txt",
+      "sha256": "6134c69bc22c8289252e70de3af20bd67071233459055be74d83acfcc4865e7e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6236fa0b88a4a0cce3dda0367979491b2052b3c8d6b1c10b3668de083e86a7f0.txt",
+      "sha256": "6236fa0b88a4a0cce3dda0367979491b2052b3c8d6b1c10b3668de083e86a7f0",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6239c6144c31e58cf925c34483606969c555574d64ffa96518ab5d7f45c75d43.txt",
+      "sha256": "6239c6144c31e58cf925c34483606969c555574d64ffa96518ab5d7f45c75d43",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/62568a2d1337b77171ecca9db10579163446de1ba6151678e81f06cdc199971b.txt",
+      "sha256": "62568a2d1337b77171ecca9db10579163446de1ba6151678e81f06cdc199971b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/62ba766e9b50f9b175b0229f4ea03e93730c9180408acec50dd617e9ae1fa059.txt",
+      "sha256": "62ba766e9b50f9b175b0229f4ea03e93730c9180408acec50dd617e9ae1fa059",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/62fb7d7c1822fe783895866057247bbd50164b00631fce9e4981d3897bdee4d9.txt",
+      "sha256": "62fb7d7c1822fe783895866057247bbd50164b00631fce9e4981d3897bdee4d9",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/631987b7616a325a5b97566c232418481ddf7dbb5ecadefb991e791876cc2599.txt",
+      "sha256": "631987b7616a325a5b97566c232418481ddf7dbb5ecadefb991e791876cc2599",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/63b9a188d7d43e64b0558b7115255045b9fe20a5fc3ff483421cb899e7f52bcb.txt",
+      "sha256": "63b9a188d7d43e64b0558b7115255045b9fe20a5fc3ff483421cb899e7f52bcb",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/655287aefbf8e292057318c385d77767b1dd9819c87709fd26730b7090efe4d9.txt",
+      "sha256": "655287aefbf8e292057318c385d77767b1dd9819c87709fd26730b7090efe4d9",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6582629e2979466878f6014313dcc2f3756c9616148682227ce3063dde310750.txt",
+      "sha256": "6582629e2979466878f6014313dcc2f3756c9616148682227ce3063dde310750",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6652830c2607c722b66f1b57de15877ab8fc5dca406cc5b335afeb365d0f32c1.txt",
+      "sha256": "6652830c2607c722b66f1b57de15877ab8fc5dca406cc5b335afeb365d0f32c1",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/693866fc419c6f61c8570438ec00659d156ec2b4d4a4d04091711f5f11a365d4.txt",
+      "sha256": "693866fc419c6f61c8570438ec00659d156ec2b4d4a4d04091711f5f11a365d4",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6a134e51aa31496c15a741592fc5d782b2dbf8d8b6b8524e15c8520ae0cd6374.txt",
+      "sha256": "6a134e51aa31496c15a741592fc5d782b2dbf8d8b6b8524e15c8520ae0cd6374",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6cb0631f71c7749763fd3dd1d5bee52dd1070ec17f2edc1710079ad070bd2fbd.txt",
+      "sha256": "6cb0631f71c7749763fd3dd1d5bee52dd1070ec17f2edc1710079ad070bd2fbd",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6d2abc90a426cf65bbf84f7cedf9487f7ff86a3daf0e130b335a45c112f040d0.txt",
+      "sha256": "6d2abc90a426cf65bbf84f7cedf9487f7ff86a3daf0e130b335a45c112f040d0",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6de5c13fa4cb2cef3d111d6f43ef4958aa1b9ea3f6f623200dfe1300a8e1d3d4.txt",
+      "sha256": "6de5c13fa4cb2cef3d111d6f43ef4958aa1b9ea3f6f623200dfe1300a8e1d3d4",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6e7d699cdd1e4fa837ba7718ea49841aa67201b449ea8b3f9cf274be15974a64.txt",
+      "sha256": "6e7d699cdd1e4fa837ba7718ea49841aa67201b449ea8b3f9cf274be15974a64",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/6fb9754611c20f6649f68805e8c990e83261f29316e29de9e6cedae607b8634c.txt",
+      "sha256": "6fb9754611c20f6649f68805e8c990e83261f29316e29de9e6cedae607b8634c",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/709131d7af352b81204ada2a3d812e245a83576e327b364f92ba24c578ba9408.txt",
+      "sha256": "709131d7af352b81204ada2a3d812e245a83576e327b364f92ba24c578ba9408",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/70c9d5382506dd184465425c08a99ad9bd6d9ac1313c252968ba0b585e5ef823.txt",
+      "sha256": "70c9d5382506dd184465425c08a99ad9bd6d9ac1313c252968ba0b585e5ef823",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/71f83c4c0621102a56d9853812777b85751bce7e9726f686f5b056c1f8a4b0e6.txt",
+      "sha256": "71f83c4c0621102a56d9853812777b85751bce7e9726f686f5b056c1f8a4b0e6",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/73ba74dfaa520b49a401b5d21459a8523a146f3b7518a833eea5efa85130bf68.txt",
+      "sha256": "73ba74dfaa520b49a401b5d21459a8523a146f3b7518a833eea5efa85130bf68",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/74d8054d56d522bdaa340d3d71130cb204997d523a5292c85ac1264dd77c8d06.txt",
+      "sha256": "74d8054d56d522bdaa340d3d71130cb204997d523a5292c85ac1264dd77c8d06",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/7585ea7bba616ccbbe43cb54ecb67956688c3c5641bb84f3099a652a73193afe.txt",
+      "sha256": "7585ea7bba616ccbbe43cb54ecb67956688c3c5641bb84f3099a652a73193afe",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/769d154fbde32a915af110b1123650bc79f4cbe675acc66e005265bf069c6c6c.txt",
+      "sha256": "769d154fbde32a915af110b1123650bc79f4cbe675acc66e005265bf069c6c6c",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7.txt",
+      "sha256": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/76d6d1ea0c268da37dd3c961b4fcfb23dee8417fff9e8786d4d44c585b781b69.txt",
+      "sha256": "76d6d1ea0c268da37dd3c961b4fcfb23dee8417fff9e8786d4d44c585b781b69",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/773e131a7684726005a7e4688a80b4620033bc08499bc1404dd1a1eb3bca725e.txt",
+      "sha256": "773e131a7684726005a7e4688a80b4620033bc08499bc1404dd1a1eb3bca725e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/7774c8c4a3f750b294b416818062201a404fc2d6c8756d8b89a1688e24b5d5a7.txt",
+      "sha256": "7774c8c4a3f750b294b416818062201a404fc2d6c8756d8b89a1688e24b5d5a7",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/7842a82012622e5a37bfe4f6c1b67cd3bae6350716b5bf87f36cea0bdc1319dc.txt",
+      "sha256": "7842a82012622e5a37bfe4f6c1b67cd3bae6350716b5bf87f36cea0bdc1319dc",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/7883225d5e84a6bbb9b170c3d891b4bf6d6259cee869c86bd86381a927071745.txt",
+      "sha256": "7883225d5e84a6bbb9b170c3d891b4bf6d6259cee869c86bd86381a927071745",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/7b34e99bc43641767fded49f7f03563ffd50c689b1f3b0d50700b4727bc4ae24.txt",
+      "sha256": "7b34e99bc43641767fded49f7f03563ffd50c689b1f3b0d50700b4727bc4ae24",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/7c6cc83c84eaa249a85bf12fe3eedd831bb50c696e8890b5248223ae68c7b408.txt",
+      "sha256": "7c6cc83c84eaa249a85bf12fe3eedd831bb50c696e8890b5248223ae68c7b408",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/8089bcc08845ec143e5761f4a101a65b8c792a0dedbfeeb90a15560c0b77f768.txt",
+      "sha256": "8089bcc08845ec143e5761f4a101a65b8c792a0dedbfeeb90a15560c0b77f768",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/811238ba7d85f6fe6b820703a32f92705bcf77bc352ddc3476783491c64a129a.txt",
+      "sha256": "811238ba7d85f6fe6b820703a32f92705bcf77bc352ddc3476783491c64a129a",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/81c407ac717813b0e3795402960e04003c7bba8ba59b621624707028531c9ade.txt",
+      "sha256": "81c407ac717813b0e3795402960e04003c7bba8ba59b621624707028531c9ade",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/824ef6c33ae5ecbbab65d37f2b37da2bfc81d76cf7676ec0f59d00a0a38bdb75.txt",
+      "sha256": "824ef6c33ae5ecbbab65d37f2b37da2bfc81d76cf7676ec0f59d00a0a38bdb75",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/88d9b4eb60579c191ec391ca04c16130572d7eedc4a86daa58bf28c6e14c9bcd.txt",
+      "sha256": "88d9b4eb60579c191ec391ca04c16130572d7eedc4a86daa58bf28c6e14c9bcd",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/89024017b88a9f2b763f79b941a4f2db3b4428edfcacdc0b23866b2da633ad0c.txt",
+      "sha256": "89024017b88a9f2b763f79b941a4f2db3b4428edfcacdc0b23866b2da633ad0c",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/8a6dcbabe7179f9c8489c08a7d874d0f1e093ae7449e03756ccf87cb9d0e296e.txt",
+      "sha256": "8a6dcbabe7179f9c8489c08a7d874d0f1e093ae7449e03756ccf87cb9d0e296e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/8bb16db1b047019e4395965f2cf3611b06c34bf86dc2d0210b3c3f91b53c21fe.txt",
+      "sha256": "8bb16db1b047019e4395965f2cf3611b06c34bf86dc2d0210b3c3f91b53c21fe",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/8bf96984ff8bcfae7e48cae76a529e8a25317ba9e02abf7fd3cc64fdf95657a6.txt",
+      "sha256": "8bf96984ff8bcfae7e48cae76a529e8a25317ba9e02abf7fd3cc64fdf95657a6",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/8dded67841a9261a622c739fb61c81785e93765de852828ceeb9403d20a74581.txt",
+      "sha256": "8dded67841a9261a622c739fb61c81785e93765de852828ceeb9403d20a74581",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/8f2658c03422c408b2b2ce4d151decc3b1a6fd3d86e5ca9433777bccdcdf75a2.txt",
+      "sha256": "8f2658c03422c408b2b2ce4d151decc3b1a6fd3d86e5ca9433777bccdcdf75a2",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/901d0a7fcaccaae9917d165039c0473c354e5da2e0e94140dde67aad9ffb19da.txt",
+      "sha256": "901d0a7fcaccaae9917d165039c0473c354e5da2e0e94140dde67aad9ffb19da",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/902dbb4154679fb2b8d7c33878183f45b268d01eae5e5033dddaa8852d45f213.txt",
+      "sha256": "902dbb4154679fb2b8d7c33878183f45b268d01eae5e5033dddaa8852d45f213",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/9068a8782d2fb4c6e432cfa25334efa56f722822180570802bf86e71b6003b1e.txt",
+      "sha256": "9068a8782d2fb4c6e432cfa25334efa56f722822180570802bf86e71b6003b1e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/95a5762890e5c1c9808921cef095661fc482c5e1f0bba31446ac85595df6237c.txt",
+      "sha256": "95a5762890e5c1c9808921cef095661fc482c5e1f0bba31446ac85595df6237c",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/965ef284f7f4c176842ec2e87fa13e79feed777d56d7a21a5a3b38f1bb6dc288.txt",
+      "sha256": "965ef284f7f4c176842ec2e87fa13e79feed777d56d7a21a5a3b38f1bb6dc288",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/96e5193183476a03da6667d217ce14110191d26ee105338086e94339edf40d5a.txt",
+      "sha256": "96e5193183476a03da6667d217ce14110191d26ee105338086e94339edf40d5a",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/98c970de440dcfc77471610aec2377c9d9b0db2b3be6d1add524a586e1d7f422.txt",
+      "sha256": "98c970de440dcfc77471610aec2377c9d9b0db2b3be6d1add524a586e1d7f422",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97.txt",
+      "sha256": "9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/9b0d4666d301c53eb4be4e2fec89e5589a7e5da450026153c27e34c2b3115921.txt",
+      "sha256": "9b0d4666d301c53eb4be4e2fec89e5589a7e5da450026153c27e34c2b3115921",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/9dbd86998d3cdafc1d8c298aea636146568d05d429b81386e60cfce11e6cedb6.txt",
+      "sha256": "9dbd86998d3cdafc1d8c298aea636146568d05d429b81386e60cfce11e6cedb6",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/9e534cfb7f7ae1300e16fe1ee7d203fdfe707dc932429c37246f747c3699ee14.txt",
+      "sha256": "9e534cfb7f7ae1300e16fe1ee7d203fdfe707dc932429c37246f747c3699ee14",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/9ea8903938dab5f12c4572d60725069bec2d1b0dc3bcc210b09bae946a5ebb1f.txt",
+      "sha256": "9ea8903938dab5f12c4572d60725069bec2d1b0dc3bcc210b09bae946a5ebb1f",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a09b0d6d76e768fca2085fad05743ee81ddd11946bcda160a3cf5e1081a479aa.txt",
+      "sha256": "a09b0d6d76e768fca2085fad05743ee81ddd11946bcda160a3cf5e1081a479aa",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a0e6357a5e8ea65827addeb383e0948a1874d2f46bc7feaf6349b7a376ed6e98.txt",
+      "sha256": "a0e6357a5e8ea65827addeb383e0948a1874d2f46bc7feaf6349b7a376ed6e98",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a0ec0dab16b3666f24950f86d257930ac2ad475557b4bfe245620e0817d8a45d.txt",
+      "sha256": "a0ec0dab16b3666f24950f86d257930ac2ad475557b4bfe245620e0817d8a45d",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a22b9d5763f574e5db347c30acc0b33eaf4846767c03d2e27d012e864e79a824.txt",
+      "sha256": "a22b9d5763f574e5db347c30acc0b33eaf4846767c03d2e27d012e864e79a824",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a405ee70c632bb938acb7ac5f210e814409b3760ea9d2329d8ed8ffcfd11a0e7.txt",
+      "sha256": "a405ee70c632bb938acb7ac5f210e814409b3760ea9d2329d8ed8ffcfd11a0e7",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27.txt",
+      "sha256": "a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a6f36438e46fb911859f3b9c4cad045ba64e1af3d8f4512c60258fa2d7552d28.txt",
+      "sha256": "a6f36438e46fb911859f3b9c4cad045ba64e1af3d8f4512c60258fa2d7552d28",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a7996721249a136fbcfc1c201bcb5f414f38a701d4a24f28abe65e16cfcce813.txt",
+      "sha256": "a7996721249a136fbcfc1c201bcb5f414f38a701d4a24f28abe65e16cfcce813",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47.txt",
+      "sha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a832d679750e49ab433626ab196350b89964b60eb0d3edd3341887c7d5f4c128.txt",
+      "sha256": "a832d679750e49ab433626ab196350b89964b60eb0d3edd3341887c7d5f4c128",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a8e260b5b60eb27746ff2c5967489e6878c5a6ba99400cbec84c89a9b49a46ca.txt",
+      "sha256": "a8e260b5b60eb27746ff2c5967489e6878c5a6ba99400cbec84c89a9b49a46ca",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/a92e52eb1fa7cd746e3827bf01d3a3589bbc8e1e51348b1da042aad165525ad1.txt",
+      "sha256": "a92e52eb1fa7cd746e3827bf01d3a3589bbc8e1e51348b1da042aad165525ad1",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/aaa78451b6fecd1b9c4594c796c133c0e90cad100372ff8bc6de615e9ef9adf1.txt",
+      "sha256": "aaa78451b6fecd1b9c4594c796c133c0e90cad100372ff8bc6de615e9ef9adf1",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ac779f7314c74f232ef847ea86e714abe25cf6eeb5cc97b69451b74e2af6492d.txt",
+      "sha256": "ac779f7314c74f232ef847ea86e714abe25cf6eeb5cc97b69451b74e2af6492d",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ad6cf57648385d6c40a29f73c55e42922dd793823df5ea265ccd834873bf09b9.txt",
+      "sha256": "ad6cf57648385d6c40a29f73c55e42922dd793823df5ea265ccd834873bf09b9",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/b181da80336ff9dd1043fc8be1a764d7382363433319aa872e4d2cb5ce2a3066.txt",
+      "sha256": "b181da80336ff9dd1043fc8be1a764d7382363433319aa872e4d2cb5ce2a3066",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/b1c501095de70182748cb8e8d97ac5577701a4ef3b755ba30d59fd87b24bdb0f.txt",
+      "sha256": "b1c501095de70182748cb8e8d97ac5577701a4ef3b755ba30d59fd87b24bdb0f",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1.txt",
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681.txt",
+      "sha256": "b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/b8778b155bfde5a28b023a558753c0fa058a52bb9de35c343c250be1bbcdedab.txt",
+      "sha256": "b8778b155bfde5a28b023a558753c0fa058a52bb9de35c343c250be1bbcdedab",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/b989d9085148d21ff64a75e14462aefa06b2589a55553b07b1460c70081c7d08.txt",
+      "sha256": "b989d9085148d21ff64a75e14462aefa06b2589a55553b07b1460c70081c7d08",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/b9adc17ad75a847d8743be2843935f0842a0ea4f45e7b0c7e17ed0be98614b9b.txt",
+      "sha256": "b9adc17ad75a847d8743be2843935f0842a0ea4f45e7b0c7e17ed0be98614b9b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/bbaf3620b43019e895e662543df7eb6f7a8c8bd81f2b611ef34db6ee0cc8219e.txt",
+      "sha256": "bbaf3620b43019e895e662543df7eb6f7a8c8bd81f2b611ef34db6ee0cc8219e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/bd134b41da59e452fb5a1d366b660886f741c87c2bf9428e93764c419fbc40f5.txt",
+      "sha256": "bd134b41da59e452fb5a1d366b660886f741c87c2bf9428e93764c419fbc40f5",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/bd40cc437e28a3ad7bef2ad34e6b72e757b182e67bda1acadbab4ef0476f8232.txt",
+      "sha256": "bd40cc437e28a3ad7bef2ad34e6b72e757b182e67bda1acadbab4ef0476f8232",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/bd47ce7b88c7759630d1e2b9fcfa170a0f1fde522be09e13fb1581a79d090400.txt",
+      "sha256": "bd47ce7b88c7759630d1e2b9fcfa170a0f1fde522be09e13fb1581a79d090400",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/be46ce1e3b0479af9ce82d22b465a6d7d2ff084fca0aaf3d54172da2b5eb5781.txt",
+      "sha256": "be46ce1e3b0479af9ce82d22b465a6d7d2ff084fca0aaf3d54172da2b5eb5781",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/bf9b0d665be2a689851eea667ca9f42066ea1d903b38349c51e6a44b2577680a.txt",
+      "sha256": "bf9b0d665be2a689851eea667ca9f42066ea1d903b38349c51e6a44b2577680a",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/bfdeded4040e05da31ca9b6239dc83bd23fa26ac8db87342a7ca4363f68916ff.txt",
+      "sha256": "bfdeded4040e05da31ca9b6239dc83bd23fa26ac8db87342a7ca4363f68916ff",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/c02110eedc16c7114f1a9bdc026c65626ce1d9c7e27fd51a8e0feee8a48a6858.txt",
+      "sha256": "c02110eedc16c7114f1a9bdc026c65626ce1d9c7e27fd51a8e0feee8a48a6858",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/c064f7a3e353bc1bc977f3c897941c75ef763f44f41677e0a15370ca0853d6e2.txt",
+      "sha256": "c064f7a3e353bc1bc977f3c897941c75ef763f44f41677e0a15370ca0853d6e2",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/c0af1c3e74a891b408dc4365897482cc8c284365808e3837c56ea3c337ed7a2c.txt",
+      "sha256": "c0af1c3e74a891b408dc4365897482cc8c284365808e3837c56ea3c337ed7a2c",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/c1e6e266563517467b1bf874817d23e426f3149252bd7d42758cd697514b8417.txt",
+      "sha256": "c1e6e266563517467b1bf874817d23e426f3149252bd7d42758cd697514b8417",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/c4630ac8b89cb317ac5bdd60ac5e4e185eab9bd5151a0c7b3afa41aa83d7ec9b.txt",
+      "sha256": "c4630ac8b89cb317ac5bdd60ac5e4e185eab9bd5151a0c7b3afa41aa83d7ec9b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/c7cc929b57080f4b9d0c6cf57669f0463fc5b39906344dfc8d3bc43426b30eac.txt",
+      "sha256": "c7cc929b57080f4b9d0c6cf57669f0463fc5b39906344dfc8d3bc43426b30eac",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/c8e6bca7230689d536a3bd7158f66e9c4f89f95d0748743a0370ac229e9023ad.txt",
+      "sha256": "c8e6bca7230689d536a3bd7158f66e9c4f89f95d0748743a0370ac229e9023ad",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ca8773cf798c7ed997d4dd7c8e23c348699f8d5b7462636694cc14de6cda12db.txt",
+      "sha256": "ca8773cf798c7ed997d4dd7c8e23c348699f8d5b7462636694cc14de6cda12db",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/cb00dc7c358014d300dba2462e57d3f477299c169c7ab14d8fe5e347eca44f48.txt",
+      "sha256": "cb00dc7c358014d300dba2462e57d3f477299c169c7ab14d8fe5e347eca44f48",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/cc1dfd4dafa27271e8212cd3b274eeb3f262e40a6fdab36ddc3f9696f706f58b.txt",
+      "sha256": "cc1dfd4dafa27271e8212cd3b274eeb3f262e40a6fdab36ddc3f9696f706f58b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/cebc084d54e6dd99e53292ddb4bc1cdb63d9bfcd9ce438fe3aa6eb106d79e2ea.txt",
+      "sha256": "cebc084d54e6dd99e53292ddb4bc1cdb63d9bfcd9ce438fe3aa6eb106d79e2ea",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/cfc3f455254c0af0655cc3ff46a41ed644b67599f6043346169d285bf2b3cf3b.txt",
+      "sha256": "cfc3f455254c0af0655cc3ff46a41ed644b67599f6043346169d285bf2b3cf3b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/d06b5d27bbbbe22c36b1fd88406b1208876e2d37d795f5b8eaed951a459a3111.txt",
+      "sha256": "d06b5d27bbbbe22c36b1fd88406b1208876e2d37d795f5b8eaed951a459a3111",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9.txt",
+      "sha256": "d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/d25d1d6d28c35cb6f358e2833e405c4e53fec2fa24d156323ddea5cd438d3407.txt",
+      "sha256": "d25d1d6d28c35cb6f358e2833e405c4e53fec2fa24d156323ddea5cd438d3407",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/d55f836b1fb57a8a7fbaca7dcc1dfa09778bae2c73e273e8684d6c968942067c.txt",
+      "sha256": "d55f836b1fb57a8a7fbaca7dcc1dfa09778bae2c73e273e8684d6c968942067c",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/d8c77eaffed7f1f874b97f66ee47a557ae24fd59bae8ae14f9b1b84f26a94d2f.txt",
+      "sha256": "d8c77eaffed7f1f874b97f66ee47a557ae24fd59bae8ae14f9b1b84f26a94d2f",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/d90bf0a089da4cf43d644ed240a0b3825dcdb705e64e38371d56995a4cc9e4c5.txt",
+      "sha256": "d90bf0a089da4cf43d644ed240a0b3825dcdb705e64e38371d56995a4cc9e4c5",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/d96eba1f1881334d50ffc144276dfa98e147a415e7c591ecdfcb81680361dc91.txt",
+      "sha256": "d96eba1f1881334d50ffc144276dfa98e147a415e7c591ecdfcb81680361dc91",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/da4db1480d9beea3483a2eda5c53b22238d0827d57da162b48f122e04d2d9987.txt",
+      "sha256": "da4db1480d9beea3483a2eda5c53b22238d0827d57da162b48f122e04d2d9987",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93.txt",
+      "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/dcb94ff9b1e037a847bc20589dc81a1066d041fd4c16deb18b0fa968c66cf395.txt",
+      "sha256": "dcb94ff9b1e037a847bc20589dc81a1066d041fd4c16deb18b0fa968c66cf395",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/dcd0a622a3a2c94fe3aa6238b76363f87df442afe788cbad966afe943ed62281.txt",
+      "sha256": "dcd0a622a3a2c94fe3aa6238b76363f87df442afe788cbad966afe943ed62281",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/dd40f37957ddcb6a6157f40b677d6f43697583f956144fbce25443e35630453e.txt",
+      "sha256": "dd40f37957ddcb6a6157f40b677d6f43697583f956144fbce25443e35630453e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ddc110f3b89cc397cee99d3d64c4f746928b7a3bac02fed15101eb4d367079f6.txt",
+      "sha256": "ddc110f3b89cc397cee99d3d64c4f746928b7a3bac02fed15101eb4d367079f6",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ddd770379e07bf0574dfaa4485be80a23b3248b36d09f33ec79276c09b829daf.txt",
+      "sha256": "ddd770379e07bf0574dfaa4485be80a23b3248b36d09f33ec79276c09b829daf",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/dfbf6bbccb9fe67c1cf0d7721605ab81b2f2adce68ee4becf02292d899d0001c.txt",
+      "sha256": "dfbf6bbccb9fe67c1cf0d7721605ab81b2f2adce68ee4becf02292d899d0001c",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee.txt",
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/e1898814043cb5500483d9c8517edda824b352f696d35e5043fcfb537c221531.txt",
+      "sha256": "e1898814043cb5500483d9c8517edda824b352f696d35e5043fcfb537c221531",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/e273680c43c2ab5bb3b50af28de6a08000b333396834db7bf6129cd6f130c9cd.txt",
+      "sha256": "e273680c43c2ab5bb3b50af28de6a08000b333396834db7bf6129cd6f130c9cd",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/e2eaa4603c14cb26f301e88648c12a853fa3f0f5da6d4b0972958c666e7f2ab8.txt",
+      "sha256": "e2eaa4603c14cb26f301e88648c12a853fa3f0f5da6d4b0972958c666e7f2ab8",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/e399db7e952e45cae84f1b53d72ba8dbad2daaa7ab8cd1f0ab72fea5ab73b225.txt",
+      "sha256": "e399db7e952e45cae84f1b53d72ba8dbad2daaa7ab8cd1f0ab72fea5ab73b225",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/e3b44af066615de2ea48d18d852d0762f18c0b2efcea714fa48a6f729d405b85.txt",
+      "sha256": "e3b44af066615de2ea48d18d852d0762f18c0b2efcea714fa48a6f729d405b85",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/e51cba0e4fa1d8c078e15319868f2b90188f413f9ce9dac1043b62db32901e93.txt",
+      "sha256": "e51cba0e4fa1d8c078e15319868f2b90188f413f9ce9dac1043b62db32901e93",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/e5aee0714b6ecc416454b968d1017570ef609f20d8722ab84b07acd550b78198.txt",
+      "sha256": "e5aee0714b6ecc416454b968d1017570ef609f20d8722ab84b07acd550b78198",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/e7dc37bf662d7f786efcb46c545615e70c1daf458a38385521c63cf6607cdfe1.txt",
+      "sha256": "e7dc37bf662d7f786efcb46c545615e70c1daf458a38385521c63cf6607cdfe1",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ea75e9321945b7f0bc4644da1e404ad76ce55e9bc05cae3b2f5f2d973aede83b.txt",
+      "sha256": "ea75e9321945b7f0bc4644da1e404ad76ce55e9bc05cae3b2f5f2d973aede83b",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224.txt",
+      "sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/f25bf9bf3ae8984bcd43bf7fb8f78e7eec8d577081fb8d0989cfa7c67ecebb8e.txt",
+      "sha256": "f25bf9bf3ae8984bcd43bf7fb8f78e7eec8d577081fb8d0989cfa7c67ecebb8e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/f26c92c1c16e78c6b1f7474792f7195b7abc851caccb4a73dcc5b3c31efc7321.txt",
+      "sha256": "f26c92c1c16e78c6b1f7474792f7195b7abc851caccb4a73dcc5b3c31efc7321",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/f655e6291356ec0de7a8f0e69f294961a2cea86678ec94588be1e6a492e278ab.txt",
+      "sha256": "f655e6291356ec0de7a8f0e69f294961a2cea86678ec94588be1e6a492e278ab",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/f657f99d3fb9647db92628e96007aabb46e5f04f33e49999075aab8e250ca7ce.txt",
+      "sha256": "f657f99d3fb9647db92628e96007aabb46e5f04f33e49999075aab8e250ca7ce",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/f65c5d9f22a317b2a10803bd1868461ce6499c2ed7217bc80c0cc772a748789c.txt",
+      "sha256": "f65c5d9f22a317b2a10803bd1868461ce6499c2ed7217bc80c0cc772a748789c",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/f70545fce49626ae2659adc8a526f2355c77afa2fb8b6ca1363090db8a14ef6f.txt",
+      "sha256": "f70545fce49626ae2659adc8a526f2355c77afa2fb8b6ca1363090db8a14ef6f",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc.txt",
+      "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/f95f668fe64081ddb4153b322e34fdd719b991285ed08177d5ad7133b7988d92.txt",
+      "sha256": "f95f668fe64081ddb4153b322e34fdd719b991285ed08177d5ad7133b7988d92",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/fa1bd040c5bdeefe65b3821cebf474f2733ce65df13089bd151dda1778e62fe8.txt",
+      "sha256": "fa1bd040c5bdeefe65b3821cebf474f2733ce65df13089bd151dda1778e62fe8",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884.txt",
+      "sha256": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/fc0397fbd5c128bec7edef4e8d3f45e15db5fd043cdd0a2edfc4f14d47fbc3e4.txt",
+      "sha256": "fc0397fbd5c128bec7edef4e8d3f45e15db5fd043cdd0a2edfc4f14d47fbc3e4",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/fd3a263fe19ed8faa9068b43abaebafc02c77897b0c6fc09abc04bb592e5f16e.txt",
+      "sha256": "fd3a263fe19ed8faa9068b43abaebafc02c77897b0c6fc09abc04bb592e5f16e",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/fecc38b5e10d889686b3862e7ade17e8b3e5c94b24b7256b05a354d8524b3274.txt",
+      "sha256": "fecc38b5e10d889686b3862e7ade17e8b3e5c94b24b7256b05a354d8524b3274",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ff151c00207c908581639851dd8504ce4255be0650b2b236edec2aa90342b0cd.txt",
+      "sha256": "ff151c00207c908581639851dd8504ce4255be0650b2b236edec2aa90342b0cd",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ffd8b33b354585f4ce119f19c53728281e48a97b074491eb6bf6d5c5ff305272.txt",
+      "sha256": "ffd8b33b354585f4ce119f19c53728281e48a97b074491eb6bf6d5c5ff305272",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ffdc17dc9040006bddeb891c95bfbb492e86d6bc64a4a4233666febab1be35e0.txt",
+      "sha256": "ffdc17dc9040006bddeb891c95bfbb492e86d6bc64a4a4233666febab1be35e0",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "notices/ffe370c8785b0b688d954977ce8dc52e19e5f17962cc5f80009c85eba4925d56.txt",
+      "sha256": "ffe370c8785b0b688d954977ce8dc52e19e5f17962cc5f80009c85eba4925d56",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/generate-import.py",
+      "sha256": "f9ef6168aa7e5c6c379c5a5d35a99964263a2b2b1651f74bd0275b00d40151c4",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/generate-notices.py",
+      "sha256": "c28164171941bb6f045e80a0df3b99b413aee59eb8c713a198ea60bcbad766b4",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/offline-guard.mjs",
+      "sha256": "5b55d0a2edf9468a7e5b2026e154042f25dabc2070cbe6bac2235fcea24b3159",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/runtime.mjs",
+      "sha256": "a9ec3396f248bbedc9eef7270c5f6860bf58ac4a0d5459c061dacf4d2208d3b0",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/runtime.test.mjs",
+      "sha256": "6bd62f3c422f521e6ca60b91ace04bd27c4e01cb63e11f62db99dcafcd15679f",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/smoke.mjs",
+      "sha256": "a604fa7890e76dfab8f3f7f8631384d2e9b39f7894185021fddc051b3d744567",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/start.mjs",
+      "sha256": "b48b1fec6ba060edd3df905ffd327be088d153beed177efd57ff4784a9b7408a",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/verify-import.mjs",
+      "sha256": "5f2ad92f458ec554e1f91ff30574e0bfda848633e4445aa75af5ee0ff17165ee",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/package.json",
+      "sha256": "2e723299fa80e53ee63ff401c6329d88884f326b18f5fba5bfd88b6cf39b3e8f",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/contract.ts",
+      "sha256": "aa496095b921f0a20ef8901c4767c810c74068b89075ebaca1ce3979dd4d1c34",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-218 history operations"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/index.ts",
+      "sha256": "45057a2dba9edcb40d219031f4a2e4f12f8dbc1f22ef8b14f51a0bcd48e495a3",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-218 history operations"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/service.test.ts",
+      "sha256": "60e420f64c8a4cbad1d611e9dab6d54d0013981c8c3759f93636450441429a6f",
+      "reason": "ZAR-219 private worker Pi handoff tests; ZAR-237 per-session invalidation, cross-session, restart and bounded-overflow regression; local hash refreshed"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/service.ts",
+      "sha256": "1de8b367d55c4bbdedfc43a2eaff72cf3325f1904d7a5a5581da9de9a939e204",
+      "reason": "ZAR-219 private worker named Pi fixture prepare/review/invalidate operations with existing secret/loopback/session checks"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/tsconfig.json",
+      "sha256": "082deeac349f4fecd9d1125a9f20335d253d831d9e5013780ac76223edbb6175",
+      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/vitest.config.ts",
+      "sha256": "69524385ec39b8ab7570c59db884b34eadf4e964e7f83c2fbc4d194333778a3c",
+      "reason": "Gelt M3 security tests and M4 native Windows file serialization without relaxing helper deadlines; ZAR-218 web history test inclusion; ZAR-217 M6 UI tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "IMPORT-MANIFEST.json",
+      "sha256": null,
+      "reason": "Gelt M4 narrow SQLite sidecar-only trusted-owner correction; retained M3 checks and closed diagnostics"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/official-worker-guard.mjs",
+      "sha256": "6cfffab95eef31d1bf8304713445fce5918020474b3dd42a12e01aae803fe04f",
+      "reason": "Gelt M3 protected account boundary source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/update-local-import.mjs",
+      "sha256": "f0d2d23a9edfaf63ea7198b3908714e8f13b38e36b8f9da5b7efe5da3e236554",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-218 provenance preservation on rehash"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/web.mjs",
+      "sha256": "88ea12d5a48ed44acf1b85c3a9876c8c834eebf7805d68da627103f9c238a08f",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/app/api/connection/[operation]/route.ts",
+      "sha256": "5c0f9034e5bb8e08da8b7f36b571cc494dfbce694b9038c18a83b6915c5519a1",
+      "reason": "Gelt M3 protected account boundary source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/app/connect/page.tsx",
+      "sha256": "6ce617e1dfb939a131d20011cd387f953d4e2c2cc4ee7aef54ca0b19a8401dd2",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary; ZAR-218 read-only history navigation; ZAR-217 connection card and offline BUY UI"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/connection-bff.test.ts",
+      "sha256": "178f0e6fab829dc9d95aad0107e2528a8b7fa17a9e315f9740b3dfee418cea22",
+      "reason": "ZAR-219 BFF authorization, strict fixture DTO and actual loopback worker round-trip regression tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/connection-bff.ts",
+      "sha256": "cb7ca57a2e63ac8d2882d0b8bb272b6b7c4d9b1062fef6493d5ca3d697421746",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/bootstrap.ts",
+      "sha256": "5735ce42448df85f9d48f104c9ed76717144e3ca510b9293570d8f9b3879bd80",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/connection-contract.ts",
+      "sha256": "a3cf2fe075e375bc011f520a583d7d379bc43acba7274c81821366217226c1b5",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/connection.test.ts",
+      "sha256": "7c2c43730c4020242118b2d37aa627ecce43bbef3505504ec2a364d2bdb44441",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/connection.ts",
+      "sha256": "8fc4d1b216ee561d69dc77a719d358aa87891848d0282e548bcfa9e4abb7d3c6",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary; ZAR-218 selected-account history scope"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/private-files.ts",
+      "sha256": "f18243fb0dac42012117935323b6a3f89ac574c3995efa2b46ddc7403477de62",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/private-service.test.ts",
+      "sha256": "0752d476769cbf6a5e898f3974f73eb11b9aca05c1b6dccd957050a91adc6644",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/provider.test.ts",
+      "sha256": "92bdb36b384e2ee7ef682f1890d9907089d972fc16b66618d06d67ab02c8b11f",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/provider.ts",
+      "sha256": "6f88948a25e692e15d624696bc038d3fd04e4d3dac0d3b31436bac651709a080",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/provision.ts",
+      "sha256": "d75187c48a2118086e7fc2896f338818ee6e29d348b86c4a24d3a962e15e8f75",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/security.ts",
+      "sha256": "d8f1b7cfe6539a46dda9ddd0f74eaec99c2a71757d7556a59b1f6e354a987e3d",
+      "reason": "Gelt M3 protected account boundary source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/setup.ts",
+      "sha256": "ce1ce10ce32e949bb8f264c5bd2c58cab789e331791e37412422b1876c1b03cb",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-218 offline history capability"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/vault.test.ts",
+      "sha256": "1c5a7077d9363eb8199a21a16b2b4d59402105daf33e85db8015c3ef1a2f2825",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/vault.ts",
+      "sha256": "84c9be24ee4ca35eede7447866cbabe67917587c4eb3b180f1e6634edafa640e",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "CONNECTION-API.md",
+      "sha256": "1e11f55f215a2dc98a5a98e8c614776f64a4ad3427693c3b1b9db528ed63ff62",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-218 read-only history operations"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "CONNECTION-OPERATIONS.md",
+      "sha256": "4769ecb918b817f811dbcf174867af4c4e35419d8d96b19f05b50f9739f89924",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/provisioning.test.ts",
+      "sha256": "f785dd0bbfbe6e4c1a23b1ff73ce1dedcb480dc4849700fee44ef2926bb8eeac",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/provisioning.ts",
+      "sha256": "6db17c88a249a639348ea3a580d3652e4117f90896968391e59f3f3b52f1ff92",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/account-adapter.ts",
+      "sha256": "d038639f3baffc00926fbdb08dd0fd10210e58c44ef8a4b309a4f4acde63b1fd",
+      "reason": "Gelt M3 protected account boundary source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/account-integration.test.ts",
+      "sha256": "623fbf781ff30fb290a0e452ab8786f04ffeb42e65bd5442b283f89e5fb7e3be",
+      "reason": "Gelt M3 protected account boundary source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/fixtures/README.md",
+      "sha256": "021d277cbb8f53d63cef99d907b346ef8fca9523b07dc81566454e4fb0bc8872",
+      "reason": "Gelt M3 protected account boundary source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/fixtures/get-accounts.json",
+      "sha256": "9cb913ee44b63fcbfa8cbe59fd6d9e1247077a9590ef93381c61c6674186dcf0",
+      "reason": "Gelt M3 protected account boundary source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/native/PrivateStorage.cs",
+      "sha256": "ff8a844ea4f7d1eb7567038e7e893659892b946c8d38b6d700ff523607b34e13",
+      "reason": "Gelt M4 exact sqlite-file main/sidecar classification; retained M3 ownership, ACL and path checks"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/native/private-storage.ps1",
+      "sha256": "28774f8e1d76e7cda78446643d5df122d616dd8aa1208e6738e3d24f0f2b57f3",
+      "reason": "Gelt M4 closed-vocabulary internal native diagnostics and real-file regression/operations contract; no storage-policy relaxation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/native/test-attacks.ps1",
+      "sha256": "8368aaaf8c3f0459627e79c1b7e883121ee1551b11b270526e3296cbc93aa006",
+      "reason": "Gelt M4 exact SQLite classifier matrix and protected owner-policy compiler scratch cleanup"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/prepare.ts",
+      "sha256": "9e78ea1e5c7b84f6e0e15fd8c5f84fb50c5a631d9080fea1c3e7431da3fdea76",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/storage-fixture.ts",
+      "sha256": "45c05d0a19bb975664c42ffb7d44e553c052a4bb3d96987f0fb3a168eff0756f",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/windows-storage.test.ts",
+      "sha256": "ba6c4b5fc0da6418d26546f47c6b111530bac823457000e374b30ee30413bf94",
+      "reason": "Gelt M4 exact SQLite filename, real sidecar validation and owner-policy scratch cleanup regressions"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/windows-storage.ts",
+      "sha256": "dd9653bf5de76da77e1d15e1b45ef213b03313fb2c8ae557eb52c19cbd3313b7",
+      "reason": "Gelt M4 operation-compatible sqlite-file sidecar diagnostics and refreshed native source pin"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/native/read-frame.ps1",
+      "sha256": "df451d8538972c801b4ec49443cfc4cf436bd0431c5ea92ad493f027478bef3b",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/windows-helper-fixture.ts",
+      "sha256": "5ef1d8aa7db7c328f14695cac1756dd1ca84804df02d990270af5672df7a3f67",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/windows-preflight.test.ts",
+      "sha256": "066d4637693d38bae5ea811753661ff00ee5b5c9d56f08f17a7cd32ce7d7c0e6",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/windows-transport.mjs",
+      "sha256": "484cfd891379e1d8fbae410215744dabea6d84cb2e6334d4537e211a478348ed",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/windows-transport.test.mjs",
+      "sha256": "c64228208ea832dc3a815e363a6b92dd2766fdb80daaf8fff307f75b5fb0e63b",
+      "reason": "Gelt M3 protected account boundary source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/windows-transport-fixture.ts",
+      "sha256": "171ad22dd76ccaa8728ca26e6152e7cc8f25fbd0c2623420167a60cd16430eb6",
+      "reason": "Gelt M3 protected account boundary source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/native/prerequisite-probe.ps1",
+      "sha256": "b3e47b49d5d54181af7b8f20e937134d2a4f667f04d6a3dbfe8bb322ceb19467",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/windows-prerequisite-fixture.ts",
+      "sha256": "c269ba55b4661d00c00ae9a789e704984121c6c758d655bee35cbf1e09b7c2f7",
+      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/fixtures/ledger-process.ts",
+      "sha256": "66ef0c08835362cc4a38df391d967e9cd7499bf6719efbcc3b68ebe3e8746f77",
+      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/ledger-canonical.ts",
+      "sha256": "64a6ed95d749dceb3e8fdc73a9dfda3597669c07e142ca171ba0de67382710d4",
+      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/ledger-contract.ts",
+      "sha256": "06cd6cfcb8a7b35efe91d2d1e51417afeb5d3d9e2aae284d4f081d360e6b5b50",
+      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation; ZAR-218 read-only history projection; ZAR-216 M5 event contracts"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/ledger-fixture.ts",
+      "sha256": "aa5e9fbe04066db4e50f67ebcf8e00eb499fc9e425fec6f9057dbad1a3088f37",
+      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/ledger-migrations.ts",
+      "sha256": "c08575b0d1006afb299532610ece345c91bf3a640b4f5045954eb9c4e949d65c",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/ledger-process.test.ts",
+      "sha256": "758928a43190a46008a91213dfb65ad96e92266df560b50f6a45241f4e4bed88",
+      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/ledger-storage.ts",
+      "sha256": "8ec82269c217a7097c7511ab6cade139b29c1d65a996ae978a5281d735c57e5a",
+      "reason": "Gelt M4 closed-vocabulary internal native diagnostics and real-file regression/operations contract; no storage-policy relaxation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/ledger.test.ts",
+      "sha256": "846ac3416ae42bb6825f0daadcdba28e7d296de1e89667177b94ee16739a54e3",
+      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/ledger.ts",
+      "sha256": "67f04b3c22d15e23fe162d4b1f40a72267c479b6557a34c146f501e542fd0172",
+      "reason": "Gelt M4 closed-vocabulary internal native diagnostics and real-file regression/operations contract; no storage-policy relaxation; ZAR-218 transaction-local read-only history; ZAR-216 M5 replay checks"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "LEDGER-API.md",
+      "sha256": "45c0681e416a1e1c88cfec64b42f1c5970dd96f7fbec342e2474709a1562446b",
+      "reason": "Gelt M4 exact sqlite-file final-filename classification contract; ZAR-218 read-only history response; ZAR-216 internal M5 lifecycle"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "LEDGER-OPERATIONS.md",
+      "sha256": "3e5c43c3bc053f0599f67adc91bfe018b45775766dd231a1990978a6df1cfd0b",
+      "reason": "Gelt M4 exact sqlite-file classification, sidecar validation and test scratch cleanup operations; ZAR-216 recovery hold"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/storage-diagnostics.test.ts",
+      "sha256": "dcb1d3f0b249bbd0eda5097de725c664bee631801d14e1e0b93964aa4a97b8a1",
+      "reason": "Gelt M4 closed operation-compatible sqlite-file main/sidecar diagnostic regressions"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/storage-diagnostics.ts",
+      "sha256": "d3dee1b9556deb9af0f0f5b14a922d50d03f81c3278e2eb16b1776aaa55c5942",
+      "reason": "Gelt M4 closed-vocabulary internal native diagnostics and real-file regression/operations contract; no storage-policy relaxation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/app/history/page.tsx",
+      "sha256": "784f81d9da0027eaaf490c848e202711b7622908efefa920cadb663c23487c2c",
+      "reason": "ZAR-218 read-only order history and execution timeline UI; ZAR-216 masked M5 event display"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/history-bff.test.ts",
+      "sha256": "8ab4fb6ba5aff351b81944925be562668608e1373dc1b8768058e37f625e6cba",
+      "reason": "ZAR-218 protected BFF and chart fallback offline tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/history-chart.ts",
+      "sha256": "885448de1708782ed19fffe8a057ff0b9691a1f06d46fcaa594603647bb20e06",
+      "reason": "ZAR-218 conditional independent candle provenance compatibility gate"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/history-contract.ts",
+      "sha256": "d48976a5e26e196863858d663aaff58a1c6b888d0f75c32b34086b15a8d92866",
+      "reason": "ZAR-218 validated read-only ledger history DTO contracts; ZAR-216 M5 timeline facts"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/history.test.ts",
+      "sha256": "a5ddc7d4c6287908a15b6a6ac3428c1b0cdc58d4cd134fe300c0d37b8078e278",
+      "reason": "ZAR-218 private real-SQLite history and authorization offline tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/order-history.ts",
+      "sha256": "a573e20e4bbd7e21cdf341fc6d691b33d94ee1e7662a20764b8bb84a8bea0629",
+      "reason": "ZAR-218 worker-scoped read-only history assembly and masked routing; ZAR-216 M5 event descriptions"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/history-pagination.test.ts",
+      "sha256": "0c717c5b5829d8453975b4ddd4e22730873c2308bdac5fa00eaf5d9f4c923c97",
+      "reason": "ZAR-218 selected-account change pagination regression tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/history-pagination.ts",
+      "sha256": "01ea5c11ff19c72a5e943fbcb1c454c7980c4434dfc0ce67add8fb2a78870166",
+      "reason": "ZAR-218 opaque selected-account boundary for UI pagination"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/m6-ui.test.ts",
+      "sha256": "35101da1a5df07af83766736980bf366152e3b622d8457aff2010222b138b250",
+      "reason": "ZAR-217 offline exact-terms and connection UI regression tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/m6-ui.ts",
+      "sha256": "83ba457c1622b563506ae7dd8eac665859f9fef40d1396f498f168130ac75b2d",
+      "reason": "ZAR-217 explicitly simulated preview and local acknowledgement state"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/order-lifecycle.test.ts",
+      "sha256": "61f11567d8478cd6b33f1dc4a7a653a5c60629cf12f9686b8efc4d929bf945bf",
+      "reason": "ZAR-216 offline M5 lifecycle, restart and failure-safety tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/order-lifecycle.ts",
+      "sha256": "b2e3e73e1cb90d479e332ef8b00c54b8979a1300a156a72008e48b3d5364dfc0",
+      "reason": "ZAR-216 internal offline one-use confirmation and fail-closed lifecycle"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "docs/SYNTHETIC-BROWSER-DEMO.md",
+      "sha256": "6ad8bd53f6b81952af1d4c6bc58fa05ede5cdd0ddf86b5d274f48bed78ec52a7",
+      "reason": "ZAR-219 demo specification with ZAR-238 isolated kernel addendum; refreshed local hash and import verification passed"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/synthetic-browser-demo.mjs",
+      "sha256": "910c911f6d01bc8d9c9c547cc6a8bac4b08e898f7328807f60a70f824eee1ac3",
+      "reason": "ZAR-219 explicit test-only browser launcher outside production startup"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-browser-demo.test.ts",
+      "sha256": "da0b2ca11cb6e530bab9085e8da66533422f9f237923c1562db5fe72c1677310",
+      "reason": "ZAR-219 isolated synthetic browser bridge and shipped-script regression tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-browser-demo.ts",
+      "sha256": "ed2f181c3a18c4c8e6cd750da2d126a8e1a13c362924cc120677c9a2d4c04e67",
+      "reason": "ZAR-219 opt-in test-only loopback browser bridge with synthetic provenance"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-order-harness.test.ts",
+      "sha256": "04e92e4c6d155d9be22b07b8d401baabbbef1922e08d9a98adfab35615b17c50",
+      "reason": "ZAR-219 opt-in SQLite lifecycle harness safety and restart tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-order-harness.ts",
+      "sha256": "a47237e5341c22dbffb21201e5f3a2bfa1e196d419478c2840c00c0d9093371f",
+      "reason": "ZAR-219 test-only synthetic adapter and isolated SQLite lifecycle, not broker facts"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/pi-handoff-page.test.ts",
+      "sha256": "6258a65a41e7b1b9d0a894565556fab50eba8db1f9aa51085aac7e3aa2cd064b",
+      "reason": "ZAR-219 real Next home server-render default-disabled fixture control regression test"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pi-handoff-contract.ts",
+      "sha256": "c08b92ccc4516b366437f067b9321f3e47c3cba63b50071dd5debff42b08a623",
+      "reason": "ZAR-219 strict browser-safe synthetic Pi handoff request/response schemas and disabled capabilities"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pi-handoff.ts",
+      "sha256": "d9df6e73e7e58685356124fa44d561e03321a641609517dfe7e2c90d62507886",
+      "reason": "ZAR-219 opt-in test-only non-authorizing fixture; ZAR-237 bounded per-session monotonic revision floors with permanent fail-closed overflow; local hash refreshed"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/running-next-pi-acceptance.mjs",
+      "sha256": "fbdaf9a8655beab8e122e80413a40ca600944a20b73e0dbd849e1cc686f9fa1b",
+      "reason": "ZAR-219 bounded test-only running Next/Edge Pi handoff fixture acceptance, outside production startup"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-companion.ts",
+      "sha256": "f2f4f9e49a485ecd663e9a5c681cb88460a1330c591002791ec2ebe8a9d77d0b",
+      "reason": "ZAR-238 isolated default-disabled synthetic preview contract kernel; refreshed local hash and import verification passed"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-companion.test.ts",
+      "sha256": "b532db2dee951b5f93e8cabeee4db99461bb7a961ab92e63e3c49c25a1775dfe",
+      "reason": "ZAR-238 source-specific offline regressions; focused local Node24 tests passed; refreshed hash and import verification passed"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-companion-transport.test.ts",
+      "sha256": "2b979b26276a3195bfd4f18563be8da4a0ce3db520dc2dd36ebf28bf81f34b61",
+      "reason": "ZAR-239 source-specific private-loopback synthetic transport and lifecycle regressions; operator local Node24 focused tests passed"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-companion-transport.ts",
+      "sha256": "d54e960cc99b5fb0bf31e8d6754b95b8a6649d25337cdd153d90443ef3438f00",
+      "reason": "ZAR-239 isolated default-disabled worker-owned synthetic companion loopback transport; no BFF, broker or startup wiring"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-companion-intent.test.ts",
+      "sha256": "a5664c44281db6f1828c776437038c9e0f0908d4f453e55eaeccd7a6e5247f3b",
+      "reason": "ZAR-240 partial offline synthetic intent contract tests; in-memory model only, not durable integration"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-companion-intent.ts",
+      "sha256": "13061bfd042b8ec0c45c4e1e89cd00fb0f4ded5d47dcac7782e06517a57b1baa",
+      "reason": "ZAR-240 unwired fail-closed synthetic intent interface; separate private SQLite adapter remains unintegrated"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-companion-intent-storage.test.ts",
+      "sha256": "4f1819ed35ba56f801ab50721bf88604dd64b73918ad5d438795e259972f067a",
+      "reason": "ZAR-240 private SQLite intent journal real-file regression tests; no production wiring"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-companion-intent-storage.ts",
+      "sha256": "d5c6c17a94c1b6bdaf5d9523a76ff9ee16315b0da4c4d7114242bad7c755d6cf",
+      "reason": "ZAR-240 separately provisioned, unwired private SQLite intent journal adapter"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/history-requests.test.ts",
+      "sha256": "3c3d74e45fe65de248bedaabd9f6cf31aea43452ab0679567cd4779a87134dc1",
+      "reason": "Gelt ZAR-218 read-only history request generation and regression tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/history-requests.ts",
+      "sha256": "788e8c4cc56cda7962fed9ba7515c656e5bbbd118d88822975b0c0424ca6e6ba",
+      "reason": "Gelt ZAR-218 read-only history request generation and regression tests"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/running-next-history-acceptance.mjs",
+      "sha256": "3a89990d6d567826ba3a814805b937d85cad550f75466a50a913e082c5586e85",
+      "reason": "Gelt ZAR-218 synthetic offline running browser history acceptance with bounded startup diagnostics"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "RESEARCH-OPERATIONS.md",
+      "sha256": "329fe1e644946652badc2c1d23cb71e794463d76c4868ce1ff3742f3e75084e4",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/running-next-research-read-smoke.mjs",
+      "sha256": "f01db1c4abf4bdb10e6b2b2f698a3f052f410a5c9a6e754b75c61ad1ac6ecbaf",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/research-view.test.ts",
+      "sha256": "9f6467f1a50e866c240b4dedaf32e826ce6d92b27ab56f2c791e8a65ca0fbcc6",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/research-response.ts",
+      "sha256": "744ef7371ebb8bb530aa162722c0a67190c9690329ba4d0cbaaae1c1664404c0",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/research-requests.test.ts",
+      "sha256": "1bfd6ddf94006832f1b3322aaddcb5e6d7be5dfba566cb7d3178b79d707a3786",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/research-bff.test.ts",
+      "sha256": "48fd31e56433f7f75433313419d573b2741c6af575645a66bb171db7031235de",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/research-requests.ts",
+      "sha256": "ed8ae678a8a7da7bdc73dbe35b8daea7a3ed5130fe76805701ae07bd0bb43ae1",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/app/research/evidence-detail.tsx",
+      "sha256": "0707f6d92e27b9604832ee34a43572964d238d0060d793721e5b798500008172",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/app/research/research.module.css",
+      "sha256": "54bdb4fac07a9ce796c79893d431a21be77eef32512f90a050b937a4cd41a959",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/app/research/page.tsx",
+      "sha256": "c446d8bd8978ba15e56f346dfdfdb67845201d26a1b49c3107ca707e9661616e",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research.test.ts",
+      "sha256": "1367ba9de1bd919fa62a4624c183684387e5741b89d10356d16e2cb84fc03298",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research-fixture.ts",
+      "sha256": "130b3f7ce9286d6a2daa2a0db5b65e26c1f09ff70123812df501132944c78454",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research-process.test.ts",
+      "sha256": "2807113c356f3a0b2cb1f84763665180d8964fb90a76bfbec8977dd5c791154d",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research-contract.ts",
+      "sha256": "9bd3379e712d9d252c324f8d1e595218a472f40f4feb45dd9ad74c75c9aa7434",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research-operator.ts",
+      "sha256": "920078be182233fb96db95445afd8ab45d6c811c177b5675b9380ac41deaf4b9",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research-cli.ts",
+      "sha256": "66481d605869f6e1ae98445078ea0b264b0095c01d3912e38e73cc1df397fa1c",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research-store.ts",
+      "sha256": "472633af3e8e01a10ab56c8c24797b04a7d50380d483d4a67e886e7a6c4c4292",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research-json.ts",
+      "sha256": "8206257c516716daf4e4adc842a76cfd38ff15b210a0d57563e60a1f7df323fc",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/fixtures/research-process.ts",
+      "sha256": "bd0ea199b46fba6368321a68c0851bde43416363d4dcf108c16c33f9de021efb",
+      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research-numbers.test.ts",
+      "sha256": "94110b27cbeb8840e08fc1106d79f59cc6c56d4a783553cdeb0dd0edfab71dfa",
+      "reason": "Gelt research raw zero-tolerance comparison and synthetic regression coverage"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/research-numbers.ts",
+      "sha256": "3802433be44e418453fa96f224c89ef5839597bfba5b76ba4efadcd15a7d4cf6",
+      "reason": "Gelt research raw zero-tolerance comparison and synthetic regression coverage"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/history-startup-diagnostics.mjs",
+      "sha256": "96545333d4e0f663d798aba53af552da32c2c7c6056740058bf0aeb20828c78f",
+      "reason": "Gelt ZAR-218 bounded startup diagnostics and importable browser target discovery"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/history-startup-diagnostics.test.mjs",
+      "sha256": "ff72f4a401341517788f09b4eea224dfb6d6ecae684054bd1496842169960582",
+      "reason": "Gelt ZAR-218 deterministic startup diagnostics and browser discovery tests"
+    }
+  ]
+}

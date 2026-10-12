@@ -1,0 +1,4 @@
+interface:
+  display_name: "Seed Gelt Database"
+  short_description: "Seed a local Gelt test database safely"
+  default_prompt: "Use $db-seeder to populate the local development database with test data and verify it."

@@ -1,0 +1,26 @@
+{
+  "name": "openterminal",
+  "private": true,
+  "workspaces": [
+    "server",
+    "web",
+    "worker"
+  ],
+  "overrides": {
+    "qs": "^6.16.0"
+  },
+  "scripts": {
+    "dev": "node scripts/start.mjs",
+    "build": "npm run build -w server && tsc -p worker && npm run build -w web",
+    "start": "node scripts/start.mjs",
+    "test": "npm run test -w server && vitest run --config worker/vitest.config.ts && node --test scripts/*.test.mjs && node scripts/verify-import.mjs",
+    "lint": "npm run lint -w web",
+    "test:windows-transport": "tsc -p worker && node scripts/windows-transport.mjs",
+    "test:windows-preflight": "vitest run --config worker/vitest.config.ts worker/src/windows-preflight.test.ts",
+    "test:smoke": "node scripts/smoke.mjs",
+    "verify:import": "node scripts/verify-import.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

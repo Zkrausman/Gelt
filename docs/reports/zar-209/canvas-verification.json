@@ -1,0 +1,91 @@
+{
+  "document": "../../diagrams/zar-209/research-to-shadow.tldraw",
+  "documentId": "blZZkY_M7ArMIVpyM0FbS",
+  "scope": "Structural validation only; no research/runtime implementation or live trading.",
+  "pages": [
+    {
+      "pageName": "01 Roadmap",
+      "shapeCount": 20,
+      "arrows": [
+        {
+          "id": "shape:YFjRmtNuVEj9HbwXs4dzT",
+          "bindings": 2
+        },
+        {
+          "id": "shape:_m1j1QlIvEM9LpGIDXUg-",
+          "bindings": 2
+        },
+        {
+          "id": "shape:F4ixb06uI8BhHDkehaOk-",
+          "bindings": 2
+        },
+        {
+          "id": "shape:M4_ZEpjDPZA2GW0tl1TBV",
+          "bindings": 2
+        },
+        {
+          "id": "shape:Wj1c7wcpsFEAlI6Ti76JA",
+          "bindings": 2
+        },
+        {
+          "id": "shape:pFrTGiCi8kqm_kxqWepCj",
+          "bindings": 2
+        },
+        {
+          "id": "shape:IDJYtRMj-DPsuSxMZDyqm",
+          "bindings": 2
+        },
+        {
+          "id": "shape:QVz1ddYEz7jsbnljWqxO8",
+          "bindings": 2
+        }
+      ],
+      "lints": {
+        "lints": []
+      },
+      "preview": "../../diagrams/zar-209/roadmap.jpg"
+    },
+    {
+      "pageName": "02 Authority boundaries",
+      "shapeCount": 20,
+      "arrows": [
+        {
+          "id": "shape:3CDayUsxEjhRwAF2Wra7O",
+          "bindings": 2
+        },
+        {
+          "id": "shape:UuXxAL53KDNNwq6myWpvx",
+          "bindings": 2
+        },
+        {
+          "id": "shape:i3W5DrLLkiXVJdRNYmBJB",
+          "bindings": 2
+        },
+        {
+          "id": "shape:hb0N9KN6QbvpUxbsrdKrK",
+          "bindings": 2
+        },
+        {
+          "id": "shape:Zjwhu_1wkz6LU_bI24q1j",
+          "bindings": 2
+        },
+        {
+          "id": "shape:m7Bp5IN8qadTFvaH2azBF",
+          "bindings": 2
+        },
+        {
+          "id": "shape:qu-453f9VZ1dX75mFdQGo",
+          "bindings": 2
+        },
+        {
+          "id": "shape:OAuh6IhwMo2h7zcuY1yVs",
+          "bindings": 2
+        }
+      ],
+      "lints": {
+        "lints": []
+      },
+      "preview": "../../diagrams/zar-209/boundaries.jpg"
+    }
+  ]
+}

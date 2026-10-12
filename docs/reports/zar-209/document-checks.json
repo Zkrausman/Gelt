@@ -1,0 +1,57 @@
+{
+  "scope": "Documentation and diagram integrity only",
+  "checks": [
+    {
+      "name": "docs\\specs\\ZAR-209-Research-to-Shadow.md YAML frontmatter",
+      "passed": true
+    },
+    {
+      "name": "docs\\specs\\ZAR-209-Research-to-Shadow.md relative links",
+      "passed": true
+    },
+    {
+      "name": "docs\\reports\\zar-209\\README.md YAML frontmatter",
+      "passed": true
+    },
+    {
+      "name": "docs\\reports\\zar-209\\README.md relative links",
+      "passed": true
+    },
+    {
+      "name": "Two diagram pages",
+      "passed": true
+    },
+    {
+      "name": "Both pages lint clean",
+      "passed": true
+    },
+    {
+      "name": "16 doubly bound arrows",
+      "passed": true
+    },
+    {
+      "name": "Native archive integrity",
+      "passed": true
+    },
+    {
+      "name": "Native archive contents",
+      "passed": true
+    },
+    {
+      "name": "roadmap JPEG preview",
+      "passed": true
+    },
+    {
+      "name": "roadmap Mermaid source",
+      "passed": true
+    },
+    {
+      "name": "boundaries JPEG preview",
+      "passed": true
+    },
+    {
+      "name": "boundaries Mermaid source",
+      "passed": true
+    }
+  ]
+}

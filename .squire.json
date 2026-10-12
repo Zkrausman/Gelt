@@ -1,0 +1,6 @@
+{
+  "binary": "gelt.exe",
+  "version_command": "gelt version",
+  "health_command": "gelt risk",
+  "sync_command": "bd sync"
+}

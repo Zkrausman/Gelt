@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gelt Executive Report"
+  short_description: "Build a real-telemetry leadership report"
+  default_prompt: "Use $executive-report to generate a current executive trading and risk report from real telemetry."

@@ -1,0 +1,9 @@
+flowchart LR
+  MVP["PREREQUISITE<br/>Execution-first MVP accepted"] --> FORK["1 / FORK + SELECT<br/>Pinned Paper2Agent fork<br/>One paper, codebase, licensed dataset"]
+  FORK --> BUILD["2 / IMPLEMENT<br/>Sandboxed versioned candidate<br/>Reference fidelity + typed contract"]
+  BUILD --> EVAL["3 / EVALUATE<br/>Reproducible out-of-sample tests<br/>Costs, uncertainty, stress scenarios"]
+  EVAL --> GATE{"Evidence sufficient<br/>for shadow?"}
+  GATE -->|Yes| SHADOW["4 / SHADOW<br/>Verified market inputs<br/>Simulated fills + durable history"]
+  GATE -->|No| REJECT["DOCUMENT REJECTION<br/>Failed gate + supporting evidence<br/>A valid pipeline outcome"]
+  SHADOW --> REVIEW["5 / OWNER REVIEW<br/>Gelt evidence UI<br/>Recommend promotion or rejection"]
+  REVIEW --> DONE["MILESTONE COMPLETE<br/>Traceable decision, no live activation<br/>Capital authority remains separate"]

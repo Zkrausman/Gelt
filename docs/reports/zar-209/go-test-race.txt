@@ -1,0 +1,26 @@
+ok  	gelt/cmd/gelt	27.117s
+ok  	gelt/cmd/orchestrator	5.847s
+ok  	gelt/pkg/agent	3.140s
+?   	gelt/pkg/ai	[no test files]
+ok  	gelt/pkg/backtest	3.466s
+ok  	gelt/pkg/broker	2.487s
+ok  	gelt/pkg/config	3.930s
+ok  	gelt/pkg/data	2.907s
+ok  	gelt/pkg/health	5.116s
+ok  	gelt/pkg/macro	10.622s
+ok  	gelt/pkg/notify	3.233s
+ok  	gelt/pkg/options	1.858s
+ok  	gelt/pkg/orchestrator	3.250s
+ok  	gelt/pkg/plans	1.783s
+ok  	gelt/pkg/portfolio	3.590s
+ok  	gelt/pkg/regime	2.022s
+ok  	gelt/pkg/risk	2.264s
+ok  	gelt/pkg/robinhood	2.853s
+ok  	gelt/pkg/sentiment	2.069s
+ok  	gelt/pkg/server	1.903s
+ok  	gelt/pkg/shadow	9.737s
+ok  	gelt/pkg/signals	1.525s
+ok  	gelt/pkg/store	2.543s
+ok  	gelt/pkg/strategies	2.726s
+ok  	gelt/pkg/telemetry	3.323s
+ok  	gelt/pkg/thesis	2.136s

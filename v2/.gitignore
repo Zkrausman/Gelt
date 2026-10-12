@@ -1,0 +1,17 @@
+node_modules/
+.next/
+dist/
+out/
+*.log
+.env
+.env.local
+.DS_Store
+
+
+# Database
+data/*.db*
+data/.api-key
+
+# Scoped exceptions to V1's broad JSON ignore; no local settings are imported.
+!*.json
+*.tsbuildinfo

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Persist Jules Research"
+  short_description: "Save validated Jules research before archival"
+  default_prompt: "Use $jules-research-handoff to validate and persist this completed Jules research report, then tell me when I can archive the conversation."

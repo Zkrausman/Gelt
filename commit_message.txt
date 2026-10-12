@@ -1,0 +1,5 @@
+[ZAR-99] Add Configurable Mid-Run AI Bridge Failure Policy
+
+Resolves ZAR-99
+
+Added configurable ai_failure_policy with exponential backoff for mid-run AI bridge failures.

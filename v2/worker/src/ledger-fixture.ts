@@ -1,0 +1,6 @@
+// Deterministic SYNTHETIC provider facts. This fixture never calls a provider.
+import type { Intent, LedgerEvent } from './ledger-contract.js';
+export const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+export const intent: Intent = { version: 1, ownerId: id(1), accountId: id(2), intentId: id(3), idempotencyKey: id(4), recordedAt: '2026-01-01T00:00:00.000Z', routing: { provider: 'robinhood-official-mcp', ACCOUNT: 'account-1', RHS: 'rhs-1', RHC: 'rhc-1' }, order: { route: 'RHS', instrumentId: 'instrument-1', side: 'buy', requestedQuantity: { value: '0.010', precision: 4, scale: 3 }, requestedLimitPrice: { value: '1.00', precision: 3, scale: 2 }, currency: 'USD' } };
+export const event: LedgerEvent = { version: 1, ownerId: id(1), accountId: id(2), intentId: id(3), eventId: id(5), idempotencyKey: id(6), occurredAt: '2026-01-01T00:00:01.000Z', type: 'execution-observed', execution: { executionId: 'execution-1', brokerOrderId: 'order-1', observedQuantity: { value: '0.001', precision: 4, scale: 3 }, observedPrice: { value: '0.99', precision: 3, scale: 2 }, observedFee: { value: '0.01', precision: 3, scale: 2 }, currency: 'USD' } };
+export const query = { ownerId: id(1), accountId: id(2), intentId: id(3) };

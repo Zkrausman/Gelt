@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GELT Algorithmic Terminal</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS Setup -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-error": "#690005",
+                        "on-secondary": "#402d00",
+                        "tertiary-fixed-dim": "#00dddd",
+                        "primary": "#efffe3",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-highest": "#353535",
+                        "on-primary-fixed": "#022100",
+                        "tertiary": "#e6fffe",
+                        "on-tertiary-container": "#006d6d",
+                        "surface-variant": "#353535",
+                        "on-background": "#e5e2e1",
+                        "outline": "#85967c",
+                        "on-primary-fixed-variant": "#095300",
+                        "secondary-container": "#ffbf00",
+                        "on-primary-container": "#107100",
+                        "error-container": "#93000a",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container": "#20201f",
+                        "inverse-on-surface": "#313030",
+                        "on-secondary-container": "#6d5000",
+                        "secondary": "#ffe2ab",
+                        "on-primary": "#053900",
+                        "secondary-fixed-dim": "#fbbc00",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary-fixed": "#00fbfb",
+                        "on-tertiary-fixed": "#002020",
+                        "on-secondary-fixed-variant": "#5c4300",
+                        "primary-fixed": "#79ff5b",
+                        "on-tertiary": "#003737",
+                        "surface-tint": "#2ae500",
+                        "surface-container-low": "#1c1b1b",
+                        "background": "#131313",
+                        "secondary-fixed": "#ffdfa0",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed": "#261a00",
+                        "outline-variant": "#3c4b35",
+                        "primary-fixed-dim": "#2ae500",
+                        "primary-container": "#39ff14",
+                        "tertiary-container": "#00f6f6",
+                        "on-tertiary-fixed-variant": "#004f4f",
+                        "inverse-primary": "#106e00",
+                        "surface-bright": "#393939",
+                        "surface-dim": "#131313",
+                        "on-surface-variant": "#baccb0",
+                        "surface": "#2a2a2a", /* Matte charcoal */
+                        "inverse-surface": "#e5e2e1",
+                        "error": "#ffb4ab"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "4px",
+                        "lg": "8px",
+                        "xl": "12px",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "container-max": "100%",
+                        "stack-tight": "4px",
+                        "unit": "4px",
+                        "stack-default": "12px",
+                        "gutter": "8px",
+                        "margin": "12px"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["JetBrains Mono"],
+                        "body-sm": ["JetBrains Mono"],
+                        "label-mono": ["JetBrains Mono"],
+                        "headline-md": ["JetBrains Mono"],
+                        "body-lg": ["JetBrains Mono"],
+                        "label-bold": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["JetBrains Mono"]
+                    },
+                    fontSize: {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "label-mono": ["11px", { "lineHeight": "14px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "label-bold": ["11px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "30px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Retro-Analog / Mainframe Overrides */
+
+        /* Stipple Texture Background */
+        body {
+            background-color: #2a2a2a;
+            background-image: radial-gradient(circle, #353535 1px, transparent 1px);
+            background-size: 3px 3px;
+        }
+
+        /* Phosphor Glow */
+        .text-primary-container {
+            color: #39ff14;
+            text-shadow: 0 0 5px rgba(57,255,20,0.6);
+        }
+
+        .text-secondary-container {
+            color: #ffbf00;
+            text-shadow: 0 0 5px rgba(255,191,0,0.6);
+        }
+
+        .border-primary-container {
+            border-color: #39ff14;
+            box-shadow: 0 0 5px rgba(57,255,20,0.3) inset, 0 0 5px rgba(57,255,20,0.3);
+        }
+
+        /* Hardware Bevels */
+        .hardware-module {
+            background: #2a2a2a;
+            border: 2px solid #1a1a1a;
+            border-right-color: #444;
+            border-bottom-color: #444;
+            border-radius: 4px;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5), inset -1px -1px 3px rgba(255,255,255,0.05);
+        }
+
+        .hardware-button {
+            background: #353535;
+            border: 2px solid #444;
+            border-right-color: #1a1a1a;
+            border-bottom-color: #1a1a1a;
+            border-radius: 2px;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            transition: all 0.1s;
+        }
+
+        .hardware-button:active {
+            border-color: #1a1a1a;
+            border-right-color: #444;
+            border-bottom-color: #444;
+            box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .hardware-inset {
+            background: #1c1b1b;
+            border: 2px solid #1a1a1a;
+            border-right-color: #353535;
+            border-bottom-color: #353535;
+        }
+
+        /* Material Icons Baseline Adjustment */
+        .material-symbols-outlined {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 12px; height: 12px; }
+        ::-webkit-scrollbar-track { background: #1c1b1b; border-left: 1px solid #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #353535; border: 1px solid #444; border-radius: 2px;}
+        ::-webkit-scrollbar-thumb:hover { background: #ffbf00; }
+    </style>
+</head>
+<body class="text-on-surface h-screen w-screen overflow-hidden flex relative font-body-sm">
+
+
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-full border-r border-outline-variant hardware-module w-64 shrink-0 transition-none z-10 relative m-1">
+<!-- Header -->
+<div class="p-margin border-b border-outline-variant flex items-center gap-gutter hardware-inset m-2">
+<div class="w-10 h-10 border border-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary-container" style="font-size: 20px;">account_balance_wallet</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-primary-container tracking-tighter uppercase leading-none">GELT_SYS</h1>
+<span class="font-label-mono text-label-mono text-secondary-container uppercase">ID: 0x882B</span>
+</div>
+</div>
+<!-- Tabs -->
+<nav class="flex-1 py-gutter flex flex-col gap-unit overflow-y-auto px-2">
+<!-- DASHBOARD (Active Match) -->
+<a class="text-black bg-primary-container flex items-center gap-unit px-margin py-2 font-label-mono text-label-mono uppercase hardware-button shadow-[0_0_10px_#39ff14]" href="#">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-bold">DASHBOARD</span>
+</a>
+<a class="text-on-surface hover:text-primary-container flex items-center gap-unit px-margin py-2 font-label-mono text-label-mono uppercase hardware-button mt-1" href="#">
+<span class="material-symbols-outlined text-[16px]">memory</span>
+                STRATEGIES
+            </a>
+<a id="nav-explorer-btn" class="text-on-surface hover:text-primary-container flex items-center gap-unit px-margin py-2 font-label-mono text-label-mono uppercase hardware-button mt-1 cursor-pointer" href="#">
+<span class="material-symbols-outlined text-[16px]">query_stats</span>
+                DATA EXPLORER
+            </a>
+<a class="text-on-surface hover:text-primary-container flex items-center gap-unit px-margin py-2 font-label-mono text-label-mono uppercase hardware-button mt-1" href="#">
+<span class="material-symbols-outlined text-[16px]">security</span>
+                RISK
+            </a>
+<a class="text-on-surface hover:text-primary-container flex items-center gap-unit px-margin py-2 font-label-mono text-label-mono uppercase hardware-button mt-1" href="#">
+<span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
+                LEDGER
+            </a>
+</nav>
+<!-- CTA -->
+<div class="p-margin border-t border-outline-variant">
+<button class="w-full text-secondary-container font-label-bold text-label-bold uppercase py-2 flex justify-center items-center gap-unit hardware-button">
+<span class="material-symbols-outlined text-[14px]">add</span> NEW_STRATEGY
+            </button>
+</div>
+<!-- Footer Tabs -->
+<div class="border-t border-outline-variant py-gutter flex flex-col gap-unit px-2">
+<a class="text-on-surface hover:text-primary-container flex items-center gap-unit px-margin py-2 font-label-mono text-label-mono uppercase hardware-button" href="#">
+<span class="material-symbols-outlined text-[16px]">terminal</span> TERMINAL
+            </a>
+<a class="text-on-surface hover:text-primary-container flex items-center gap-unit px-margin py-2 font-label-mono text-label-mono uppercase hardware-button mt-1" href="#">
+<span class="material-symbols-outlined text-[16px]">list_alt</span> LOGS
+            </a>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<div id="degraded-banner" style="display: none;" class="w-full bg-error text-[#1a1a1a] px-4 py-2 flex items-center justify-center font-label-mono text-sm tracking-wider uppercase font-bold z-50">
+    <span class="material-symbols-outlined text-lg mr-2">warning</span>
+    CONFIGURATION INVALID - DEGRADED MODE
+</div>
+<!-- TopNavBar -->
+<header class="hardware-module flex justify-between items-center w-full px-margin h-14 shrink-0 z-10 m-1 mb-0">
+<div class="flex items-center gap-margin">
+<span class="font-headline-md text-headline-md text-primary-container tracking-tighter uppercase leading-none">GELT_TERMINAL_v1.0</span>
+</div>
+<div class="flex items-center gap-margin font-label-mono text-label-mono uppercase">
+<!-- Status Indicators -->
+<div class="flex items-center gap-2 px-3 py-1.5 hardware-inset">
+<div class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_8px_#39ff14]"></div>
+<span class="text-primary-container"><span id="broker-status">ST_ROBINHOOD_MCP:CONNECTED</span></span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 hardware-inset">
+<span class="text-on-surface-variant">BP:</span>
+<span class="text-primary-container font-bold"><span id="buying-power">$1,240,582.00</span></span>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-2 pl-margin ml-unit">
+<button id="settings-cog-btn" class="text-on-surface hover:text-secondary-container p-2 flex items-center justify-center hardware-button">
+
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</button>
+<button class="text-on-surface hover:text-secondary-container p-2 flex items-center justify-center relative hardware-button">
+<span class="material-symbols-outlined text-[18px]">notifications</span>
+<div class="absolute top-1 right-1 w-2 h-2 rounded-full bg-secondary-container shadow-[0_0_4px_#ffbf00]"></div>
+</button>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="flex-1 overflow-y-auto p-margin flex flex-col gap-margin z-10">
+<!-- ROW 1: Strategy Ensemble & Macro -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-margin shrink-0">
+<!-- Card: Live Strategy Ensemble -->
+<div class="lg:col-span-2 hardware-module flex flex-col">
+<div class="border-b border-[#1a1a1a] bg-[#353535] px-margin py-2 flex justify-between items-center rounded-t-[2px]">
+<h2 class="font-label-bold text-label-bold uppercase text-on-surface tracking-widest text-secondary-container">SYS_STATUS // IntradayAlphaPlan</h2>
+<span class="font-label-mono text-[10px] text-primary-container px-2 py-1 hardware-inset font-bold">ENGAGED</span>
+</div>
+<div class="p-margin flex flex-row items-center gap-margin h-full">
+<!-- Analog Gauge (Simulated) -->
+<div class="relative w-32 h-32 flex items-center justify-center shrink-0 hardware-inset rounded-full border-4 border-[#353535]">
+<div class="absolute inset-2 rounded-full border-2 border-dashed border-[#1a1a1a]"></div>
+<!-- Needle -->
+<div class="absolute w-1 h-14 bg-secondary-container origin-bottom bottom-16 rounded-t-full shadow-[0_0_5px_#ffbf00] transform rotate-[45deg]"></div>
+<!-- Center Hub -->
+<div class="absolute w-4 h-4 bg-[#444] rounded-full border-2 border-[#1a1a1a]"></div>
+<div class="absolute bottom-2 text-center">
+<span class="font-headline-md text-headline-md text-secondary-container leading-none block">84<span class="text-sm">%</span></span>
+<span class="font-label-mono text-[9px] text-on-surface-variant uppercase">CONFIDENCE</span>
+</div>
+</div>
+<!-- Telemetry Metrics -->
+<div class="flex-1 grid grid-cols-2 grid-rows-2 gap-2 h-full font-label-mono text-label-mono">
+<div class="hardware-inset p-3 flex flex-col justify-between">
+<span class="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Model State</span>
+<span class="text-primary-container font-bold text-lg">CONVERGING</span>
+</div>
+<div class="hardware-inset p-3 flex flex-col justify-between">
+<span class="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Exec Latency</span>
+<span class="text-secondary-container text-lg"><span id="latency">12.4ms</span> <span class="text-sm text-secondary-container/70">(DIR)</span></span>
+</div>
+<div class="hardware-inset p-3 flex flex-col justify-between">
+<span class="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Alpha Gen Rate</span>
+<span class="text-primary-container text-lg">+0.045 σ/hr</span>
+</div>
+<div class="hardware-inset p-3 flex flex-col justify-between">
+<span class="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">GPU Cluster Load</span>
+<div class="flex items-center gap-2">
+<span class="text-secondary-container font-bold">62.8%</span>
+<!-- Segmented LED Bar -->
+<div class="flex-1 h-3 flex gap-0.5">
+<div class="flex-1 bg-secondary-container shadow-[0_0_4px_#ffbf00]"></div>
+<div class="flex-1 bg-secondary-container shadow-[0_0_4px_#ffbf00]"></div>
+<div class="flex-1 bg-secondary-container shadow-[0_0_4px_#ffbf00]"></div>
+<div class="flex-1 bg-secondary-container shadow-[0_0_4px_#ffbf00]"></div>
+<div class="flex-1 bg-secondary-container shadow-[0_0_4px_#ffbf00]"></div>
+<div class="flex-1 bg-secondary-container shadow-[0_0_4px_#ffbf00]"></div>
+<div class="flex-1 bg-[#1a1a1a]"></div>
+<div class="flex-1 bg-[#1a1a1a]"></div>
+<div class="flex-1 bg-[#1a1a1a]"></div>
+<div class="flex-1 bg-[#1a1a1a]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card: VIX Macro Regime -->
+<div class="hardware-module flex flex-col">
+<div class="border-b border-[#1a1a1a] bg-[#353535] px-margin py-2 rounded-t-[2px]">
+<h2 class="font-label-bold text-label-bold uppercase text-secondary-container tracking-widest">MACRO_REGIME</h2>
+</div>
+<div class="p-margin flex flex-col justify-between h-full gap-margin">
+<!-- VIX Readout -->
+<div class="flex justify-between items-end border-b-2 border-dashed border-[#1a1a1a] pb-margin">
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase">CBOE VIX</span>
+<div class="text-right">
+<span class="font-headline-lg text-[40px] text-primary-container leading-none block"><span id="vix-level">14.2</span></span>
+<span class="font-label-mono text-[10px] text-black bg-primary-container px-2 py-0.5 uppercase tracking-widest block mt-2 shadow-[0_0_5px_#39ff14]"><span id="regime-status">LOW VOLATILITY</span></span>
+</div>
+</div>
+<!-- Daily Loss Progress -->
+<div class="flex flex-col gap-2 mt-auto">
+<div class="flex justify-between font-label-mono text-[10px] text-on-surface-variant uppercase">
+<span>Daily Drawdown Limit</span>
+<span class="text-error font-bold"><span id="daily-cap">-$1,150 / -$5,000</span></span>
+</div>
+<div class="w-full h-6 hardware-inset relative flex items-center p-0.5">
+<!-- Segmented Bar -->
+<div class="h-full flex gap-[1px] w-full">
+<div class="h-full w-[23%] bg-secondary-container shadow-[0_0_5px_#ffbf00]"></div>
+</div>
+<!-- Hard stop markers -->
+<div class="absolute top-0 bottom-0 left-[50%] w-[2px] bg-secondary-container opacity-50 z-10"></div>
+<div class="absolute top-0 bottom-0 left-[80%] w-[2px] bg-error z-10 shadow-[0_0_5px_#ffb4ab]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ROW 2: Execution & Risk Hub (Data Table) -->
+<div class="hardware-module flex flex-col flex-1 min-h-[250px]">
+<div class="border-b border-[#1a1a1a] bg-[#353535] px-margin py-2 flex justify-between items-center rounded-t-[2px]">
+<h2 class="font-label-bold text-label-bold uppercase text-secondary-container flex items-center gap-2 tracking-widest">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                        EXECUTION_&amp;_RISK_HUB // LIVE_POSITIONS
+                    </h2>
+<span class="font-label-mono text-[10px] text-primary-container hardware-inset px-2 py-1 font-bold">STREAMING</span>
+</div>
+<div class="overflow-x-auto flex-1 p-2">
+<table class="w-full text-left font-label-mono text-label-mono whitespace-nowrap hardware-inset border-collapse">
+<thead class="text-on-surface-variant uppercase border-b-2 border-[#1a1a1a] bg-[#222]">
+<tr>
+<th class="px-2 py-2 border-r border-[#1a1a1a] font-normal w-8 text-center">ID</th>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal">TICKER</th>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal text-right">SIZE</th>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal text-right">ENTRY</th>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal text-right">MARK</th>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal text-right">UNREALIZED_PnL</th>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal text-right">ATR_TRAIL_STOP</th>
+<th class="px-3 py-2 font-normal text-center w-24">ACTION</th>
+</tr>
+</thead>
+<tbody class="text-on-surface" id="positions-body">
+<tr class="border-b border-[#1a1a1a] hover:bg-[#2a2a2a] cursor-crosshair">
+<td class="px-2 py-2 border-r border-[#1a1a1a] text-on-surface-variant text-center">001</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] font-bold text-primary-container">AAPL</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right font-bold">1,500</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-on-surface-variant">172.450</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right font-bold text-white">174.105</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-primary-container font-bold">+$2,482.50</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-secondary-container flex justify-end items-center gap-2">
+<span>171.200</span>
+<div class="w-16 h-2 hardware-inset flex justify-end p-[1px]">
+<div class="h-full bg-secondary-container w-[40%]"></div>
+</div>
+</td>
+<td class="px-3 py-2 text-center">
+<button class="hardware-button text-error px-2 py-1 text-[10px] w-full uppercase font-bold border-error">LIQ</button>
+</td>
+</tr>
+<tr class="border-b border-[#1a1a1a] hover:bg-[#2a2a2a] cursor-crosshair">
+<td class="px-2 py-2 border-r border-[#1a1a1a] text-on-surface-variant text-center">002</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] font-bold text-primary-container">TSLA</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-error font-bold">-800</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-on-surface-variant">180.200</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right font-bold text-white">178.500</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-primary-container font-bold">+$1,360.00</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-secondary-container flex justify-end items-center gap-2">
+<span>184.500</span>
+<div class="w-16 h-2 hardware-inset flex justify-start p-[1px]">
+<div class="h-full bg-secondary-container w-[75%]"></div>
+</div>
+</td>
+<td class="px-3 py-2 text-center">
+<button class="hardware-button text-error px-2 py-1 text-[10px] w-full uppercase font-bold border-error">LIQ</button>
+</td>
+</tr>
+<tr class="hover:bg-[#2a2a2a] cursor-crosshair bg-[#2a1a1a]">
+<td class="px-2 py-2 border-r border-[#1a1a1a] text-on-surface-variant text-center">003</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] font-bold text-primary-container">SPY</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right font-bold">5,000</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-on-surface-variant">510.150</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right font-bold text-white">509.800</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-error font-bold">-$1,750.00</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-error flex justify-end items-center gap-2">
+<span>507.250</span>
+<div class="w-16 h-2 hardware-inset flex justify-end p-[1px]">
+<div class="h-full bg-error w-[90%] shadow-[0_0_5px_#ffb4ab]"></div>
+</div>
+</td>
+<td class="px-3 py-2 text-center">
+<button class="hardware-button bg-error text-black border-error font-bold px-2 py-1 text-[10px] w-full uppercase shadow-[0_0_8px_#ffb4ab]">LIQ</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- ROW 3: Shadow Leaderboard -->
+<div class="hardware-module flex flex-col shrink-0">
+<div class="border-b border-[#1a1a1a] bg-[#353535] px-margin py-2 rounded-t-[2px]">
+<h2 class="font-label-bold text-label-bold uppercase text-secondary-container tracking-widest">SHADOW_LEADERBOARD // LIVE vs PAPER (T-7d)</h2>
+</div>
+<div class="overflow-x-auto p-2">
+<table class="w-full text-left font-label-mono text-label-mono whitespace-nowrap hardware-inset border-collapse">
+<thead class="text-on-surface-variant uppercase border-b-2 border-[#1a1a1a] bg-[#222]">
+<tr>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal">INSTANCE_ID</th>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal w-24 text-center">STATE</th>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal text-right">NET_PnL</th>
+<th class="px-3 py-2 border-r border-[#1a1a1a] font-normal text-right">WIN_RATE</th>
+<th class="px-3 py-2 font-normal text-right">PROFIT_FACTOR</th>
+</tr>
+</thead>
+<tbody class="text-on-surface" id="positions-body">
+<tr class="border-b border-[#1a1a1a] bg-[#1a2a1a]">
+<td class="px-3 py-2 border-r border-[#1a1a1a] font-bold text-primary-container flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">star</span> Master_Prod_v4
+                                </td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-center">
+<span class="bg-primary-container text-black px-2 py-0.5 text-[10px] font-bold shadow-[0_0_5px_#39ff14]">LIVE</span>
+</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-primary-container font-bold"><span id="shadow-pnl">+$14,250.00</span></td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right font-bold text-white">58.4%</td>
+<td class="px-3 py-2 text-right font-bold text-primary-container">1.62</td>
+</tr>
+<tr class="border-b border-[#1a1a1a] text-on-surface-variant hover:bg-[#2a2a2a] cursor-pointer">
+<td class="px-3 py-2 border-r border-[#1a1a1a] font-bold">Alpha_Paper_v5.beta</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-center">
+<span class="border-2 border-secondary-container text-secondary-container px-2 py-0.5 text-[10px] font-bold">SHADOW</span>
+</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-secondary-container font-bold">+$18,900.00</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-white"><span id="shadow-winrate">61.2%</span></td>
+<td class="px-3 py-2 text-right text-secondary-container font-bold">1.85</td>
+</tr>
+<tr class="text-on-surface-variant hover:bg-[#2a2a2a] cursor-pointer">
+<td class="px-3 py-2 border-r border-[#1a1a1a] font-bold">Delta_Reversion_test_v2</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-center">
+<span class="border-2 border-[#444] text-[#888] px-2 py-0.5 text-[10px] font-bold">SHADOW</span>
+</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-error font-bold">-$2,100.00</td>
+<td class="px-3 py-2 border-r border-[#1a1a1a] text-right text-white">45.0%</td>
+<td class="px-3 py-2 text-right text-error font-bold">0.85</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<script src="/static/app.js"></script>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-[10000] bg-black/70 flex items-center justify-center font-body-sm">
+        <div class="bg-surface border border-outline-variant rounded p-6 max-w-sm w-full relative">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6 border-b border-outline-variant pb-2">
+                <h2 class="text-headline-md font-bold text-on-surface m-0">Terminal Settings</h2>
+                <button id="settings-close-btn" class="text-on-surface hover:text-primary cursor-pointer bg-transparent border-none p-1 flex items-center justify-center">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Body: Theme Selection -->
+            <div class="mb-2">
+                <h3 class="text-body-lg text-on-surface-variant mb-3 uppercase tracking-wider font-bold">Select Theme</h3>
+                <div class="flex flex-col gap-2">
+                    <button class="theme-btn p-3 border border-outline-variant bg-surface-container hover:bg-surface-variant hover:border-primary transition-colors text-left text-on-surface rounded cursor-pointer flex justify-between items-center" data-theme="cyberpunk">
+                        <span>Cyberpunk</span>
+                        <span class="material-symbols-outlined text-primary text-sm hidden">check</span>
+                    </button>
+                    <button class="theme-btn p-3 border border-outline-variant bg-surface-container hover:bg-surface-variant hover:border-primary transition-colors text-left text-on-surface rounded cursor-pointer flex justify-between items-center" data-theme="glass">
+                        <span>Glassmorphic</span>
+                        <span class="material-symbols-outlined text-primary text-sm hidden">check</span>
+                    </button>
+                    <button class="theme-btn p-3 border border-outline-variant bg-surface-container hover:bg-surface-variant hover:border-primary transition-colors text-left text-on-surface rounded cursor-pointer flex justify-between items-center" data-theme="blueprint">
+                        <span>Blueprint</span>
+                        <span class="material-symbols-outlined text-primary text-sm hidden">check</span>
+                    </button>
+                    <button class="theme-btn p-3 border border-outline-variant bg-surface-container hover:bg-surface-variant hover:border-primary transition-colors text-left text-on-surface rounded cursor-pointer flex justify-between items-center" data-theme="retro">
+                        <span>Retro-Analog</span>
+                        <span class="material-symbols-outlined text-primary text-sm hidden">check</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Data Explorer Modal -->
+    <div id="explorer-modal" class="hidden fixed inset-0 z-[10000] bg-black/80 flex items-center justify-center font-body-sm p-4">
+        <div class="bg-surface border border-outline-variant rounded p-6 max-w-4xl w-full relative flex flex-col gap-4 hardware-module">
+            <!-- Header -->
+            <div class="flex justify-between items-center border-b border-outline-variant pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary-container">query_stats</span>
+                    <h2 class="text-headline-md font-bold text-on-surface uppercase m-0">Feature Lab & Data Explorer</h2>
+                </div>
+                <button id="explorer-close-btn" class="text-on-surface hover:text-primary-container cursor-pointer bg-transparent border-none p-1 flex items-center justify-center">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Controls bar -->
+            <div class="flex flex-wrap items-center justify-between gap-4 bg-surface-container p-3 border border-outline-variant hardware-inset">
+                <div class="flex items-center gap-3">
+                    <label class="text-on-surface-variant font-label-mono">FEATURE 1:</label>
+                    <select id="explorer-feature1" class="bg-black text-primary-container border border-outline-variant px-3 py-1 font-label-mono text-xs focus:outline-none">
+                    </select>
+
+                    <label class="text-on-surface-variant font-label-mono ml-2">FEATURE 2:</label>
+                    <select id="explorer-feature2" class="bg-black text-secondary-container border border-outline-variant px-3 py-1 font-label-mono text-xs focus:outline-none">
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-1">
+                    <button class="range-btn border border-outline-variant px-2 py-1 text-xs font-label-mono hardware-button" data-days="7">7D</button>
+                    <button class="range-btn border border-primary-container text-primary-container bg-surface-container-highest px-2 py-1 text-xs font-label-mono hardware-button" data-days="30">30D</button>
+                    <button class="range-btn border border-outline-variant px-2 py-1 text-xs font-label-mono hardware-button" data-days="90">90D</button>
+                    <button class="range-btn border border-outline-variant px-2 py-1 text-xs font-label-mono hardware-button" data-days="365">1Y</button>
+                </div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="w-full h-80 bg-surface-container-lowest border border-outline-variant relative p-2 hardware-inset">
+                <canvas id="explorer-chart-canvas" class="w-full h-full block"></canvas>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="p-3 border border-outline-variant bg-surface-container font-label-mono text-xs hardware-inset">
+                    <div class="text-primary-container font-bold mb-1">FEATURE 1 METRICS</div>
+                    <div id="feat1-summary" class="text-on-surface">Loading data...</div>
+                </div>
+                <div class="p-3 border border-outline-variant bg-surface-container font-label-mono text-xs hardware-inset">
+                    <div class="text-secondary-container font-bold mb-1">FEATURE 2 METRICS</div>
+                    <div id="feat2-summary" class="text-on-surface">Loading data...</div>
+                </div>
+                <div class="p-3 border border-outline-variant bg-surface-container font-label-mono text-xs hardware-inset">
+                    <div class="text-on-surface-variant font-bold mb-1">CROSS-CORRELATION</div>
+                    <div id="feat-correlation" class="text-primary-container font-bold">Calculating...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

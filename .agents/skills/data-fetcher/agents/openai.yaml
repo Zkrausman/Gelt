@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fetch Gelt Market Data"
+  short_description: "Ingest current FRED and Reddit market data"
+  default_prompt: "Use $data-fetcher to ingest the latest external market data and verify it was stored."

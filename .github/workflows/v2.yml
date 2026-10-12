@@ -1,0 +1,161 @@
+name: V2 offline foundation
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'v2/**'
+      - 'research/paper2agent/**'
+      - 'tests/research-browser/**'
+      - 'docs/specs/ZAR-209-Private-Reference-Evidence.md'
+      - 'docs/specs/ZAR-231-Research-Evidence-Read-View.md'
+      - 'docs/specs/Offline-Research-Playwright-Acceptance.md'
+      - '.gitattributes'
+      - '.github/workflows/v2.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'v2/**'
+      - 'research/paper2agent/**'
+      - 'tests/research-browser/**'
+      - 'docs/specs/ZAR-209-Private-Reference-Evidence.md'
+      - 'docs/specs/ZAR-231-Research-Evidence-Read-View.md'
+      - 'docs/specs/Offline-Research-Playwright-Acceptance.md'
+      - '.gitattributes'
+      - '.github/workflows/v2.yml'
+permissions:
+  contents: read
+jobs:
+  node-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+      - run: npm --prefix v2 ci --no-audit --no-fund
+      - run: npm --prefix v2 test
+      - run: npm --prefix v2 run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - run: npm --prefix v2 run test:smoke
+      - name: Running Next history acceptance (sandboxed browser, synthetic offline fixtures)
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          test -n "$browser" && test -x "$browser"
+          printf 'Sandboxed browser executable: %s\n' "$browser"
+          realpath "$browser"
+          "$browser" --version
+          printf 'GELT_TEST_BROWSER_PATH=%s\n' "$browser" >> "$GITHUB_ENV"
+          GELT_TEST_BROWSER_PATH="$browser" node v2/scripts/running-next-history-acceptance.mjs --offline-test-only
+        env:
+          NODE_ENV: test
+          GELT_OFFLINE_HISTORY: fixture-only
+          GELT_HISTORY_SCREENSHOTS: ${{ runner.temp }}/gelt-history-evidence
+      - name: Built Next private research HTTP acceptance (actual reference evidence)
+        run: node v2/scripts/running-next-research-read-smoke.mjs --offline-test-only
+        env:
+          NODE_ENV: test
+          GELT_OFFLINE_RESEARCH: fixture-only
+      - name: Install isolated pinned Playwright test tooling
+        run: npm --prefix tests/research-browser ci --ignore-scripts --no-audit --no-fund
+      - name: Running Next research Playwright acceptance (sandboxed browser)
+        run: |
+          test -n "$GELT_TEST_BROWSER_PATH" && test -x "$GELT_TEST_BROWSER_PATH"
+          printf 'Reusing validated sandboxed history browser: %s\n' "$GELT_TEST_BROWSER_PATH"
+          "$GELT_TEST_BROWSER_PATH" --version
+          node tests/research-browser/run.mjs --offline-test-only
+        env:
+          NODE_ENV: test
+          GELT_OFFLINE_RESEARCH: fixture-only
+          GELT_RESEARCH_SCREENSHOTS: ${{ runner.temp }}/gelt-research-playwright
+      - name: Retain private research Playwright evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-research-playwright-${{ github.sha }}
+          path: ${{ runner.temp }}/gelt-research-playwright
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain private synthetic browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-history-browser-${{ github.sha }}
+          path: ${{ runner.temp }}/gelt-history-evidence
+          if-no-files-found: error
+          retention-days: 7
+  native-windows:
+    runs-on: windows-2022
+    # Serial native private-helper tests add ~10 minutes of research coverage.
+    # Preserve operation/test deadlines; bound the complete test/build/smoke job.
+    timeout-minutes: 60
+    env:
+      # Explicit ancestor only: helper creates fresh owner-private scratch/fixtures.
+      # Never use/repair runner TEMP or home ACLs. C:\ must pass unchanged checks.
+      GELT_WINDOWS_PRIVATE_PARENT: 'C:\'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+      - name: Preserve immutable reference artifact checkout bytes
+        shell: powershell
+        run: |
+          git check-attr text -- research/paper2agent/artifacts/evidence.json
+          node -e "const fs=require('node:fs'),crypto=require('node:crypto');const b=fs.readFileSync('research/paper2agent/artifacts/evidence.json');if(crypto.createHash('sha256').update(b).digest('hex')!=='c386b43d907f3375563422f27c5313268337f7f399821c318a69261f0731bb96')throw Error('Immutable evidence checkout bytes changed');console.log('PASS immutable reference artifact original-byte SHA256')"
+      - name: Native prerequisites (Windows PowerShell 5.1, .NET 4.8, NTFS, Node 22 x64)
+        shell: powershell
+        run: |
+          if ($PSVersionTable.PSVersion -lt [version]'5.1') { throw 'PowerShell 5.1 required' }
+          if ((Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').Release -lt 528040) { throw '.NET 4.8 required' }
+          if ((Get-Volume -DriveLetter C).FileSystem -ne 'NTFS') { throw 'NTFS required' }
+          node -e "if(process.platform!=='win32'||process.arch!=='x64'||!process.version.startsWith('v22.'))process.exit(1)"
+      - run: npm --prefix v2 ci --no-audit --no-fund
+      - name: Direct Node independent prerequisites, framed transport and real DPAPI comparison
+        id: transport
+        run: npm --prefix v2 run test:windows-transport
+      - name: Vitest independent prerequisites, helper transport, DPAPI and private NTFS preflight
+        # Run the comparison even if direct transport fails; neither gate is optional.
+        if: ${{ !cancelled() && (steps.transport.outcome == 'success' || steps.transport.outcome == 'failure') }}
+        run: npm --prefix v2 run test:windows-preflight
+      - run: npm --prefix v2 test
+      - run: npm --prefix v2 run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - run: npm --prefix v2 run test:smoke
+
+  scientific-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.14'
+      - name: Install official pinned uv tooling
+        run: python -m pip install uv==0.12.19
+      - name: Reproduce locked local scientific MCP operation
+        working-directory: research/paper2agent
+        run: |
+          uv sync --frozen --no-install-project
+          .venv/bin/python -m pytest -q
+          .venv/bin/python verify.py "${RUNNER_TEMP}/gelt-reference-replay"
+      - name: Retain private reproducibility output
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: scientific-reference-${{ github.sha }}
+          path: ${{ runner.temp }}/gelt-reference-replay
+          if-no-files-found: error
+          retention-days: 7

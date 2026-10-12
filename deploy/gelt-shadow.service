@@ -1,0 +1,18 @@
+[Unit]
+Description=Gelt 4-way crypto shadow engine
+After=network.target
+
+[Service]
+Type=simple
+User=gelt
+Environment="GELT_ENV=agent"
+Environment="GELT_AUTO_SPAWN_ORCHESTRATOR=false"
+WorkingDirectory=/opt/gelt
+ExecStart=/opt/gelt/bin/linux/gelt shadow daemon
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

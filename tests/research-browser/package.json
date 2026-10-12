@@ -1,0 +1,7 @@
+{
+  "name": "gelt-offline-research-browser-tests",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node run.mjs --offline-test-only" },
+  "devDependencies": { "@playwright/test": "1.56.1" }
+}

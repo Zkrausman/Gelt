@@ -1,0 +1,9 @@
+{
+  "subagents": {
+    "agentOverrides": {
+      "researcher": {
+        "disabled": true
+      }
+    }
+  }
+}

@@ -1,0 +1,2 @@
+# Immutable evidence is hashed from exact original bytes on every platform.
+research/paper2agent/artifacts/*.json -text

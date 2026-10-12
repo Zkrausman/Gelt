@@ -1,0 +1,9 @@
+flowchart TB
+  INPUT["UNTRUSTED RESEARCH INPUTS<br/>Selected paper + reference code<br/>Licensed data + pinned dependencies"] --> SANDBOX["PAPER2AGENT FORK / SANDBOX<br/>Bounded compute, filesystem, network<br/>No broker secrets or order dispatch"]
+  SANDBOX --> ARTIFACT["VERSIONED CANDIDATE + EVIDENCE<br/>Code, assumptions, data provenance<br/>Config, seeds, tests, evaluation"]
+  ARTIFACT --> SHADOW["ISOLATED SHADOW EVALUATOR<br/>Simulated execution only<br/>Persist source, freshness, outcomes"]
+  MARKET["VERIFIED MARKET INPUTS<br/>Stale or missing data is visible<br/>Never synthesize observations"] --> SHADOW
+  ARTIFACT --> UI["GELT EVIDENCE WORKSPACE<br/>Provenance + historical evaluation<br/>Shadow history + decision record"]
+  SHADOW --> UI
+  UI --> DECISION["RECOMMENDATION ONLY<br/>Promote for review or reject<br/>End of this milestone"]
+  FUTURE["LATER / SEPARATE AUTHORIZATION<br/>Explicit owner approval<br/>Independent risk and execution controls"] -.-> LIVE["EXISTING GOVERNED EXECUTION<br/>Broker credentials stay here<br/>Real orders and broker reconciliation"]

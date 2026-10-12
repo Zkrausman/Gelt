@@ -1,0 +1,7 @@
+# Preserve exact upstream/provenance bytes (including CRLF notices) on Windows.
+* -text
+# Existing narrow whitespace exception for verbatim legal notices only.
+notices/*.txt -whitespace
+# Fixed hash-pinned helper sources always check out as reviewed LF bytes.
+worker/native/*.ps1 text eol=lf
+worker/native/*.cs text eol=lf

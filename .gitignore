@@ -1,0 +1,48 @@
+# Binaries & Executables
+gelt.exe
+orchestrator.exe
+squire.json
+bin/
+
+# Local Environment & Secrets
+*.env
+.env
+*.token
+*.pem
+*.key
+gelt_mcp.json
+
+# Local App Data & User Configuration (.gelt)
+.gelt/
+*.json
+
+# Local Telemetry Reports & Custom Plans
+docs/reports/theses/
+/config/
+*.yaml
+*.yml
+!.agents/skills/*/agents/openai.yaml
+config/plans/*.yaml
+
+# IDE & OS files
+.DS_Store
+Thumbs.db
+pkg/server/gelt_journal.db
+.worktrees/
+
+# Local telemetry backup
+cloud-telemetry-backup/
+
+# Local Pi, agent, and Wiki runtime state belongs to the shared tooling repository,
+# never to the trading engine repository. The reviewed project role definitions
+# and project-scoped settings below are the sole exceptions: Pi discovers roles
+# from .pi/agents/ at startup and loads settings from .pi/settings.json.
+/.llm-wiki/
+/.pi/*
+!/.pi/settings.json
+!/.pi/agents/
+/.pi/agents/*
+!/.pi/agents/*.md
+/.pi-subagents/
+/artifacts/tool-output/
+/evidence/
