@@ -7,7 +7,7 @@ import Workspace from "./Workspace";
 import CommandPalette from "./CommandPalette";
 import { useTerminal } from "../store/terminal";
 
-export default function Terminal() {
+export default function Terminal({ simulation = false }: { simulation?: boolean }) {
   const setCommandOpen = useTerminal((s) => s.setCommandOpen);
   const addWidget = useTerminal((s) => s.addWidget);
 
@@ -18,7 +18,7 @@ export default function Terminal() {
         setCommandOpen(true);
         return;
       }
-      if (e.altKey) {
+      if (e.altKey && !simulation) {
         const map: Record<string, () => void> = {
           "1": () => addWidget("chart"),
           "2": () => addWidget("quote"),
@@ -39,18 +39,18 @@ export default function Terminal() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setCommandOpen, addWidget]);
+  }, [setCommandOpen, addWidget, simulation]);
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar />
+      <TopBar simulation={simulation} />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+        <Sidebar simulation={simulation} />
         <main className="flex-1 overflow-auto">
-          <Workspace />
+          <Workspace simulation={simulation} />
         </main>
       </div>
-      <CommandPalette />
+      <CommandPalette simulation={simulation} />
     </div>
   );
 }

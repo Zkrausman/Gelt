@@ -89,6 +89,22 @@ jobs:
       - name: Remove empty private G01 browser fixture parent after verified success
         if: ${{ success() }}
         run: rmdir -- "${RUNNER_TEMP}/gelt-g01-private-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: G03 recorded simulation terminal protected browser acceptance
+        run: node v2/tests/simulation-terminal/run.mjs --offline-test-only
+        env:
+          NODE_ENV: test
+          GELT_SYNTHETIC_ORDER_HARNESS: offline-test-only
+          GELT_SYNTHETIC_MOCK_ROBINHOOD: offline-test-only
+          GELT_TEST_BROWSER_PATH: ${{ env.GELT_TEST_BROWSER_PATH }}
+          GELT_SIMULATION_SCREENSHOTS: ${{ runner.temp }}/gelt-simulation-terminal
+      - name: Retain G03 recorded fixture browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-simulation-terminal-${{ github.sha }}
+          path: ${{ runner.temp }}/gelt-simulation-terminal
+          if-no-files-found: error
+          retention-days: 7
       - name: Retain private research Playwright evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

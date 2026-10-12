@@ -291,6 +291,6 @@ export default function Home() {
         </section>}
       </section>
     </div>
-    <footer style={{ ...dim, borderTop: '1px solid #333', marginTop: 18, padding: '12px 0' }}>This local screen proves no real order, broker fill, fee, provider capability, or account balance. See <a href="/research" style={amber}>research evidence</a>, <a href="/history" style={amber}>history</a> and <a href="/connect" style={amber}>connection operations</a>.</footer>
+    <footer style={{ ...dim, borderTop: '1px solid #333', marginTop: 18, padding: '12px 0' }}>This local screen proves no real order, broker fill, fee, provider capability, or account balance. Open the <a href="/simulation" style={amber}>recorded simulation terminal</a>, <a href="/research" style={amber}>research evidence</a>, <a href="/history" style={amber}>history</a> or <a href="/connect" style={amber}>connection operations</a>.</footer>
   </main>;
 }

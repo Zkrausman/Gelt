@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { simulationPanels, type SimulationPanel } from '../../worker/src/simulation-view-contract';
 
 export type WidgetType =
   | "quote"
@@ -30,6 +31,8 @@ export type WidgetInstance = {
 export type LayoutItem = { i: string; x: number; y: number; w: number; h: number };
 
 type TerminalState = {
+  simulationPanel: SimulationPanel;
+  setSimulationPanel: (panel: SimulationPanel) => void;
   activeSymbol: string;
   widgets: WidgetInstance[];
   layout: LayoutItem[];
@@ -84,6 +87,8 @@ const SIZE_BY_TYPE: Record<WidgetType, { w: number; h: number }> = {
 export const useTerminal = create<TerminalState>()(
   persist(
     (set) => ({
+      simulationPanel: 'run',
+      setSimulationPanel: (panel) => { if (simulationPanels.includes(panel)) set({ simulationPanel: panel }); },
       activeSymbol: "AAPL",
       widgets: DEFAULT_WIDGETS,
       layout: DEFAULT_LAYOUT,
