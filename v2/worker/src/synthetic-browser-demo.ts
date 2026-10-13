@@ -177,7 +177,7 @@ export function createSyntheticBrowserDemo(now: () => number = Date.now, options
       if (Buffer.byteLength(output) > maxOutput) throw Error();
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(output);
     } catch (error) {
-      if (req.url === '/demo/preview') fixture.previewDiagnosticsForTest?.record('demo-validation', 'rejected', 409, error);
+      if (req.url === '/demo/preview') fixture.previewDiagnosticsForTest?.record('demo-handler', 'rejected', 409, error);
       fail(409);
     }
   });

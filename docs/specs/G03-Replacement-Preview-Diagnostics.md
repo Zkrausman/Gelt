@@ -37,8 +37,11 @@ count matcher and cleanup. The browser shim records only request-issued boolean
 and HTTP status, or `no-response`; no response body, exception text, path, preview
 ID, token, grant or account identity is copied.
 
-Fixed events identify lifecycle preview, harness admission, mock admission,
-mock client, demo forwarding and demo validation. Outcomes distinguish actual
+Fixed events identify lifecycle preview/storage, harness admission, mock admission,
+mock client, demo forwarding and the outer demo handler. The outer handler's
+rejection event is not proof of input-validation failure. The lifecycle storage
+guard records the existing sanitized diagnostic before returning its unchanged
+generic unavailable result. Outcomes distinguish actual
 timer callbacks from transport error, non-200, parsing/bounds rejection and
 success. A timer outcome records its invocation, not an inferred historical
 timeout or proof of remote non-effect. The existing sanitized storage

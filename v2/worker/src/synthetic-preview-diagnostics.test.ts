@@ -19,10 +19,12 @@ it('captures only fixed preview phase/outcome/status and sanitized storage evide
     { phase: 'mock-client', outcome: 'deadline' },
   ], truncated: false });
   expect(JSON.stringify(trace.receipt())).not.toMatch(/secret|path|body|token/);
+  trace.record('lifecycle-storage', 'rejected', undefined, error);
+  expect(trace.receipt().events[2].storage).toEqual({ stage: 'OPERATION', operation: 'sqlite-set', check: 'DACL', kind: 'wal' });
   trace.record('secret' as any, 'rejected'); trace.record('mock-client', 'secret' as any);
   trace.record('demo-forward', 'non-200', NaN);
-  expect(trace.receipt().events).toHaveLength(3);
-  expect(trace.receipt().events[2]).not.toHaveProperty('httpStatus');
+  expect(trace.receipt().events).toHaveLength(4);
+  expect(trace.receipt().events[3]).not.toHaveProperty('httpStatus');
 }));
 it('bounds and freezes snapshots, reports truncation, and resets only its owned trace', () => optedIn(() => {
   const trace = new SyntheticPreviewDiagnostics();

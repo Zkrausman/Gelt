@@ -61,7 +61,7 @@ function syntheticHistoryItem(projection: Projection) {
 class SyntheticFacts {
   private readonly storage: LedgerStorage;
   private poisoned = false;
-  constructor(path: string) {
+  constructor(path: string, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics) {
     this.storage = new LedgerStorage(path);
     try {
       const db = this.storage.db;
@@ -85,7 +85,10 @@ class SyntheticFacts {
   private guard<T>(fn: () => Result<T>): Result<T> {
     if (this.poisoned) return unavailable();
     try { this.storage.validate(); return fn(); }
-    catch { this.poisoned = true; this.storage.poisoned = true; return unavailable(); }
+    catch (error) {
+      this.previewDiagnostics?.record('lifecycle-storage', 'rejected', undefined, error);
+      this.poisoned = true; this.storage.poisoned = true; return unavailable();
+    }
   }
   private read(): Projection[] {
     const db = this.storage.db;
@@ -206,7 +209,7 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     if (!Number.isSafeInteger(issuedAt) || issuedAt < 0 || issuedAt > Number.MAX_SAFE_INTEGER - sessionLifetimeMs) throw new Error('synthetic harness disabled');
     // Validate the test clock before acquiring the persistent private SQLite lock.
     const mockPath = join(dir, 'synthetic-mock-robinhood.sqlite');
-    const facts = reopenPhaseForTest('facts-ledger-construction', () => new SyntheticFacts(path));
+    const facts = reopenPhaseForTest('facts-ledger-construction', () => new SyntheticFacts(path, previewDiagnostics));
     let mockStore: SyntheticMockRobinhoodStore | undefined;
     let mockTransport: SyntheticMockRobinhoodTransport | undefined;
     let mockAdapter: SyntheticMockRobinhoodAdapter | undefined;
