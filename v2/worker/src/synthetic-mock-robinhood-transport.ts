@@ -109,7 +109,9 @@ export class SyntheticMockRobinhoodTransport {
         response(res, 200, syntheticMockAdmissionSchema.parse(result));
         this.previewDiagnostics?.record('mock-admission', 'succeeded', 200);
       } else if (operation === 'orders:submit') {
+        this.previewDiagnostics?.record('mock-submit', 'started');
         const result = this.store.submit(await readBody(req) as SyntheticMockSubmitInput);
+        this.previewDiagnostics?.record('mock-submit', 'succeeded');
         if (this.dropNextSubmitResponse) { this.dropNextSubmitResponse = false; req.socket.destroy(); return; }
         response(res, 200, syntheticMockOrderViewSchema.parse(result));
       } else if (operation === 'orders:read') {
@@ -126,6 +128,7 @@ export class SyntheticMockRobinhoodTransport {
       }
     } catch (error) {
       if (operation === 'orders:admit') this.previewDiagnostics?.record('mock-admission', 'rejected', res.destroyed ? undefined : 409, error);
+      if (operation === 'orders:submit') this.previewDiagnostics?.record('mock-submit', 'rejected', res.destroyed ? undefined : 409, error);
       if (!res.destroyed) response(res, 409);
     }
   }
@@ -166,7 +169,8 @@ export class SyntheticMockRobinhoodClient {
 
   private call<T>(method: 'GET' | 'POST', suffix: string, scope: Operation, input: unknown,
     schema: { parse(value: unknown): T }, claimedScope: Operation = scope): Promise<T> {
-    if (scope === 'orders:admit') this.previewDiagnostics?.record('mock-client', 'started');
+    const diagnosticPhase = scope === 'orders:admit' ? 'mock-client' : scope === 'orders:submit' ? 'mock-submit-client' : undefined;
+    if (diagnosticPhase) this.previewDiagnostics?.record(diagnosticPhase, 'started');
     const port = this.port();
     if (!port) return Promise.reject(new Error('synthetic mock unavailable'));
     const path = `${prefix}${suffix}`;
@@ -182,7 +186,7 @@ export class SyntheticMockRobinhoodClient {
       const fail = (outcome: PreviewOutcome = 'transport-error') => {
         if (settled) return;
         settled = true;
-        if (scope === 'orders:admit') this.previewDiagnostics?.record('mock-client', outcome, httpStatus);
+        if (diagnosticPhase) this.previewDiagnostics?.record(diagnosticPhase, outcome, httpStatus);
         if (deadline) clearTimeout(deadline);
         req?.destroy();
         reject(new Error('synthetic mock unavailable'));
@@ -191,7 +195,7 @@ export class SyntheticMockRobinhoodClient {
         if (settled) return;
         settled = true;
         if (deadline) clearTimeout(deadline);
-        if (scope === 'orders:admit') this.previewDiagnostics?.record('mock-client', 'succeeded', httpStatus);
+        if (diagnosticPhase) this.previewDiagnostics?.record(diagnosticPhase, 'succeeded', httpStatus);
         resolve(value);
       };
       const request = httpRequest({ hostname: '127.0.0.1', port, path, method, headers: {

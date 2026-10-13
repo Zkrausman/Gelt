@@ -1,7 +1,7 @@
 // Bounded test-owned evidence; no callback, route, error text, body or credential capture.
 import { storageDiagnosticForTest } from './storage-diagnostics.js';
-const phases = ['lifecycle-preview', 'lifecycle-storage', 'harness-admission', 'mock-admission', 'mock-client', 'demo-forward', 'demo-handler'] as const;
-const outcomes = ['started', 'succeeded', 'rejected', 'deadline', 'socket-timeout', 'transport-error', 'non-200', 'invalid-response', 'oversized-response', 'premature-close'] as const;
+const phases = ['lifecycle-preview', 'lifecycle-storage', 'harness-admission', 'mock-admission', 'mock-client', 'demo-forward', 'demo-handler', 'harness-confirm', 'mock-dispatch', 'mock-submit', 'mock-submit-client', 'mock-submit-preview-validity', 'mock-submit-admission'] as const;
+const outcomes = ['started', 'succeeded', 'rejected', 'deadline', 'socket-timeout', 'transport-error', 'non-200', 'invalid-response', 'oversized-response', 'premature-close', 'acknowledged', 'unknown', 'expired'] as const;
 export type PreviewPhase = typeof phases[number];
 export type PreviewOutcome = typeof outcomes[number];
 type Entry = Readonly<{ phase: PreviewPhase; outcome: PreviewOutcome; httpStatus?: number; storage?: ReturnType<typeof storageDiagnosticForTest> }>;

@@ -25,6 +25,11 @@ it('captures only fixed preview phase/outcome/status and sanitized storage evide
   trace.record('demo-forward', 'non-200', NaN);
   expect(trace.receipt().events).toHaveLength(4);
   expect(trace.receipt().events[3]).not.toHaveProperty('httpStatus');
+  trace.record('mock-submit-client', 'deadline');
+  trace.record('mock-submit-preview-validity', 'expired');
+  trace.record('harness-confirm', 'unknown');
+  expect(trace.receipt().events.slice(4)).toEqual([{ phase: 'mock-submit-client', outcome: 'deadline' },
+    { phase: 'mock-submit-preview-validity', outcome: 'expired' }, { phase: 'harness-confirm', outcome: 'unknown' }]);
 }));
 it('bounds and freezes snapshots, reports truncation, and resets only its owned trace', () => optedIn(() => {
   const trace = new SyntheticPreviewDiagnostics();

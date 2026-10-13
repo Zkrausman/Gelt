@@ -57,9 +57,32 @@ No dispatch/provider behavior, human per-trade gate or production telemetry is
 introduced. This is scripted fixture evidence, not autonomous or owner acceptance.
 
 Changed files: diagnostic collector and pure tests; existing browser demo/test,
-fixture harness and mock transport; import manifest; this specification.
+fixture harness, mock adapter/store/transport and affected mock test; import
+manifest; this specification.
 
 ## Verification and closeout
+
+The first replacement diagnostic head `5cc98726d076e71fd58f304ae79da22a2c595cbf`
+passed Go `38338884908`, Linux/browser and scientific checks. Native Windows
+`115105165924` in V2 `38338884937` failed a different existing test at
+`synthetic-mock-robinhood.test.ts:536`: valid confirmation after wrong-terms
+rejection returned `unknown`, not `acknowledged`. 420 worker tests passed,
+9 platform skips; build/smoke skipped. Replacement preview succeeded with HTTP
+200 and all ten captured phases succeeding on Windows. That does not explain
+the historical preview failure or authorize a timeout increase.
+
+The same explicit fixture collector now covers only this additional affected
+confirmation test: reset before valid confirmation, then pre-cleanup status or
+no-response snapshot in a finally block before its unchanged status/outcome
+assertions. It records harness confirmation, mock dispatch/submit/client and
+parsed preview-validity/admission rejection boundaries. The existing store
+validity guard can identify actual expiry against its already captured current
+time, without logging timestamps or changing its condition. The adapter still
+consumes pending state before submission and never retries uncertainty. The
+30-second mock-client fixture budget already used by that test remains unchanged;
+all UNKNOWN persistence, redispatch fences, guards and cleanup remain intact.
+No new production lifecycle hooks or public response fields are introduced.
+Pure allowlist coverage includes these fixed phases/outcomes.
 
 Static import inventory and whitespace checks precede a complete final review
 by the original independent and adversarial owners. The complete diff includes

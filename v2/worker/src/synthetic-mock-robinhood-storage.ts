@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { canonical, decode } from './ledger-canonical.js';
 import { LedgerStorage } from './ledger-storage.js';
 import { reopenPhaseForTest, rememberReopenFailureForTest } from './synthetic-reopen-diagnostics.js';
+import { SyntheticPreviewDiagnostics } from './synthetic-preview-diagnostics.js';
 import {
   compareSyntheticDecimals, syntheticMockAdmissionInputSchema, syntheticMockDigest,
   syntheticMockExecutionSchema, syntheticMockOrderViewSchema, syntheticMockPreviewSchema,
@@ -101,7 +102,7 @@ export class SyntheticMockRobinhoodStore {
   private closed = false;
   private persistenceFaultPending = false;
   private admissionFaultPending = false;
-  constructor(path: string, private readonly now: () => number = Date.now) {
+  constructor(path: string, private readonly now: () => number = Date.now, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics) {
     this.storage = reopenPhaseForTest('mock-ledger-construction', () => new LedgerStorage(path));
     this.db = this.storage.db;
     try {
@@ -237,15 +238,20 @@ export class SyntheticMockRobinhoodStore {
           || checkedText(existing.payload_sha, 64) !== payloadSha || view.previewId !== input.preview.previewId) fail();
         return view;
       }
-      if (!validPreview(input.preview, currentTime)) fail();
+      if (!validPreview(input.preview, currentTime)) {
+        this.previewDiagnostics?.record('mock-submit-preview-validity', Date.parse(input.preview.expiresAt) <= currentTime ? 'expired' : 'rejected');
+        fail();
+      }
       const admission = this.admissionRow(input.preview.previewId);
-      if (!admission) fail();
+      if (!admission) { this.previewDiagnostics?.record('mock-submit-admission', 'rejected'); fail(); }
       const admittedPreviewText = checkedText(admission.preview_json, bodyLimit);
       const admittedPreview = decode(syntheticMockPreviewSchema, admittedPreviewText);
       if (canonical(admittedPreview) !== admittedPreviewText || syntheticMockDigest(admittedPreview) !== checkedText(admission.preview_sha, 64)
         || admittedPreviewText !== previewJson || checkedText(admission.terms_hash, 64) !== input.termsHash
         || checkedText(admission.confirmation_sha, 64) !== payload.confirmationDigest
-        || checkedText(admission.handle_sha, 64) !== payload.admissionDigest || checkedInteger(admission.expires_ms) <= currentTime) fail();
+        || checkedText(admission.handle_sha, 64) !== payload.admissionDigest || checkedInteger(admission.expires_ms) <= currentTime) {
+        this.previewDiagnostics?.record('mock-submit-admission', 'rejected'); fail();
+      }
       if (admission.consumed_dispatch !== null || this.orderCount() >= rowLimit || this.eventCount() + 1 > rowLimit) fail();
       const orderId = randomUUID();
       const acceptedEvent = { type: 'accepted' as const, at: currentTime };

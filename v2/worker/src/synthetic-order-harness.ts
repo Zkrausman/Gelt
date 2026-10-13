@@ -214,9 +214,9 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     let mockTransport: SyntheticMockRobinhoodTransport | undefined;
     let mockAdapter: SyntheticMockRobinhoodAdapter | undefined;
     try {
-      mockStore = options.applicationMock ? new SyntheticMockRobinhoodStore(mockPath, sessionClock) : undefined;
+      mockStore = options.applicationMock ? new SyntheticMockRobinhoodStore(mockPath, sessionClock, previewDiagnostics) : undefined;
       mockTransport = mockStore ? new SyntheticMockRobinhoodTransport(mockStore, mockRequestTimeoutMsForTest, previewDiagnostics) : undefined;
-      mockAdapter = mockTransport ? new SyntheticMockRobinhoodAdapter(mockTransport.client, sessionClock) : undefined;
+      mockAdapter = mockTransport ? new SyntheticMockRobinhoodAdapter(mockTransport.client, sessionClock, previewDiagnostics) : undefined;
     } catch (error) {
       try { mockTransport ? void mockTransport.close() : mockStore?.close(); } catch { /* preserve uncertain writer ownership */ }
       try { facts.close(); } catch { /* preserve uncertain lifecycle ownership */ }
@@ -300,8 +300,13 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
             value = preview;
           } break;
           case 'confirm': {
-            try { value = await lifecycle.confirm(input); }
-            catch (error) { mockAdapter?.discardRejectedConfirmation(input); throw error; }
+            previewDiagnostics?.record('harness-confirm', 'started');
+            try {
+              const confirmed = await lifecycle.confirm(input);
+              previewDiagnostics?.record('harness-confirm', confirmed.outcome);
+              value = confirmed;
+            }
+            catch (error) { previewDiagnostics?.record('harness-confirm', 'rejected', undefined, error); mockAdapter?.discardRejectedConfirmation(input); throw error; }
           } break;
           case 'reconcile': empty.parse(input); value = { observations: await lifecycle.reconcileAll() }; break;
           case 'cancel': value = { outcome: await lifecycle.cancel(cancelInput.parse(input).intentId) }; break;

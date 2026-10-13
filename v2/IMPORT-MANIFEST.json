@@ -3232,7 +3232,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "4108f135671b58a50beb66a27b2b183d52e42d6bfa1c21e73ced817570c44d5f",
+      "sha256": "8c82e8ccb41d3039e3cbc472b73ef1b8b96e5ba24a135bf69ffcc537c8437c27",
       "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route"
     },
     {
@@ -3576,7 +3576,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-transport.ts",
-      "sha256": "2cb546c9be3029c00a34fbbf1183899ac423b0354b5f9aa0840bd3667fb57539",
+      "sha256": "c54191b54bc1951ee448894af2a6da585050d4ca5bb1743c074881f4bf398316",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3584,7 +3584,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood.test.ts",
-      "sha256": "0b3f04bd90239c49c3e8375794ae18d4fa39d04a8128fa79bb01690c38c4179d",
+      "sha256": "01df854a91f5daa8e501262343dc258417fafcf3cb76b1e6313eee053af040be",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3600,7 +3600,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-adapter.ts",
-      "sha256": "70725ebe34a09124f41d795815832691a047711fcb264d30c3e9d95e2cfe2339",
+      "sha256": "91588e2f3aae198cfbfe8152db0fa029548c8fd6be541b9d31464998ba731445",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3616,7 +3616,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "a54693de1f6a6b83439c48e6d57e181d437c5c51af4acf0bf9685c8de545fd6f",
+      "sha256": "bfd3145cd417b3dc1d949b2b3d307df85e45d2f8f0f5170a27fb14a0e9b3f9a0",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3736,7 +3736,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-preview-diagnostics.ts",
-      "sha256": "2b0651ec8037cc599223dfce12e388e67757d33a65ddc7afe308cf2540b67601",
+      "sha256": "e06b018aed0c2e22e59218d968cdb1b83a88910a67c7dc0702fe453cbe821d24",
       "reason": "G03 opt-in fixture-only bounded replacement preview phase/outcome evidence; no guard or timeout change"
     },
     {
@@ -3744,7 +3744,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-preview-diagnostics.test.ts",
-      "sha256": "a3a340d4b635d71efb0753be78436307b0edb9f7d5f53375cff8c812d6f527f0",
+      "sha256": "c4a6ebf709e27348af58c520ab99eb3d91dd6a03332dd9151bc6a450213bf3ed",
       "reason": "G03 opt-in fixture-only bounded replacement preview phase/outcome evidence; no guard or timeout change"
     }
   ]

@@ -7,6 +7,7 @@ import {
   syntheticMockSource, type SyntheticMockPreview,
 } from './synthetic-mock-robinhood-contract.js';
 import { SyntheticMockRobinhoodClient } from './synthetic-mock-robinhood-transport.js';
+import { SyntheticPreviewDiagnostics } from './synthetic-preview-diagnostics.js';
 
 function enabled(): boolean {
   return process.env.NODE_ENV === 'test' && process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD === 'offline-test-only';
@@ -18,7 +19,8 @@ export class SyntheticMockRobinhoodAdapter implements OrderAdapter {
   private pending?: { preview: SyntheticMockPreview; confirmationToken: string; termsHash: string; handle: string };
   private admitting = false;
 
-  constructor(private readonly client: SyntheticMockRobinhoodClient, private readonly now: () => number = Date.now) {
+  constructor(private readonly client: SyntheticMockRobinhoodClient, private readonly now: () => number = Date.now,
+    private readonly previewDiagnostics?: SyntheticPreviewDiagnostics) {
     if (!enabled()) throw new Error('synthetic mock disabled');
   }
 
@@ -87,20 +89,24 @@ export class SyntheticMockRobinhoodAdapter implements OrderAdapter {
   }
 
   async dispatch(input: Parameters<OrderAdapter['dispatch']>[0]): Promise<unknown> {
-    const pending = this.pending;
-    this.pending = undefined; // the fixture never retries an uncertain submission
-    if (!enabled() || !pending || input.feeCurrency !== 'USD' || canonical(input.fee) !== canonical(syntheticMockFee)
-      || input.intent.order.instrumentId !== syntheticMockInstrument || input.intent.order.side !== 'buy'
-      || input.intent.order.route !== 'RHS' || input.intent.order.currency !== 'USD'
-      || input.intent.order.requestedQuantity.value !== pending.preview.order.quantity.value
-      || input.intent.order.requestedQuantity.precision !== pending.preview.order.quantity.precision
-      || input.intent.order.requestedQuantity.scale !== pending.preview.order.quantity.scale
-      || input.intent.order.requestedLimitPrice.value !== pending.preview.order.limitPrice.value
-      || input.intent.order.requestedLimitPrice.precision !== pending.preview.order.limitPrice.precision
-      || input.intent.order.requestedLimitPrice.scale !== pending.preview.order.limitPrice.scale) throw new Error('synthetic mock unavailable');
-    const order = await this.client.submit({ dispatchId: input.dispatchId, preview: pending.preview, termsHash: pending.termsHash,
-      confirmationToken: pending.confirmationToken, admissionHandle: pending.handle });
-    return { outcome: 'accepted', brokerOrderId: order.mockOrderId };
+    this.previewDiagnostics?.record('mock-dispatch', 'started');
+    try {
+      const pending = this.pending;
+      this.pending = undefined; // the fixture never retries an uncertain submission
+      if (!enabled() || !pending || input.feeCurrency !== 'USD' || canonical(input.fee) !== canonical(syntheticMockFee)
+        || input.intent.order.instrumentId !== syntheticMockInstrument || input.intent.order.side !== 'buy'
+        || input.intent.order.route !== 'RHS' || input.intent.order.currency !== 'USD'
+        || input.intent.order.requestedQuantity.value !== pending.preview.order.quantity.value
+        || input.intent.order.requestedQuantity.precision !== pending.preview.order.quantity.precision
+        || input.intent.order.requestedQuantity.scale !== pending.preview.order.quantity.scale
+        || input.intent.order.requestedLimitPrice.value !== pending.preview.order.limitPrice.value
+        || input.intent.order.requestedLimitPrice.precision !== pending.preview.order.limitPrice.precision
+        || input.intent.order.requestedLimitPrice.scale !== pending.preview.order.limitPrice.scale) throw new Error('synthetic mock unavailable');
+      const order = await this.client.submit({ dispatchId: input.dispatchId, preview: pending.preview, termsHash: pending.termsHash,
+        confirmationToken: pending.confirmationToken, admissionHandle: pending.handle });
+      this.previewDiagnostics?.record('mock-dispatch', 'succeeded');
+      return { outcome: 'accepted', brokerOrderId: order.mockOrderId };
+    } catch (error) { this.previewDiagnostics?.record('mock-dispatch', 'rejected', undefined, error); throw error; }
   }
 
   async reconcile(input: Parameters<OrderAdapter['reconcile']>[0]): Promise<unknown> {
