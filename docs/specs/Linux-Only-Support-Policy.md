@@ -19,8 +19,8 @@ autonomous execution remain separate.
 The V2 workflow now contains only its existing Linux foundation and scientific
 jobs. Go CI is unchanged. The README, AGENTS and ticket-delivery instructions
 state Linux-only support and preserve exact-source review/verification and
-platform-independent safety gates. Import accounting updates only the README
-digest. There is no runtime code change, dependency change, test deletion,
+platform-independent safety gates. Import accounting updates the README, connection operations and ledger
+operations digests. There is no runtime code change, dependency change, test deletion,
 assertion relaxation or new effect authority. Existing Windows implementation,
 helper/security code and conditionally skipped tests remain unsupported legacy
 material; retaining source is not a support or pass claim.
