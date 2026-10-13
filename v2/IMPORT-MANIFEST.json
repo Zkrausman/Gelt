@@ -40,7 +40,7 @@
       "upstreamSha256": "badaa00acc49135a2c1654b02f3c2956905dc170d9a9182fc2cc2001dde8a83f",
       "status": "modified",
       "path": "README.md",
-      "sha256": "ef5f81cdf68dc5c0824a78f85f349680c13a1a32d2e4d78d87c4eba85cb69138",
+      "sha256": "24f8ce697ded8cabdc2a351d2d02812622fe1a69f81d4229323f71fc71280870",
       "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-216 offline M5 boundary"
     },
     {

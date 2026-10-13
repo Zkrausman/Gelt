@@ -10,6 +10,20 @@ M3 adds a protected, execution-disabled account API; see the
 and [ZAR-214 specification](../docs/specs/ZAR-214-Protected-Account-Boundary.md).
 Default startup remains offline. No live-provider or Windows connected-mode proof.
 
+## Supported development platform (2026-10-13)
+
+Linux is the supported development and delivery platform. The owner explicitly
+removed Windows support from the current release scope to simplify development.
+Automatic V2 CI runs Linux tests/build/smoke, protected browser acceptance and
+scientific verification; Go build/race/vet remains required. Windows source and
+conditional tests are retained as unsupported legacy material, with their guards
+and assertions intact. Historical Windows results below remain dated evidence;
+known failures are not converted to passes or attributed exclusively to Windows.
+They do not block an independently reviewed, exact-source Linux delivery when no
+Linux correctness/security defect is established. No protection or admin setting
+is changed by this support policy. A future Windows support claim requires an
+explicitly reviewed scope and fresh full native verification.
+
 ## Current source and hosted disposition (2026-10-06)
 
 Checked source: [master `d78c39f`](https://github.com/Zkrausman/Gelt/tree/d78c39f146a18a567b3cf6a836eb51bd5ab27ae9).
