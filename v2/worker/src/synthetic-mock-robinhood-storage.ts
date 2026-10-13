@@ -3,6 +3,7 @@ import Database from 'better-sqlite3';
 import { z } from 'zod';
 import { canonical, decode } from './ledger-canonical.js';
 import { LedgerStorage } from './ledger-storage.js';
+import { reopenPhaseForTest, rememberReopenFailureForTest } from './synthetic-reopen-diagnostics.js';
 import {
   compareSyntheticDecimals, syntheticMockAdmissionInputSchema, syntheticMockDigest,
   syntheticMockExecutionSchema, syntheticMockOrderViewSchema, syntheticMockPreviewSchema,
@@ -101,7 +102,7 @@ export class SyntheticMockRobinhoodStore {
   private persistenceFaultPending = false;
   private admissionFaultPending = false;
   constructor(path: string, private readonly now: () => number = Date.now) {
-    this.storage = new LedgerStorage(path);
+    this.storage = reopenPhaseForTest('mock-ledger-construction', () => new LedgerStorage(path));
     this.db = this.storage.db;
     try {
       this.atomic(() => {
@@ -114,7 +115,7 @@ export class SyntheticMockRobinhoodStore {
           this.db.prepare('INSERT INTO mock_meta(id, source) VALUES(1, ?)').run(syntheticMockSource);
         }
         this.validateSchema();
-        this.replayAll();
+        reopenPhaseForTest('mock-replay', () => this.replayAll());
       });
     } catch (error) {
       this.storage.poisoned = true;
@@ -141,15 +142,21 @@ export class SyntheticMockRobinhoodStore {
   private atomic<T>(work: () => T): T {
     if (this.closed || this.storage.poisoned) throw new Error('synthetic mock storage unavailable');
     try {
-      this.validateStorage();
+      reopenPhaseForTest('mock-initial-validation', () => this.validateStorage());
       const result = this.db.transaction(() => {
-        this.validateStorage();
+        reopenPhaseForTest('mock-transaction-validation', () => this.validateStorage());
         let value: T;
+        let workThrew = false;
+        let workError: unknown;
         try { value = work(); }
-        finally { this.validateStorage(); }
+        catch (error) { workThrew = true; workError = error; throw error; }
+        finally {
+          try { this.validateStorage(); }
+          catch (error) { rememberReopenFailureForTest(error, 'mock-final-validation', { threw: workThrew, error: workError }); throw error; }
+        }
         return value;
       }).immediate();
-      this.validateStorage();
+      reopenPhaseForTest('mock-post-validation', () => this.validateStorage());
       return result;
     }
     catch (error) {
@@ -478,7 +485,11 @@ export class SyntheticMockRobinhoodStore {
       || events.filter(event => event.type === 'cancel-acknowledged').length !== events.filter(event => event.type === 'cancel-requested').length
       || events.filter(event => event.type === 'cancellation-settled').length > 1
       || (requestIndex >= 0 && ackIndex !== requestIndex + 1)
-      || (settledIndex >= 0 && (settledIndex <= ackIndex || settledIndex !== events.length - 1))) throw new Error('synthetic mock storage unavailable');
+      || (settledIndex >= 0 && (settledIndex <= ackIndex || settledIndex !== events.length - 1))) {
+      const error = new Error('synthetic mock storage unavailable');
+      rememberReopenFailureForTest(error, 'mock-replay', undefined, true);
+      throw error;
+    }
     if (events.some((event, index) => index > 0 && event.at < events[index - 1].at)) throw new Error('synthetic mock storage unavailable');
     const executions = events.flatMap(event => event.type === 'execution-observed' ? [event.execution] : []);
     if (executions.length > 16 || executions.some(item => compareSyntheticDecimals(item.price, preview.order.limitPrice) > 0)) throw new Error('synthetic mock storage unavailable');
