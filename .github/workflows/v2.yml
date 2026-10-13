@@ -121,51 +121,6 @@ jobs:
           path: ${{ runner.temp }}/gelt-history-evidence
           if-no-files-found: error
           retention-days: 7
-  native-windows:
-    runs-on: windows-2022
-    # Keep the native suite serial to avoid cross-file helper contention. The
-    # exact PR run hit the old job cap with the Vitest suite still incomplete;
-    # retain every test and operation deadline, with room for build and smoke.
-    timeout-minutes: 90
-    env:
-      # Explicit ancestor only: helper creates fresh owner-private scratch/fixtures.
-      # Never use/repair runner TEMP or home ACLs. C:\ must pass unchanged checks.
-      GELT_WINDOWS_PRIVATE_PARENT: 'C:\'
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: v2/package-lock.json
-      - name: Preserve immutable reference artifact checkout bytes
-        shell: powershell
-        run: |
-          git check-attr text -- research/paper2agent/artifacts/evidence.json
-          node -e "const fs=require('node:fs'),crypto=require('node:crypto');const b=fs.readFileSync('research/paper2agent/artifacts/evidence.json');if(crypto.createHash('sha256').update(b).digest('hex')!=='c386b43d907f3375563422f27c5313268337f7f399821c318a69261f0731bb96')throw Error('Immutable evidence checkout bytes changed');console.log('PASS immutable reference artifact original-byte SHA256')"
-      - name: Native prerequisites (Windows PowerShell 5.1, .NET 4.8, NTFS, Node 22 x64)
-        shell: powershell
-        run: |
-          if ($PSVersionTable.PSVersion -lt [version]'5.1') { throw 'PowerShell 5.1 required' }
-          if ((Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').Release -lt 528040) { throw '.NET 4.8 required' }
-          if ((Get-Volume -DriveLetter C).FileSystem -ne 'NTFS') { throw 'NTFS required' }
-          node -e "if(process.platform!=='win32'||process.arch!=='x64'||!process.version.startsWith('v22.'))process.exit(1)"
-      - run: npm --prefix v2 ci --no-audit --no-fund
-      - name: Direct Node independent prerequisites, framed transport and real DPAPI comparison
-        id: transport
-        run: npm --prefix v2 run test:windows-transport
-      - name: Vitest independent prerequisites, helper transport, DPAPI and private NTFS preflight
-        # Run the comparison even if direct transport fails; neither gate is optional.
-        if: ${{ !cancelled() && (steps.transport.outcome == 'success' || steps.transport.outcome == 'failure') }}
-        run: npm --prefix v2 run test:windows-preflight
-      - run: npm --prefix v2 test
-      - run: npm --prefix v2 run build
-        env:
-          NEXT_TELEMETRY_DISABLED: '1'
-      - run: npm --prefix v2 run test:smoke
-
   scientific-reference:
     runs-on: ubuntu-latest
     timeout-minutes: 15

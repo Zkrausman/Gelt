@@ -83,3 +83,17 @@ stored facts and compare the persisted projection; neither cached projections no
 schema-only timeline decoding are safe. Corruption/uncertain persistence poisons
 the handle and retains ownership. See `v2/LEDGER-API.md` and
 `v2/LEDGER-OPERATIONS.md`; preserve all M3 security and native Windows tests.
+
+## Owner-authorized Linux-only delivery scope (2026-10-13)
+
+The owner selected the Linux computer and removed Windows support from current
+Gelt development and delivery. Go build/race/vet, Linux V2 tests/build/smoke,
+scientific verification and the applicable protected-browser gates remain
+mandatory on the exact reviewed source. Windows compatibility is not a current
+acceptance gate. Retain existing Windows code/tests/security assertions and
+historical failures as unsupported legacy evidence; do not relax guards,
+mislabel failures as passes or assume an unresolved cause is Windows-exclusive.
+A platform-independent correctness or safety defect still blocks Linux delivery.
+This supersedes older Windows gate/support language in retained dated reports.
+Do not bypass repository protection requirements or change admin/access/billing
+settings; if a protected required check conflicts, report the exact constraint.

@@ -4,11 +4,20 @@ Default `npm --prefix v2 start` stays offline/disconnected. Never configure a
 production connection for tests. No live login, broker access, deployment or
 account changes were authorized/performed by M3 delivery.
 
+## Current platform scope (2026-10-13)
+
+Only Linux is supported for current development and delivery. Windows code and
+procedures in this document are unsupported historical implementation evidence,
+not instructions to provision a current Windows deployment or a Linux acceptance
+gate. Existing security checks remain intact. Current release requires exact-source
+Go build/race/vet, Linux V2 tests/build/smoke, scientific and protected-browser
+checks; unresolved platform-independent safety defects still block delivery.
+
 ## Supported secure backing
 
-Connected storage has Linux and native Windows backends, Node **22 x64**, one local
-OS owner and one worker. Windows acceptance remains **pending actual hosted CI**;
-Linux results are not Windows evidence. Windows prerequisites: Windows 11 or
+Supported connected storage uses Linux, Node **22 x64**, one local OS owner and
+one worker. Linux results are not evidence of Windows compatibility. The retained
+unsupported Windows backend historically required Windows 11 or
 Server 2022+ (build >=20348), local NTFS, standard `C:\Windows` installation,
 Windows PowerShell **5.1** and .NET Framework **4.8**. Launch from the trusted `v2`
 checkout; retain `worker/native` beside source/dist (including when serving Next).
@@ -27,7 +36,7 @@ temp-file write, fsync, rename and directory fsync for both rotation and encrypt
 null tombstone (disconnect). This is not secure erasure of old filesystem snapshots.
 Protect backups and key separately; no automatic key rotation/migration implemented.
 
-### Native Windows boundary and durability
+### Legacy Windows boundary and durability (unsupported)
 
 The random AES key is persisted only as a versioned **current-user DPAPI** envelope
 with application entropy, in the separate key directory. Raw Linux key files are
@@ -107,7 +116,7 @@ the separate protected execution ledger; the retained analysis database stays cl
 
 ## Explicit provisioning (future authorized owner operation)
 
-Build first. On Windows explicitly set, for example,
+Build first on Linux. Historical unsupported Windows example: explicitly set,
 `$env:GELT_WINDOWS_PRIVATE_PARENT='C:\'` before preparation and runtime (only if
 that unchanged ancestor passes validation and permits creation). An existing safe
 canonical directory on C: may be chosen instead; missing/unsafe roots fail closed.
@@ -155,7 +164,7 @@ not automatic fallback. CLI writes only explicit supplied directories.
 GELT_MODE=official-worker GELT_WORKER_CONFIG=/ABS/WORKER_DIR/worker.json GELT_BFF_CONFIG=/ABS/BFF_DIR/bff.json npm --prefix v2 start
 ```
 
-In native PowerShell, set only the nonsecret configuration-path variables instead
+Historical unsupported PowerShell example: set only the nonsecret configuration-path variables instead
 of the POSIX inline assignment: `$env:GELT_MODE='official-worker'`,
 `$env:GELT_WORKER_CONFIG='C:\...\worker.json'`,
 `$env:GELT_BFF_CONFIG='C:\...\bff.json'`, then run `npm start` from `v2`.
@@ -216,17 +225,16 @@ neither current account access nor OAuth registration acceptance, live MCP encod
 or browser Secure-cookie-on-loopback compatibility. Keep disconnected on any such
 unproven/unsupported operational prerequisite; never weaken storage/cookie policy.
 
-## Native acceptance and lifecycle
+## Current acceptance and retained native evidence
 
-`.github/workflows/v2.yml` runs all Node suites, build and built-process smoke on
-`windows-2022` with Node22, synthetic isolated private paths and no secrets/broker
-calls; Ubuntu and Go jobs are retained. Windows-only primitive cases run there,
-not under Linux mocks. Parent must obtain genuine passing final-head Windows and
-Linux receipts after publication; candidate publication alone is not merge readiness.
-Windows tests exercise DPAPI/ACLs, key/ciphertext tamper, explicit provisioning,
-bootstrap/private worker, reparse/hardlinks/ACL/owner failures, writer exclusion,
-persistence-failure markers, restart/clear and process/port cleanup. These tests
-are implementation artifacts, not claims they ran inside this Linux sandbox.
+`.github/workflows/v2.yml` now runs the Linux foundation and scientific jobs;
+Go CI remains separate and mandatory. Exact-source Linux tests/build/smoke and
+protected-browser receipts are required after publication. The former
+`windows-2022` job and its required Windows receipt were removed from current
+support scope. Existing Windows-only primitive tests remain conditional legacy
+source, not Linux certification or a current release gate. Historical DPAPI/ACL,
+tamper/provisioning/restart/ownership/cleanup descriptions and candidate statuses
+below preserve what was attempted; no historical failure becomes a pass.
 
 Supervisor and services use cooperative IPC shutdown (including parent disconnect)
 before bounded forced termination. Normal cleanup releases listener/vault ownership;

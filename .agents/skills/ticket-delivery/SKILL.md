@@ -43,3 +43,14 @@ For a Jules ticket, use the **same nine steps above**. Jules may perform the ass
 ## Stop rules
 
 Stop and escalate rather than close out when review reveals live broker/order behavior, synthetic or misleading telemetry, unapproved promotion/activation, credentials, a scope breach, unresolved risk guardrail conflict, or a failed required command.
+
+## Current platform scope
+
+Owner instruction dated 2026-10-13 makes Gelt delivery Linux-only. Apply the full
+closed loop to Go build/race/vet, Linux V2 tests/build/smoke, scientific and the
+applicable protected-browser gates. Windows compatibility is unsupported legacy
+work and is not a release gate; retain its security code/assertions and unresolved
+receipts accurately. No unsafe or platform-independent defect is waived. No
+repository protection/admin setting may be bypassed or altered to implement
+this scope. Any future platform-support expansion needs its own approved review
+and exact native verification.
