@@ -1,5 +1,15 @@
 # M4 protected SQLite ownership and operations
 
+## Current platform scope (2026-10-13)
+
+Linux is the only supported development/delivery platform. Retained Windows
+requirements and native diagnosis below are unsupported historical evidence,
+not current deployment instructions or a Linux release gate. Keep all security
+code/assertions unchanged; any established platform-independent defect blocks
+Linux delivery. Future Windows support requires a reviewed scope and fresh native
+verification.
+
+
 The execution worker alone owns `execution.sqlite`. It is separate from the
 retained market/analysis `server/src/db.ts`, which startup still does not open.
 No unauthenticated write surface, outbox, production dispatcher, broker request,
@@ -31,7 +41,7 @@ SQLite creates WAL/SHM/journal with its private main-file mode. Metadata for exi
 main and sidecars is checked before open, each operation and close. Main file identity
 and token-matched private marker are rechecked; no chmod repair, home scan or fallback.
 
-Windows: all M3 prerequisites (Windows11/Server2022+, Node22 x64, local fixed NTFS,
+Legacy Windows implementation (unsupported): all M3 prerequisites (Windows11/Server2022+, Node22 x64, local fixed NTFS,
 PowerShell5.1/.NET4.8, trusted packaged/pinned helper, explicit compilation parent)
 remain. `prepare` creates a **new** ledger directory with protected current-user-only
 DACL and ObjectInherit/ContainerInherit FullControl. Exact inheritable descriptor is
@@ -129,15 +139,17 @@ M4 restore guarantee. No secure erasure or snapshot rollback detection is claime
 
 ## Verification boundary
 
-`npm test` runs real SQLite ledger/migration/atomicity/tampering/process tests with
-synthetic records, along with unchanged M3 suites. Existing Ubuntu and native
-windows-2022 CI execute them under Node22, then build and real lifecycle smoke.
-Ledger tests are not platform-skipped. Native ACL/DPAPI-specific cases execute only
-on Windows; Linux cannot certify them. Parent must verify genuinely published
-exact-head Linux/Windows success before readiness. No live broker/OAuth evidence
+`npm test` runs real Linux SQLite ledger/migration/atomicity/tampering/process
+cases with synthetic records, alongside M3 suites. Current Ubuntu Node22 CI
+runs tests/build/smoke and applicable protected-browser/scientific gates; Go
+build/race/vet remains required. Exact-source Linux receipts are necessary for
+current readiness. Windows-only ACL/DPAPI cases stay in source as conditional
+legacy tests; they are not run or certified by Linux, and no automatic Windows
+job or current Windows receipt is required. Historical native failures remain
+unresolved in cause, not converted into passes. No live broker/OAuth acceptance
 is claimed. [Specification](../docs/specs/ZAR-215-Durable-Execution-Ledger.md).
 
-## Bounded native diagnosis
+## Historical native diagnosis (unsupported Windows)
 
 The helper reports `FAIL:OPERATION:<CHECK>[:<KIND>]` only from compiled enums.
 Checks are REQUEST, PATH, OPEN, CREATE, METADATA, TYPE, REPARSE, LINKS, SIZE,
@@ -174,5 +186,6 @@ and reparse rejection; test-only owner mutations are exercised when the token pe
 them. The owner-policy compiler uses and then removes a dedicated protected test
 scratch child; cleanup failure fails the test. Keep Windows serialization, all deadlines and Linux
 coverage. Never repair ACLs/owners, precreate sidecars, cache an untrusted binary or
-infer safety from isolated success. Published exact-head Windows/Linux proof remains
-a parent gate; this correction alone does not establish merge readiness.
+infer safety from isolated success. Published Windows/Linux proof was a parent gate for that historical correction.
+Current Linux readiness follows the Linux-only gates above; no Windows support
+claim or historical failure resolution follows from this policy.

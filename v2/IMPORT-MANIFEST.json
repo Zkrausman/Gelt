@@ -40,7 +40,7 @@
       "upstreamSha256": "badaa00acc49135a2c1654b02f3c2956905dc170d9a9182fc2cc2001dde8a83f",
       "status": "modified",
       "path": "README.md",
-      "sha256": "24f8ce697ded8cabdc2a351d2d02812622fe1a69f81d4229323f71fc71280870",
+      "sha256": "923711080310bb70ca6344238d246498fdbb7e50f1dcb95cc0edb34c9475c144",
       "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-216 offline M5 boundary"
     },
     {
@@ -2816,7 +2816,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "CONNECTION-OPERATIONS.md",
-      "sha256": "bc8b76bf660578feb65d4b53916d785252f488aa75136d6dd7df3495942213d5",
+      "sha256": "f481c92effff373d4a079c6b2abb88301300a392d28796322417813f12f0e6e1",
       "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
     },
     {
@@ -3072,7 +3072,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "LEDGER-OPERATIONS.md",
-      "sha256": "3e5c43c3bc053f0599f67adc91bfe018b45775766dd231a1990978a6df1cfd0b",
+      "sha256": "3986df65e86c67affd1f8743c78c7759b73eda6a380f0c22d0562b72a7a185bf",
       "reason": "Gelt M4 exact sqlite-file classification, sidecar validation and test scratch cleanup operations; ZAR-216 recovery hold"
     },
     {

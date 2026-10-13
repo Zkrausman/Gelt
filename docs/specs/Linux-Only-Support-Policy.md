@@ -37,9 +37,17 @@ access, billing or admin setting was changed or bypassed. Such a constraint,
 if added later, must be reconciled explicitly rather than circumvented.
 
 Changed files: `.github/workflows/v2.yml`, `AGENTS.md`, ticket-delivery SKILL,
-`v2/README.md`, its import-manifest hash, and this specification. Static import
+`v2/README.md`, connection/ledger operational guidance and their import-manifest
+hashes, and this specification. Static import
 verification (82 upstream/462 candidate files; MIT and lock inventory unchanged)
 and whitespace passed. Complete independent and adversarial final reviews must
 precede fresh Go/Linux/scientific/browser gates. Exact candidate and integrated
 outcomes are recorded separately in the PR/receipts; no earlier pass transfers.
 No local listener, ownership, cleanup or held original runtime action was run.
+
+The final source reconciliation also marks Windows operational/provisioning
+procedures as unsupported historical material and replaces obsolete current
+Windows-CI readiness statements in connection/ledger operations. It preserves
+all detailed security constraints as archival evidence. This accepted medium
+documentation finding requires fresh complete reviews of the resulting eight
+files before publication; previous six-file acceptance is stale.

@@ -98,15 +98,16 @@ server/worker entrypoints accept API_PORT/WORKER_PORT (1–65535) and only liter
 
 Loopback is not authentication. Actual owner sessions, exact Origin/Host/CSRF and
 separate private service authentication protect M3. Only the worker owns broker
-secrets. The secure vault supports Linux private files with separately protected
-key; native Windows uses current-user DPAPI plus verified private NTFS ACLs.
+secrets. The supported secure vault uses Linux private files with a separately protected
+key. The retained, unsupported Windows implementation uses current-user DPAPI
+and verified private NTFS ACLs.
 See the [dated hosted disposition](#current-source-and-hosted-disposition-2026-10-06)
 for native automated results and remaining acceptance limits. Explicit official-worker mode does
 not open web/market egress. Use the supervisor's raw-ingress-gated Next entrypoint,
 not direct next start/dev, for the supported boundary. See the linked contracts
 for Secure-cookie loopback browser limitations and the evidence-backed raw-account
 mapping. Connected operation requires an explicitly provisioned **owner-operated
-Linux or supported Windows runtime**; registration acceptance and actual browser login remain unproven.
+Linux runtime**; registration acceptance and actual browser login remain unproven.
 The sanitized retained observation tests decoded `data.accounts`, not live MCP
 wire compatibility; see [fixture provenance](worker/src/fixtures/README.md).
 
@@ -171,8 +172,10 @@ temporary directories. M2 startup must not create analysis or execution DBs.
 
 The candidate status statements in this section and the FRAME/ROOT subsections
 are retained historical evidence from the PR #458 correction sequence. The dated
-hosted disposition above records the later merged/green result; the prerequisites
-and operational restrictions below still apply.
+hosted disposition above records the later merged/green result. All Windows
+procedures and acceptance-gate statements below are archival, unsupported, and
+not current operator instructions or Linux release gates. They describe the
+security requirements that would still need fresh review before support resumed.
 
 Windows 11/Server 2022+, local NTFS, Node22 x64, Windows PowerShell5.1/.NET4.8 and
 standard `C:\Windows` are required. From PowerShell set
@@ -180,8 +183,9 @@ standard `C:\Windows` are required. From PowerShell set
 POSIX assignment above is not PowerShell syntax). Use the explicit private-directory
 preparation in [operations](CONNECTION-OPERATIONS.md); chmod is not Windows security.
 No automatic Linux-key migration. The trusted checkout and packaged fixed helper
-are required at runtime. Windows hosted CI is a required **pending** acceptance
-gate, not a Linux-mock result or proof of live OAuth/browser compatibility.
+are required at runtime. Windows hosted CI was a pending gate for the historical candidate. It is no
+longer automatic or required for current Linux readiness; no current Windows
+support or live OAuth/browser compatibility is claimed.
 
 The Windows corrective candidate requires an explicit nonsecret compilation/fixture
 parent, e.g. `$env:GELT_WINDOWS_PRIVATE_PARENT='C:\'`, whose existing ACLs must pass
