@@ -21,7 +21,7 @@ FILES = tuple(sorted([
 ]))
 PINS = {
     'adapter.py': '0c7744fdfa7cf79ffcb398f6e19dedb2e88655effff2b443ee246a647dd8243a',
-    'server.py': 'c58a92777798e339c151c523042c11f28d1ac5d7b8fae2f34b82f4f650f7cbf1',
+    'server.py': 'c58a92777798e339c151c523042c11f28d1ac5d7b8fae2f34f82f4f650f7cbf1',
     'oracle.py': '4ed669a1b1673e704d2170f6616c7f0a875af8c308cdf88454237d0c375bf38f',
     'verify.py': '14d52ab650b17ab9ca23abb17b0b138e9fda89d424678af4586bb091a4812530',
     'uv.lock': '736b702611b360942ac3def4d42fb4b235e9c262aeaaf5090759cd31f32a7dd4',

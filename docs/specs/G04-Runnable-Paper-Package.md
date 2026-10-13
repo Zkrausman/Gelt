@@ -74,7 +74,11 @@ The positive-diagonal indefinite rejection has an explicit direct/real-MCP test.
 
 Changed files: delivery/parity helpers, focused archive safety tests, adapter's
 additional direct/stdio PSD test, README, scientific workflow and this spec.
-The six original source/lock/evidence pins match. AST syntax and whitespace checks
+Independent review found and corrected a mistyped immutable server digest in
+`delivery.py`; the original server bytes were unchanged. The earlier all-pin
+verification claim was inaccurate. A fresh static comparison of the literal
+manifest pins against all six actual source/lock/evidence files now passes.
+AST syntax and whitespace checks
 passed; no local dependency installation, source execution, listener/ownership/
 cleanup probe or held original runtime action ran. Archive safety tests verify
 deterministic bytes, independent fresh extraction, retained existing content,
