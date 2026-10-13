@@ -275,7 +275,7 @@ it('browser preview → exact single-use confirm → synthetic history, runner-o
 it('explicit application-mock mode displays lifecycle history beside independently read durable mock state', async () => {
   enableApplicationMock();
   let now = Date.parse('2025-02-03T04:05:06.000Z');
-  const demo = createSyntheticBrowserDemo(() => now, { applicationMock: true });
+  const demo = createSyntheticBrowserDemo(() => now, { applicationMock: true }, { previewDiagnosticsForTest: true });
   const port = await demo.start();
   try {
     const page = await http(port, '/', 'GET');
@@ -298,10 +298,14 @@ it('explicit application-mock mode displays lifecycle history beside independent
     const script = page.body.match(/<script>([\s\S]*?)<\/script>/)?.[1];
     expect(script).toBeTruthy();
     const calls: string[] = [], previews: any[] = [];
+    let replacementAttempt = false, replacementIssued = false;
+    let replacementStatus: number | 'no-response' = 'no-response';
     const BrowserDate = class extends Date { static now() { return now; } };
     runInNewContext(script!, { Date: BrowserDate, document: { getElementById: element }, fetch: async (path: string, init: { body: string }) => {
       const op = path.slice('/demo/'.length); calls.push(op);
+      if (replacementAttempt && op === 'preview') replacementIssued = true;
       const response = await post(op, JSON.parse(init.body));
+      if (replacementAttempt && op === 'preview') replacementStatus = response.status;
       if (op === 'preview' && response.status === 200) previews.push(JSON.parse(response.body).value);
       return { ok: response.status === 200, status: response.status, json: async () => JSON.parse(response.body) };
     } });
@@ -324,7 +328,12 @@ it('explicit application-mock mode displays lifecycle history beside independent
     expect(prematureReplacement.status).toBe(409);
 
     now = Date.parse(firstPreview.terms.expiresAt);
+    demo.beginPreviewDiagnosticsForTest();
+    replacementAttempt = true;
     await element('preview').onclick();
+    console.log('SYNTHETIC replacement preview receipt', JSON.stringify({ requestIssued: replacementIssued,
+      httpStatus: replacementStatus, ...demo.previewFailureReceiptForTest() }));
+    replacementAttempt = false;
     expect(previews).toHaveLength(2);
     const replacement = previews[1];
     expect(replacement.previewId).not.toBe(firstPreview.previewId);

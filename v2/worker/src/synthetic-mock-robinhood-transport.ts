@@ -9,6 +9,7 @@ import {
   type SyntheticMockAdmissionInput, type SyntheticMockSubmitInput,
 } from './synthetic-mock-robinhood-contract.js';
 import { SyntheticMockRobinhoodStore } from './synthetic-mock-robinhood-storage.js';
+import { SyntheticPreviewDiagnostics, type PreviewOutcome } from './synthetic-preview-diagnostics.js';
 
 const prefix = '/v1/mock-robinhood/v1';
 const maxBodyBytes = 8192;
@@ -59,9 +60,9 @@ export class SyntheticMockRobinhoodTransport {
   readonly client: SyntheticMockRobinhoodClient;
   get port(): number | undefined { return this.portValue; }
 
-  constructor(private readonly store: SyntheticMockRobinhoodStore, requestTimeoutMsForTest = 5000) {
+  constructor(private readonly store: SyntheticMockRobinhoodStore, requestTimeoutMsForTest = 5000, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics) {
     if (!enabled()) throw new Error('synthetic mock disabled');
-    this.client = new SyntheticMockRobinhoodClient(() => this.portValue, this.bearer, requestTimeoutMsForTest);
+    this.client = new SyntheticMockRobinhoodClient(() => this.portValue, this.bearer, requestTimeoutMsForTest, previewDiagnostics);
     this.server = createServer((req, res) => { void this.handle(req, res); });
     this.server.requestTimeout = 5000;
     this.server.headersTimeout = 5000;
@@ -103,10 +104,14 @@ export class SyntheticMockRobinhoodTransport {
       || rawUrl !== routePath) { response(res, operation ? 403 : 404); return; }
     try {
       if (operation === 'orders:admit') {
+        this.previewDiagnostics?.record('mock-admission', 'started');
         const result = this.store.admit(await readBody(req) as SyntheticMockAdmissionInput);
         response(res, 200, syntheticMockAdmissionSchema.parse(result));
+        this.previewDiagnostics?.record('mock-admission', 'succeeded', 200);
       } else if (operation === 'orders:submit') {
+        this.previewDiagnostics?.record('mock-submit', 'started');
         const result = this.store.submit(await readBody(req) as SyntheticMockSubmitInput);
+        this.previewDiagnostics?.record('mock-submit', 'succeeded');
         if (this.dropNextSubmitResponse) { this.dropNextSubmitResponse = false; req.socket.destroy(); return; }
         response(res, 200, syntheticMockOrderViewSchema.parse(result));
       } else if (operation === 'orders:read') {
@@ -121,7 +126,9 @@ export class SyntheticMockRobinhoodTransport {
         if (canonical(body) !== canonical({ dispatchId })) { response(res, 400); return; }
         response(res, 200, syntheticMockOrderViewSchema.parse(this.store.cancel(dispatchId)));
       }
-    } catch {
+    } catch (error) {
+      if (operation === 'orders:admit') this.previewDiagnostics?.record('mock-admission', 'rejected', res.destroyed ? undefined : 409, error);
+      if (operation === 'orders:submit') this.previewDiagnostics?.record('mock-submit', 'rejected', res.destroyed ? undefined : 409, error);
       if (!res.destroyed) response(res, 409);
     }
   }
@@ -139,7 +146,7 @@ export class SyntheticMockRobinhoodTransport {
 
 export class SyntheticMockRobinhoodClient {
   constructor(private readonly port: () => number | undefined, private readonly bearer: string,
-    private readonly requestTimeoutMs = 5000) {
+    private readonly requestTimeoutMs = 5000, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics) {
     if (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 5000 || requestTimeoutMs > 30000
       || (requestTimeoutMs !== 5000 && !enabled())) throw new Error('synthetic mock disabled');
   }
@@ -147,7 +154,7 @@ export class SyntheticMockRobinhoodClient {
   withRequestTimeoutForTest(timeoutMs: number): SyntheticMockRobinhoodClient {
     if (!enabled() || !Number.isSafeInteger(timeoutMs) || timeoutMs <= 5000 || timeoutMs > 30000)
       throw new Error('synthetic mock disabled');
-    return new SyntheticMockRobinhoodClient(this.port, this.bearer, timeoutMs);
+    return new SyntheticMockRobinhoodClient(this.port, this.bearer, timeoutMs, this.previewDiagnostics);
   }
 
   admit(input: SyntheticMockAdmissionInput) { return this.call('POST', '/admissions', 'orders:admit', input, syntheticMockAdmissionSchema); }
@@ -162,6 +169,8 @@ export class SyntheticMockRobinhoodClient {
 
   private call<T>(method: 'GET' | 'POST', suffix: string, scope: Operation, input: unknown,
     schema: { parse(value: unknown): T }, claimedScope: Operation = scope): Promise<T> {
+    const diagnosticPhase = scope === 'orders:admit' ? 'mock-client' : scope === 'orders:submit' ? 'mock-submit-client' : undefined;
+    if (diagnosticPhase) this.previewDiagnostics?.record(diagnosticPhase, 'started');
     const port = this.port();
     if (!port) return Promise.reject(new Error('synthetic mock unavailable'));
     const path = `${prefix}${suffix}`;
@@ -173,9 +182,11 @@ export class SyntheticMockRobinhoodClient {
       let responseReceived = false;
       let responseEnded = false;
       let deadline: ReturnType<typeof setTimeout> | undefined;
-      const fail = () => {
+      let httpStatus: number | undefined;
+      const fail = (outcome: PreviewOutcome = 'transport-error') => {
         if (settled) return;
         settled = true;
+        if (diagnosticPhase) this.previewDiagnostics?.record(diagnosticPhase, outcome, httpStatus);
         if (deadline) clearTimeout(deadline);
         req?.destroy();
         reject(new Error('synthetic mock unavailable'));
@@ -184,6 +195,7 @@ export class SyntheticMockRobinhoodClient {
         if (settled) return;
         settled = true;
         if (deadline) clearTimeout(deadline);
+        if (diagnosticPhase) this.previewDiagnostics?.record(diagnosticPhase, 'succeeded', httpStatus);
         resolve(value);
       };
       const request = httpRequest({ hostname: '127.0.0.1', port, path, method, headers: {
@@ -191,22 +203,23 @@ export class SyntheticMockRobinhoodClient {
         ...(input === undefined ? {} : { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body, 'utf8') }),
       }, timeout: this.requestTimeoutMs }, res => {
         responseReceived = true;
+        httpStatus = res.statusCode;
         const declared = res.headers['content-length'];
         if (declared !== undefined && (typeof declared !== 'string' || !/^(0|[1-9][0-9]*)$/.test(declared)
           || !Number.isSafeInteger(Number(declared)) || Number(declared) > maxBodyBytes)) {
-          fail(); res.destroy(); return;
+          fail('invalid-response'); res.destroy(); return;
         }
-        if (res.statusCode !== 200) { fail(); res.destroy(); return; }
+        if (res.statusCode !== 200) { fail('non-200'); res.destroy(); return; }
         const chunks: Buffer[] = [];
         let receivedBytes = 0;
         res.on('data', (chunk: Buffer | string) => {
           const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
           receivedBytes += bytes.byteLength;
-          if (receivedBytes > maxBodyBytes) { fail(); res.destroy(); return; }
+          if (receivedBytes > maxBodyBytes) { fail('oversized-response'); res.destroy(); return; }
           chunks.push(bytes);
         });
-        res.once('aborted', fail);
-        res.once('error', fail);
+        res.once('aborted', () => fail('transport-error'));
+        res.once('error', () => fail('transport-error'));
         res.on('end', () => {
           responseEnded = true;
           try {
@@ -215,15 +228,15 @@ export class SyntheticMockRobinhoodClient {
             const envelope = JSON.parse(text) as { version?: unknown; source?: unknown; value?: unknown };
             if (envelope.version !== 1 || envelope.source !== syntheticMockSource) throw new Error();
             settleValue(schema.parse(envelope.value));
-          } catch { fail(); }
+          } catch { fail('invalid-response'); }
         });
-        res.once('close', () => { if (!responseEnded || !res.complete) fail(); });
+        res.once('close', () => { if (!responseEnded || !res.complete) fail('premature-close'); });
       });
       req = request;
-      deadline = setTimeout(fail, this.requestTimeoutMs);
-      request.on('timeout', fail);
-      request.on('error', fail);
-      request.once('close', () => { if (!responseReceived) fail(); });
+      deadline = setTimeout(() => fail('deadline'), this.requestTimeoutMs);
+      request.on('timeout', () => fail('socket-timeout'));
+      request.on('error', () => fail('transport-error'));
+      request.once('close', () => { if (!responseReceived) fail('premature-close'); });
       if (input === undefined) request.end(); else request.end(body);
     });
   }

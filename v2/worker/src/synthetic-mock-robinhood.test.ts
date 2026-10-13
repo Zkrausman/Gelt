@@ -52,10 +52,10 @@ async function post(fixture: Fixture, port: number, operation: string, input: un
     req.end(body);
   });
 }
-function enabled(clock: () => number = Date.now): Fixture {
+function enabled(clock: () => number = Date.now, previewDiagnosticsForTest?: boolean): Fixture {
   process.env.GELT_SYNTHETIC_ORDER_HARNESS = 'offline-test-only';
   process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD = 'offline-test-only';
-  return createSyntheticOrderHarness(clock, { applicationMock: true, mockRequestTimeoutMsForTest: 30000 });
+  return createSyntheticOrderHarness(clock, { applicationMock: true, mockRequestTimeoutMsForTest: 30000, previewDiagnosticsForTest });
 }
 async function cleanup(fixture: Fixture): Promise<void> {
   try { await fixture.close(); } catch { /* uncertain fixture ownership stays until test-root cleanup */ }
@@ -522,7 +522,7 @@ it('retires an expired pending preview so a fresh preview can be admitted', asyn
 });
 
 it('retires pending mock state after a conclusive wrong-terms confirmation rejection', async () => {
-  const fixture = enabled();
+  const fixture = enabled(Date.now, true);
   const port = await listen(fixture);
   try {
     await post(fixture, port, 'resume');
@@ -531,9 +531,15 @@ it('retires pending mock state after a conclusive wrong-terms confirmation rejec
     expect((await post(fixture, port, 'confirm', { confirmationToken: first.confirmationToken, termsHash: wrongTermsHash })).status).toBe(409);
     const second = await post(fixture, port, 'preview', order);
     expect(second.status).toBe(200);
-    const confirmed = await post(fixture, port, 'confirm', { confirmationToken: second.body.value.confirmationToken, termsHash: second.body.value.termsHash });
-    expect(confirmed.status).toBe(200);
-    expect(confirmed.body.value.outcome).toBe('acknowledged');
+    fixture.previewDiagnosticsForTest!.reset();
+    let confirmed: Awaited<ReturnType<typeof post>> | undefined;
+    try { confirmed = await post(fixture, port, 'confirm', { confirmationToken: second.body.value.confirmationToken, termsHash: second.body.value.termsHash }); }
+    finally {
+      console.log('SYNTHETIC post-rejection confirmation receipt', JSON.stringify({ requestIssued: true,
+        httpStatus: confirmed?.status ?? 'no-response', ...fixture.previewDiagnosticsForTest!.receipt() }));
+    }
+    expect(confirmed!.status).toBe(200);
+    expect(confirmed!.body.value.outcome).toBe('acknowledged');
   } finally { await cleanup(fixture); }
 });
 

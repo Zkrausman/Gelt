@@ -3208,7 +3208,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-browser-demo.test.ts",
-      "sha256": "de9ef94af54c7d2070355b9bbe92bb38d370ccc639b8d8314edc6bab692db119",
+      "sha256": "4d4d9a5996f0205031e265bf66684247087e38ccadb9bd436a9d63743792d9c4",
       "reason": "ZAR-219 bridge regressions for fallback wrong-hash consumption, stale mock-preview preservation, and redacted public history bound through persisted test-only lifecycle facts"
     },
     {
@@ -3216,7 +3216,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-browser-demo.ts",
-      "sha256": "9e836fce3b9425f0aca19be9270df9a56eda253ba4edf3394874a6a451c83ecb",
+      "sha256": "932a73a2eb93cb3e18dcd58312958116bfcf69b03835b1b318d0b6cca100f53d",
       "reason": "Mode-specific single-use confirmation consumption; stale application-mock IDs/hashes preserve the current bridge preview"
     },
     {
@@ -3232,7 +3232,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "6ce36174b66611faa73907d13a44e6eb36bf017806ec18b52896e0820b1fd318",
+      "sha256": "8c82e8ccb41d3039e3cbc472b73ef1b8b96e5ba24a135bf69ffcc537c8437c27",
       "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route"
     },
     {
@@ -3576,7 +3576,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-transport.ts",
-      "sha256": "480e92d92d2ad9261469b2b858fa3aec7eba72939e8c0f2d94935810f5976fc2",
+      "sha256": "c54191b54bc1951ee448894af2a6da585050d4ca5bb1743c074881f4bf398316",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3584,7 +3584,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood.test.ts",
-      "sha256": "0b3f04bd90239c49c3e8375794ae18d4fa39d04a8128fa79bb01690c38c4179d",
+      "sha256": "01df854a91f5daa8e501262343dc258417fafcf3cb76b1e6313eee053af040be",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3600,7 +3600,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-adapter.ts",
-      "sha256": "70725ebe34a09124f41d795815832691a047711fcb264d30c3e9d95e2cfe2339",
+      "sha256": "91588e2f3aae198cfbfe8152db0fa029548c8fd6be541b9d31464998ba731445",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3616,7 +3616,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "a54693de1f6a6b83439c48e6d57e181d437c5c51af4acf0bf9685c8de545fd6f",
+      "sha256": "bfd3145cd417b3dc1d949b2b3d307df85e45d2f8f0f5170a27fb14a0e9b3f9a0",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3730,6 +3730,22 @@
       "path": "worker/src/synthetic-reopen-diagnostics.test.ts",
       "sha256": "f8a5c927573438585bdeb850857b6de9c64eaaa538350d3e60e3bae4ebb1db3e",
       "reason": "G03 test-only sanitized native corruption-reopen failure provenance; no acceptance relaxation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-preview-diagnostics.ts",
+      "sha256": "e06b018aed0c2e22e59218d968cdb1b83a88910a67c7dc0702fe453cbe821d24",
+      "reason": "G03 opt-in fixture-only bounded replacement preview phase/outcome evidence; no guard or timeout change"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-preview-diagnostics.test.ts",
+      "sha256": "c4a6ebf709e27348af58c520ab99eb3d91dd6a03332dd9151bc6a450213bf3ed",
+      "reason": "G03 opt-in fixture-only bounded replacement preview phase/outcome evidence; no guard or timeout change"
     }
   ]
 }
