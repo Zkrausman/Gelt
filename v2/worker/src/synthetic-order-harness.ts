@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { LedgerStorage, createLedgerDirectory } from './ledger-storage.js';
 import { storageFixture } from './storage-fixture.js';
 import { reopenPhaseForTest } from './synthetic-reopen-diagnostics.js';
+import { SyntheticPreviewDiagnostics } from './synthetic-preview-diagnostics.js';
 import { canonical } from './ledger-canonical.js';
 import { decimalSchema, eventSchema, intentSchema, ledgerId, orderSchema, projectionSchema, routingSchema, type Projection, type Result, type WriteReceipt } from './ledger-contract.js';
 import { OrderLifecycle, hasUnresolvedLifecycle, validateLifecycleProjections, type OrderAdapter } from './order-lifecycle.js';
@@ -186,12 +187,14 @@ const sessionLifetimeMs = 300000;
 function fixtureEnabled() {
   return process.env.NODE_ENV === 'test' && process.env.GELT_SYNTHETIC_ORDER_HARNESS === 'offline-test-only';
 }
-export function createSyntheticOrderHarness(sessionClock: () => number = Date.now, options: { applicationMock?: boolean; mockRequestTimeoutMsForTest?: number } = {}) {
+export function createSyntheticOrderHarness(sessionClock: () => number = Date.now, options: { applicationMock?: boolean; mockRequestTimeoutMsForTest?: number; previewDiagnosticsForTest?: boolean } = {}) {
   if (!fixtureEnabled() || (options.applicationMock && process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only')) throw new Error('synthetic harness disabled');
   const mockRequestTimeoutMsForTest = options.mockRequestTimeoutMsForTest === undefined ? 5000 : options.mockRequestTimeoutMsForTest;
   // Validate the explicit test budget before creating any private fixture/lock.
   if (!Number.isSafeInteger(mockRequestTimeoutMsForTest) || mockRequestTimeoutMsForTest < 5000 || mockRequestTimeoutMsForTest > 30000
     || (options.mockRequestTimeoutMsForTest !== undefined && !options.applicationMock)) throw new Error('synthetic harness disabled');
+  if (options.previewDiagnosticsForTest !== undefined && (options.previewDiagnosticsForTest !== true || !options.applicationMock)) throw new Error('synthetic harness disabled');
+  const previewDiagnostics = options.previewDiagnosticsForTest ? new SyntheticPreviewDiagnostics() : undefined;
   const root = storageFixture('synthetic-orders-'), dir = join(root, 'data');
   createLedgerDirectory(dir);
   const path = join(dir, 'synthetic-orders.sqlite');
@@ -209,7 +212,7 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     let mockAdapter: SyntheticMockRobinhoodAdapter | undefined;
     try {
       mockStore = options.applicationMock ? new SyntheticMockRobinhoodStore(mockPath, sessionClock) : undefined;
-      mockTransport = mockStore ? new SyntheticMockRobinhoodTransport(mockStore, mockRequestTimeoutMsForTest) : undefined;
+      mockTransport = mockStore ? new SyntheticMockRobinhoodTransport(mockStore, mockRequestTimeoutMsForTest, previewDiagnostics) : undefined;
       mockAdapter = mockTransport ? new SyntheticMockRobinhoodAdapter(mockTransport.client, sessionClock) : undefined;
     } catch (error) {
       try { mockTransport ? void mockTransport.close() : mockStore?.close(); } catch { /* preserve uncertain writer ownership */ }
@@ -244,9 +247,16 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
       await preceding;
       try {
         try {
-          const preview = await lifecycle.preview(rawOrder);
+          previewDiagnostics?.record('lifecycle-preview', 'started');
+          let preview: Awaited<ReturnType<typeof lifecycle.preview>>;
+          try { preview = await lifecycle.preview(rawOrder); }
+          catch (error) { previewDiagnostics?.record('lifecycle-preview', 'rejected', undefined, error); throw error; }
+          previewDiagnostics?.record('lifecycle-preview', 'succeeded');
           if (!mockAdapter) throw new Error('synthetic mock unavailable');
-          await mockAdapter.admitPreview(preview);
+          previewDiagnostics?.record('harness-admission', 'started');
+          try { await mockAdapter.admitPreview(preview); }
+          catch (error) { previewDiagnostics?.record('harness-admission', 'rejected', undefined, error); throw error; }
+          previewDiagnostics?.record('harness-admission', 'succeeded');
           return preview;
         } catch (error) {
           mockAdapter?.discardUnadmittedPreview();
@@ -318,6 +328,7 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
       mockPath: mockAdapter ? mockPath : undefined,
       mockStore,
       mockTransport,
+      previewDiagnosticsForTest: previewDiagnostics,
       start: async () => {
         if (!fixtureEnabled()) throw new Error('synthetic harness disabled');
         try {

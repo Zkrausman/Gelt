@@ -3208,7 +3208,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-browser-demo.test.ts",
-      "sha256": "de9ef94af54c7d2070355b9bbe92bb38d370ccc639b8d8314edc6bab692db119",
+      "sha256": "4d4d9a5996f0205031e265bf66684247087e38ccadb9bd436a9d63743792d9c4",
       "reason": "ZAR-219 bridge regressions for fallback wrong-hash consumption, stale mock-preview preservation, and redacted public history bound through persisted test-only lifecycle facts"
     },
     {
@@ -3216,7 +3216,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-browser-demo.ts",
-      "sha256": "9e836fce3b9425f0aca19be9270df9a56eda253ba4edf3394874a6a451c83ecb",
+      "sha256": "b09301dc2c2b734a68938bc3aaab7260297b50b9910729cd4bf3423f9deff0ba",
       "reason": "Mode-specific single-use confirmation consumption; stale application-mock IDs/hashes preserve the current bridge preview"
     },
     {
@@ -3232,7 +3232,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "6ce36174b66611faa73907d13a44e6eb36bf017806ec18b52896e0820b1fd318",
+      "sha256": "22240fc1216c16b327629b334bbd564924da8a28c39ccbc5fa984191886e4f19",
       "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route"
     },
     {
@@ -3576,7 +3576,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-transport.ts",
-      "sha256": "480e92d92d2ad9261469b2b858fa3aec7eba72939e8c0f2d94935810f5976fc2",
+      "sha256": "2cb546c9be3029c00a34fbbf1183899ac423b0354b5f9aa0840bd3667fb57539",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3730,6 +3730,22 @@
       "path": "worker/src/synthetic-reopen-diagnostics.test.ts",
       "sha256": "f8a5c927573438585bdeb850857b6de9c64eaaa538350d3e60e3bae4ebb1db3e",
       "reason": "G03 test-only sanitized native corruption-reopen failure provenance; no acceptance relaxation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-preview-diagnostics.ts",
+      "sha256": "80b21a66bc049604984b36e812bf4e12e9bf8f64555dd19c3461b7ad14f7b6f2",
+      "reason": "G03 opt-in fixture-only bounded replacement preview phase/outcome evidence; no guard or timeout change"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-preview-diagnostics.test.ts",
+      "sha256": "d7261a2b3b0915054e1685dc298c0f7b7fbe799d34935fff6edbe3dad92142f1",
+      "reason": "G03 opt-in fixture-only bounded replacement preview phase/outcome evidence; no guard or timeout change"
     }
   ]
 }

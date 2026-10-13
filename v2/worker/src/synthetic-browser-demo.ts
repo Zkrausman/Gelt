@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { orderSchema, ledgerId, decimalSchema } from './ledger-contract.js';
 import { createSyntheticOrderHarness } from './synthetic-order-harness.js';
 import { syntheticMockOrderViewSchema } from './synthetic-mock-robinhood-contract.js';
+import type { PreviewOutcome } from './synthetic-preview-diagnostics.js';
 
 const source = 'synthetic-offline-v1' as const;
 const empty = z.object({}).strict();
@@ -36,6 +37,7 @@ const token = () => randomBytes(32).toString('base64url');
 type SyntheticBrowserDemoTestHooks = {
   forwardRequest?: typeof request;
   forwardDeadlineMs?: number;
+  previewDiagnosticsForTest?: boolean;
 };
 
 // This response shape is deliberately not a broker ledger projection.
@@ -56,31 +58,34 @@ export function createSyntheticBrowserDemo(now: () => number = Date.now, options
   if (!Number.isSafeInteger(requestDeadline) || requestDeadline < 1 || requestDeadline > lifetime) throw new Error('synthetic demo disabled');
   const issuedAt = now();
   if (!Number.isSafeInteger(issuedAt) || issuedAt < 0 || issuedAt > Number.MAX_SAFE_INTEGER - lifetime) throw new Error('synthetic demo disabled');
-  const fixture = createSyntheticOrderHarness(now, { applicationMock });
+  const fixture = createSyntheticOrderHarness(now, { applicationMock, previewDiagnosticsForTest: testHooks.previewDiagnosticsForTest });
   let harnessPort = 0;
   const cookie = token(), csrf = token();
   let saved: z.infer<typeof preview> | null = null;
   let closed = false;
   async function forward(op: HarnessOperation, body: unknown): Promise<unknown> {
     const text = JSON.stringify(body);
+    const diagnostics = op === 'preview' ? fixture.previewDiagnosticsForTest : undefined;
+    diagnostics?.record('demo-forward', 'started');
     return new Promise((resolve, reject) => {
       let settled = false;
       let req: ClientRequest | undefined;
       let res: IncomingMessage | undefined;
       let deadline: ReturnType<typeof setTimeout> | undefined;
-      const finish = (error?: unknown, value?: unknown) => {
+      const finish = (error?: unknown, value?: unknown, outcome: PreviewOutcome = 'rejected') => {
         if (settled) return;
         settled = true;
         if (deadline !== undefined) clearTimeout(deadline);
         if (error !== undefined) {
+          diagnostics?.record('demo-forward', outcome, res?.statusCode, error);
           try { if (res && !res.destroyed) res.destroy(); } catch { /* keep the operation failed */ }
           try { if (req && !req.destroyed) req.destroy(); } catch { /* keep the operation failed */ }
           reject(Error('synthetic operation unavailable'));
-        } else resolve(value);
+        } else { diagnostics?.record('demo-forward', 'succeeded', res?.statusCode); resolve(value); }
       };
       // This is an absolute bound from request creation through complete body receipt;
       // socket inactivity timeouts alone can be renewed by a peer that keeps trickling.
-      deadline = setTimeout(() => finish(Error('synthetic request deadline')), requestDeadline);
+      deadline = setTimeout(() => finish(Error('synthetic request deadline'), undefined, 'deadline'), requestDeadline);
       try {
         req = requestToHarness({ hostname: '127.0.0.1', port: harnessPort, method: 'POST', path: `/v1/synthetic-orders/${op}`, headers: {
           Host: `127.0.0.1:${harnessPort}`, Authorization: `Bearer ${fixture.auth.bearer}`, 'X-Gelt-Session': fixture.auth.session,
@@ -94,12 +99,12 @@ export function createSyntheticBrowserDemo(now: () => number = Date.now, options
             if (settled) return;
             const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
             outputBytes += bytes.length;
-            if (outputBytes > maxOutput) { finish(Error('synthetic response exceeded size limit')); return; }
+            if (outputBytes > maxOutput) { finish(Error('synthetic response exceeded size limit'), undefined, 'oversized-response'); return; }
             chunks.push(bytes);
           });
-          incoming.once('aborted', () => finish(Error('synthetic response aborted')));
-          incoming.once('error', () => finish(Error('synthetic response failed')));
-          incoming.once('close', () => { if (!responseEnded) finish(Error('synthetic response closed prematurely')); });
+          incoming.once('aborted', () => finish(Error('synthetic response aborted'), undefined, 'transport-error'));
+          incoming.once('error', () => finish(Error('synthetic response failed'), undefined, 'transport-error'));
+          incoming.once('close', () => { if (!responseEnded) finish(Error('synthetic response closed prematurely'), undefined, 'premature-close'); });
           incoming.once('end', () => {
             responseEnded = true;
             try {
@@ -107,12 +112,12 @@ export function createSyntheticBrowserDemo(now: () => number = Date.now, options
               const envelope = z.object({ version: z.literal(1), source: z.literal(source), value: z.unknown() }).strict().parse(parsed);
               if (incoming.statusCode !== 200) throw Error();
               finish(undefined, envelope.value);
-            } catch { finish(Error('synthetic response unavailable')); }
+            } catch { finish(Error('synthetic response unavailable'), undefined, incoming.statusCode === 200 ? 'invalid-response' : 'non-200'); }
           });
         });
-        req.once('error', () => finish(Error('synthetic request failed')));
+        req.once('error', () => finish(Error('synthetic request failed'), undefined, 'transport-error'));
         req.end(text);
-      } catch { finish(Error('synthetic request unavailable')); }
+      } catch { finish(Error('synthetic request unavailable'), undefined, 'transport-error'); }
     });
   }
   const server: Server = createServer(async (req, res) => {
@@ -171,11 +176,16 @@ export function createSyntheticBrowserDemo(now: () => number = Date.now, options
       const output = JSON.stringify({ version: 1, source, value });
       if (Buffer.byteLength(output) > maxOutput) throw Error();
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(output);
-    } catch { fail(409); }
+    } catch (error) {
+      if (req.url === '/demo/preview') fixture.previewDiagnosticsForTest?.record('demo-validation', 'rejected', 409, error);
+      fail(409);
+    }
   });
   server.requestTimeout = 5000; server.headersTimeout = 5000; server.maxHeadersCount = 32;
   return {
     path: fixture.path,
+    beginPreviewDiagnosticsForTest: () => fixture.previewDiagnosticsForTest?.reset(),
+    previewFailureReceiptForTest: () => fixture.previewDiagnosticsForTest?.receipt(),
     start: async () => {
       if (closed || process.env.NODE_ENV !== 'test' || process.env.GELT_SYNTHETIC_ORDER_HARNESS !== 'offline-test-only') throw Error('synthetic demo disabled');
       harnessPort = await fixture.start();
