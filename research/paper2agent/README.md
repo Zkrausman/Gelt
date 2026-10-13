@@ -82,3 +82,49 @@ period has been verified. The ETF-looking ticker labels do not change that.
 
 See NOTICE.md for licenses and precise paper/archive/runtime distinctions.
 The adapter tests do not replace the repository's full Go/V2 prepublication gates.
+
+## G04 selected runnable source package
+
+The delivery boundary is a deterministic source ZIP: adapter/server/oracle/
+verification and delivery/parity code, tests, project and frozen lock, existing
+fixed reference artifacts, README/NOTICE and all four retained license texts.
+Dependencies are separate distributions resolved through uv.lock, not vendored.
+The immutable adapter/server/oracle/verify/lock/evidence hashes are unchanged.
+No new paper, strategy, model campaign or trading permission is selected.
+
+`delivery.py build /absolute/fresh/output --source-commit <checked-out-40-hex-sha>`
+creates paper-package.zip and its byte SHA-256/content/source receipt. ZIP members
+have normalized metadata. `delivery.py extract <zip> <expected-sha256>
+/absolute/fresh/location` verifies the digest, exact bounded inventory, file
+mode/type, manifest and original pins before creating the exclusive destination;
+no traversal, symlink, overwrite, arbitrary extra file or automatic repair is
+allowed. This is integrity validation of reviewed trusted source, not signature
+authentication or a general untrusted-code sandbox.
+
+The supported recipient lane is CPython 3.12 on Linux, with official pinned uv:
+
+```sh
+cd /absolute/fresh/location
+uv sync --frozen --no-install-project
+.venv/bin/python -m pytest -q
+.venv/bin/python verify.py /absolute/fresh/reference-output
+.venv/bin/python parity.py /absolute/path/paper-package.zip <expected-sha256> /absolute/fresh/parity-receipt.json
+```
+
+The package CI gate performs that new-location workflow independently of the
+checkout's environment and records extraction/source/lock/license/runtime binds.
+The real stdio case inventory contains nine successful fixture/scale/degenerate/
+permutation calls compared to direct pinned PyPortfolioOpt and the independent
+oracle, plus eighteen finite-JSON contract error calls, including the
+positive-diagonal indefinite matrix [[1,2],[2,1]]. Nonunique optimum weights are
+not equated; objectives and certificates are compared. IEEE NaN/Infinity are
+not standard JSON numbers: their direct Python rejection is recorded separately,
+with no on-wire MCP parity claim or reliance on SDK null/extension encoding.
+The actual discovered tool schema is recorded; a raw dictionary schema alone
+is not the numerical validation contract. No error text or private credentials
+is copied into the case receipt. Actual candidate/integrated results remain
+separate from these authored expectations until the exact gate passes.
+
+This establishes a selected numerical tool package when validated. Gelt owner
+consumption, supported isolated Codex decisions, market inputs, simulated agent
+executions and shadow observations remain separate downstream acceptance.

@@ -139,6 +139,25 @@ jobs:
           uv sync --frozen --no-install-project
           .venv/bin/python -m pytest -q
           .venv/bin/python verify.py "${RUNNER_TEMP}/gelt-reference-replay"
+      - name: Build hash-bound G04 source package and verify fresh extraction
+        working-directory: research/paper2agent
+        run: |
+          .venv/bin/python delivery.py build "${RUNNER_TEMP}/gelt-paper-package" --source-commit "${GITHUB_SHA}"
+          package_sha="$(.venv/bin/python -c 'import json,os;from pathlib import Path;print(json.loads((Path(os.environ["RUNNER_TEMP"])/"gelt-paper-package/package-receipt.json").read_text())["archive_sha256"])')"
+          .venv/bin/python delivery.py extract "${RUNNER_TEMP}/gelt-paper-package/paper-package.zip" "$package_sha" "${RUNNER_TEMP}/gelt-paper-extracted" > "${RUNNER_TEMP}/gelt-paper-package/extraction-receipt.json"
+          cd "${RUNNER_TEMP}/gelt-paper-extracted"
+          uv sync --frozen --no-install-project
+          .venv/bin/python -m pytest -q
+          .venv/bin/python verify.py "${RUNNER_TEMP}/gelt-paper-package/fresh-reference"
+          .venv/bin/python parity.py "${RUNNER_TEMP}/gelt-paper-package/paper-package.zip" "$package_sha" "${RUNNER_TEMP}/gelt-paper-package/parity-receipt.json"
+      - name: Retain G04 package, extraction and real MCP case receipts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-package-${{ github.sha }}
+          path: ${{ runner.temp }}/gelt-paper-package
+          if-no-files-found: error
+          retention-days: 7
       - name: Retain private reproducibility output
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
