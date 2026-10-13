@@ -112,3 +112,13 @@ def test_direct_underflow_rejected():
     for covariance in [[[100,0],[0,-5e-324]], [[100,5e-324],[5e-324,1]]]:
         with pytest.raises(ValueError):
             minimum_variance({'tickers':['A','B'],'covariance':covariance})
+
+def test_positive_diagonal_indefinite_rejected_direct_and_actual_mcp():
+    request = {'tickers': ['A', 'B'], 'covariance': [[1, 2], [2, 1]]}
+    with pytest.raises(ValueError):
+        minimum_variance(request)
+    async def run():
+        async with Client(transport()) as client:
+            result = await client.call_tool('min_variance', {'request': request}, raise_on_error=False)
+            assert result.is_error
+    asyncio.run(run())
