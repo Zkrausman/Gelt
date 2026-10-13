@@ -3232,7 +3232,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "696122002ef8f2484fcef79714f0a38ff02584861359af775abeaa768955ebed",
+      "sha256": "6ce36174b66611faa73907d13a44e6eb36bf017806ec18b52896e0820b1fd318",
       "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route"
     },
     {
@@ -3584,7 +3584,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood.test.ts",
-      "sha256": "2a9ccc57d5fc4528c0aa0e37a3131418578624aa5f9dcf479e91b29ea3fcce4e",
+      "sha256": "0b3f04bd90239c49c3e8375794ae18d4fa39d04a8128fa79bb01690c38c4179d",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3616,7 +3616,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "49cb31a592afa267e2eeb058fc7e7ae71999a712402cd7b71bee4afd22aa7108",
+      "sha256": "a54693de1f6a6b83439c48e6d57e181d437c5c51af4acf0bf9685c8de545fd6f",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3714,6 +3714,22 @@
       "path": "worker/src/simulation-view.test.ts",
       "sha256": "5a91d166f9dca0ecf6e1146d1a45147727e1e68f798a01c5d080887d10a7e365",
       "reason": "G03 protected recorded simulation terminal and focused acceptance; no agent or live effects"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-reopen-diagnostics.ts",
+      "sha256": "5ed4667fae0e5a8ac1d5fbeabdbc46389678be517482784f59f5110c38400e97",
+      "reason": "G03 test-only sanitized native corruption-reopen failure provenance; no acceptance relaxation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-reopen-diagnostics.test.ts",
+      "sha256": "f8a5c927573438585bdeb850857b6de9c64eaaa538350d3e60e3bae4ebb1db3e",
+      "reason": "G03 test-only sanitized native corruption-reopen failure provenance; no acceptance relaxation"
     }
   ]
 }

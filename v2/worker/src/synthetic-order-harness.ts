@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { LedgerStorage, createLedgerDirectory } from './ledger-storage.js';
 import { storageFixture } from './storage-fixture.js';
+import { reopenPhaseForTest } from './synthetic-reopen-diagnostics.js';
 import { canonical } from './ledger-canonical.js';
 import { decimalSchema, eventSchema, intentSchema, ledgerId, orderSchema, projectionSchema, routingSchema, type Projection, type Result, type WriteReceipt } from './ledger-contract.js';
 import { OrderLifecycle, hasUnresolvedLifecycle, validateLifecycleProjections, type OrderAdapter } from './order-lifecycle.js';
@@ -202,7 +203,7 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     if (!Number.isSafeInteger(issuedAt) || issuedAt < 0 || issuedAt > Number.MAX_SAFE_INTEGER - sessionLifetimeMs) throw new Error('synthetic harness disabled');
     // Validate the test clock before acquiring the persistent private SQLite lock.
     const mockPath = join(dir, 'synthetic-mock-robinhood.sqlite');
-    const facts = new SyntheticFacts(path);
+    const facts = reopenPhaseForTest('facts-ledger-construction', () => new SyntheticFacts(path));
     let mockStore: SyntheticMockRobinhoodStore | undefined;
     let mockTransport: SyntheticMockRobinhoodTransport | undefined;
     let mockAdapter: SyntheticMockRobinhoodAdapter | undefined;

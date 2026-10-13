@@ -13,6 +13,7 @@ import {
 } from './synthetic-mock-robinhood-contract.js';
 import { syntheticMockDigest } from './synthetic-mock-robinhood-contract.js';
 import { SyntheticMockRobinhoodClient } from './synthetic-mock-robinhood-transport.js';
+import { reopenFailureReceiptForTest } from './synthetic-reopen-diagnostics.js';
 
 const order = {
   route: 'RHS', instrumentId: syntheticMockInstrument, side: 'buy',
@@ -95,7 +96,15 @@ async function rejectCorruptedAcceptedTimestamp(offsetFromExpiryMs: number): Pro
         .run(canonical({ type: 'accepted', at: expiresAt + offsetFromExpiryMs }), dispatchId);
     } finally { db.close(); }
 
-    expect(() => { reopened = fixture.reopen(); }).toThrow('synthetic mock storage unavailable');
+    expect(() => {
+      try { reopened = fixture.reopen(); }
+      catch (error) {
+        console.log('SYNTHETIC expiry-corruption reopen failure receipt', JSON.stringify({
+          ...reopenFailureReceiptForTest(error), mockMarkerExists: existsSync(`${fixture.mockPath}.lock`),
+        }));
+        throw error;
+      }
+    }).toThrow('synthetic mock storage unavailable');
     expect(existsSync(`${fixture.mockPath}.lock`)).toBe(true);
   } finally {
     if (reopened) await cleanup(reopened);
