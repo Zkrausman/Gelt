@@ -8,12 +8,13 @@ import {
   syntheticMockOrderViewSchema, syntheticMockPrincipal, syntheticMockSource,
   type SyntheticMockAdmissionInput, type SyntheticMockSubmitInput,
 } from './synthetic-mock-robinhood-contract.js';
+import { simulationSource, simulationPortfolioReadSchema, type SimulationRun } from './synthetic-simulation-economics.js';
 import { SyntheticMockRobinhoodStore } from './synthetic-mock-robinhood-storage.js';
 import { SyntheticPreviewDiagnostics, type PreviewOutcome } from './synthetic-preview-diagnostics.js';
 
 const prefix = '/v1/mock-robinhood/v1';
 const maxBodyBytes = 8192;
-type Operation = 'orders:admit' | 'orders:submit' | 'orders:read' | 'orders:cancel';
+type Operation = 'portfolio:read' | 'orders:admit' | 'orders:submit' | 'orders:read' | 'orders:cancel';
 function enabled(): boolean {
   return process.env.NODE_ENV === 'test' && process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD === 'offline-test-only';
 }
@@ -22,8 +23,8 @@ function equalSecret(actual: unknown, expected: string): boolean {
   const a = Buffer.from(actual), b = Buffer.from(expected);
   return a.length === b.length && timingSafeEqual(a, b);
 }
-function response(res: ServerResponse, status: number, value?: unknown): void {
-  const body = value === undefined ? '' : JSON.stringify({ version: 1, source: syntheticMockSource, value });
+function response(res: ServerResponse, status: number, value?: unknown, version = 1, source: string = syntheticMockSource): void {
+  const body = value === undefined ? '' : JSON.stringify({ version, source, value });
   res.writeHead(status, { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
   res.end(body);
 }
@@ -32,6 +33,7 @@ function claims(operation: Operation) {
     account: syntheticMockAccount, scope: operation };
 }
 function operationFor(method: string, path: string): Operation | undefined {
+  if (method === 'GET' && path === `${prefix}/portfolio`) return 'portfolio:read';
   if (method === 'POST' && path === `${prefix}/admissions`) return 'orders:admit';
   if (method === 'POST' && path === `${prefix}/orders`) return 'orders:submit';
   if (method === 'GET' && new RegExp(`^${prefix}/orders/[0-9a-f-]{36}$`).test(path)) return 'orders:read';
@@ -62,7 +64,7 @@ export class SyntheticMockRobinhoodTransport {
 
   constructor(private readonly store: SyntheticMockRobinhoodStore, requestTimeoutMsForTest = 5000, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics) {
     if (!enabled()) throw new Error('synthetic mock disabled');
-    this.client = new SyntheticMockRobinhoodClient(() => this.portValue, this.bearer, requestTimeoutMsForTest, previewDiagnostics);
+    this.client = new SyntheticMockRobinhoodClient(() => this.portValue, this.bearer, requestTimeoutMsForTest, previewDiagnostics, { simulationRun: store.runConfig });
     this.server = createServer((req, res) => { void this.handle(req, res); });
     this.server.requestTimeout = 5000;
     this.server.headersTimeout = 5000;
@@ -89,6 +91,7 @@ export class SyntheticMockRobinhoodTransport {
   }
 
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const respond = (status: number, value?: unknown) => response(res, status, value, this.store.version, this.store.source);
     const address = this.server.address();
     const expectedHost = address && typeof address !== 'string' ? `127.0.0.1:${address.port}` : '';
     const rawUrl = req.url ?? '';
@@ -101,35 +104,38 @@ export class SyntheticMockRobinhoodTransport {
       || req.headers.origin !== undefined || !equalSecret(req.headers.authorization, `Bearer ${this.bearer}`)
       || !expectedClaim || req.headers['x-gelt-mock-claims'] !== expectedClaim
       || Object.keys(req.headers).some(key => key === 'forwarded' || key.startsWith('x-forwarded-'))
-      || rawUrl !== routePath) { response(res, operation ? 403 : 404); return; }
+      || rawUrl !== routePath) { respond(operation ? 403 : 404); return; }
     try {
-      if (operation === 'orders:admit') {
+      if (operation === 'portfolio:read') {
+        if (req.headers['content-length'] !== undefined || req.headers['transfer-encoding'] !== undefined) { respond(400); return; }
+        respond(200, simulationPortfolioReadSchema.parse(this.store.portfolio()));
+      } else if (operation === 'orders:admit') {
         this.previewDiagnostics?.record('mock-admission', 'started');
         const result = this.store.admit(await readBody(req) as SyntheticMockAdmissionInput);
-        response(res, 200, syntheticMockAdmissionSchema.parse(result));
+        respond(200, syntheticMockAdmissionSchema.parse(result));
         this.previewDiagnostics?.record('mock-admission', 'succeeded', 200);
       } else if (operation === 'orders:submit') {
         this.previewDiagnostics?.record('mock-submit', 'started');
         const result = this.store.submit(await readBody(req) as SyntheticMockSubmitInput);
         this.previewDiagnostics?.record('mock-submit', 'succeeded');
         if (this.dropNextSubmitResponse) { this.dropNextSubmitResponse = false; req.socket.destroy(); return; }
-        response(res, 200, syntheticMockOrderViewSchema.parse(result));
+        respond(200, syntheticMockOrderViewSchema.parse(result));
       } else if (operation === 'orders:read') {
-        if (req.headers['content-length'] !== undefined || req.headers['transfer-encoding'] !== undefined) { response(res, 400); return; }
+        if (req.headers['content-length'] !== undefined || req.headers['transfer-encoding'] !== undefined) { respond(400); return; }
         const dispatchId = routePath.slice(`${prefix}/orders/`.length);
         const order = this.store.read(dispatchId);
-        if (!order) { response(res, 404); return; }
-        response(res, 200, syntheticMockOrderViewSchema.parse(order));
+        if (!order) { respond(404); return; }
+        respond(200, syntheticMockOrderViewSchema.parse(order));
       } else if (operation === 'orders:cancel') {
         const dispatchId = routePath.slice(`${prefix}/orders/`.length, -'/cancel'.length);
         const body = await readBody(req) as { dispatchId?: unknown };
-        if (canonical(body) !== canonical({ dispatchId })) { response(res, 400); return; }
-        response(res, 200, syntheticMockOrderViewSchema.parse(this.store.cancel(dispatchId)));
+        if (canonical(body) !== canonical({ dispatchId })) { respond(400); return; }
+        respond(200, syntheticMockOrderViewSchema.parse(this.store.cancel(dispatchId)));
       }
     } catch (error) {
       if (operation === 'orders:admit') this.previewDiagnostics?.record('mock-admission', 'rejected', res.destroyed ? undefined : 409, error);
       if (operation === 'orders:submit') this.previewDiagnostics?.record('mock-submit', 'rejected', res.destroyed ? undefined : 409, error);
-      if (!res.destroyed) response(res, 409);
+      if (!res.destroyed) respond(409);
     }
   }
 
@@ -146,7 +152,8 @@ export class SyntheticMockRobinhoodTransport {
 
 export class SyntheticMockRobinhoodClient {
   constructor(private readonly port: () => number | undefined, private readonly bearer: string,
-    private readonly requestTimeoutMs = 5000, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics) {
+    private readonly requestTimeoutMs = 5000, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics,
+    private readonly options: { simulationRun?: SimulationRun } = {}) {
     if (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 5000 || requestTimeoutMs > 30000
       || (requestTimeoutMs !== 5000 && !enabled())) throw new Error('synthetic mock disabled');
   }
@@ -154,9 +161,10 @@ export class SyntheticMockRobinhoodClient {
   withRequestTimeoutForTest(timeoutMs: number): SyntheticMockRobinhoodClient {
     if (!enabled() || !Number.isSafeInteger(timeoutMs) || timeoutMs <= 5000 || timeoutMs > 30000)
       throw new Error('synthetic mock disabled');
-    return new SyntheticMockRobinhoodClient(this.port, this.bearer, timeoutMs, this.previewDiagnostics);
+    return new SyntheticMockRobinhoodClient(this.port, this.bearer, timeoutMs, this.previewDiagnostics, this.options);
   }
 
+  portfolio() { return this.call('GET', '/portfolio', 'portfolio:read', undefined, simulationPortfolioReadSchema); }
   admit(input: SyntheticMockAdmissionInput) { return this.call('POST', '/admissions', 'orders:admit', input, syntheticMockAdmissionSchema); }
   submit(input: SyntheticMockSubmitInput) { return this.call('POST', '/orders', 'orders:submit', input, syntheticMockOrderViewSchema); }
   read(dispatchId: string) { return this.call('GET', `/orders/${dispatchId}`, 'orders:read', undefined, syntheticMockOrderViewSchema); }
@@ -226,7 +234,7 @@ export class SyntheticMockRobinhoodClient {
             if (!res.complete || res.aborted || receivedBytes > maxBodyBytes) throw new Error();
             const text = new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks, receivedBytes));
             const envelope = JSON.parse(text) as { version?: unknown; source?: unknown; value?: unknown };
-            if (envelope.version !== 1 || envelope.source !== syntheticMockSource) throw new Error();
+            if (envelope.version !== (this.options.simulationRun ? 2 : 1) || envelope.source !== (this.options.simulationRun ? simulationSource : syntheticMockSource)) throw new Error();
             settleValue(schema.parse(envelope.value));
           } catch { fail('invalid-response'); }
         });

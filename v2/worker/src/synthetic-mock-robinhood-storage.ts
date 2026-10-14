@@ -5,16 +5,16 @@ import { canonical, decode } from './ledger-canonical.js';
 import { LedgerStorage } from './ledger-storage.js';
 import { reopenPhaseForTest, rememberReopenFailureForTest } from './synthetic-reopen-diagnostics.js';
 import { SyntheticPreviewDiagnostics } from './synthetic-preview-diagnostics.js';
+import { simulationRunSchema, simulationSnapshotSchema, simulationSource, simulationDigest, executionPrice, checkObservation, feeCap, units, rounded, notional, snapshot, decimal, type SimulationRun, type SimulationSnapshot } from './synthetic-simulation-economics.js';
 import {
   compareSyntheticDecimals, syntheticMockAdmissionInputSchema, syntheticMockDigest,
   syntheticMockExecutionSchema, syntheticMockOrderViewSchema, syntheticMockPreviewSchema,
-  syntheticMockSource, syntheticMockSubmitInputSchema, withinSyntheticFeeCap,
+  syntheticMockSource, syntheticMockSubmitInputSchema, withinSyntheticFeeCap, syntheticMockRunExecutionSchema,
   type SyntheticMockAdmissionInput, type SyntheticMockExecution, type SyntheticMockOrderView,
   type SyntheticMockPreview, type SyntheticMockSubmitInput,
 } from './synthetic-mock-robinhood-contract.js';
 
 const applicationId = 1196184660;
-const schemaVersion = 1;
 const rowLimit = 1000;
 const byteLimit = 8 * 1024 * 1024;
 const bodyLimit = 8192;
@@ -77,9 +77,10 @@ function decodeMockProjection(body: string): SyntheticMockOrderView {
 function digestSecret(value: string): string { return sha(value); }
 function validPreview(preview: SyntheticMockPreview, now: number): boolean {
   const expires = Date.parse(preview.expiresAt);
-  return validPreviewPolicy(preview) && Number.isSafeInteger(now) && now >= 0 && expires > now && expires <= now + 300000;
+  return (preview.version === 2 || validPreviewPolicy(preview)) && Number.isSafeInteger(now) && now >= 0 && expires > now && expires <= now + 300000;
 }
 function validPreviewPolicy(preview: SyntheticMockPreview): boolean {
+  if (preview.version !== 1) return false;
   return preview.source === syntheticMockSource
     && preview.quote.price.value === '0.90' && preview.quote.price.precision === 3 && preview.quote.price.scale === 2
     && preview.fee.amount.value === '0.01' && preview.fee.amount.precision === 3 && preview.fee.amount.scale === 2
@@ -102,7 +103,22 @@ export class SyntheticMockRobinhoodStore {
   private closed = false;
   private persistenceFaultPending = false;
   private admissionFaultPending = false;
-  constructor(path: string, private readonly now: () => number = Date.now, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics) {
+  private readonly config?: SimulationRun;
+  private readonly statements: string[];
+  get source() { return this.config ? simulationSource : syntheticMockSource; }
+  get version() { return this.config ? 2 : 1; }
+  get runConfig() { return this.config ? simulationRunSchema.parse(this.config) : undefined; }
+  constructor(path: string, private readonly now: () => number = Date.now, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics,
+    options: { simulationRun?: unknown } = {}) {
+    if (options.simulationRun !== undefined) {
+      if (process.env.NODE_ENV !== 'test' || process.env.GELT_SYNTHETIC_ORDER_HARNESS !== 'offline-test-only'
+        || process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only') throw new Error('synthetic mock disabled');
+      this.config = simulationRunSchema.parse(options.simulationRun);
+    }
+    this.statements = this.config ? [
+      `CREATE TABLE mock_meta (id INTEGER PRIMARY KEY CHECK(id=1), source TEXT NOT NULL CHECK(source='${simulationSource}'), config_json TEXT NOT NULL, config_sha TEXT NOT NULL, portfolio_json TEXT NOT NULL) STRICT`,
+      ...schema.slice(1),
+    ] : schema;
     this.storage = reopenPhaseForTest('mock-ledger-construction', () => new LedgerStorage(path));
     this.db = this.storage.db;
     try {
@@ -111,9 +127,12 @@ export class SyntheticMockRobinhoodStore {
         if (!existing.length) {
           if (this.db.pragma('application_id', { simple: true }) !== 0 || this.db.pragma('user_version', { simple: true }) !== 0) throw new Error();
           this.db.pragma(`application_id = ${applicationId}`);
-          this.db.pragma(`user_version = ${schemaVersion}`);
-          for (const statement of schema) this.db.exec(statement);
-          this.db.prepare('INSERT INTO mock_meta(id, source) VALUES(1, ?)').run(syntheticMockSource);
+          this.db.pragma(`user_version = ${this.version}`);
+          for (const statement of this.statements) this.db.exec(statement);
+          if (this.config) this.db.prepare('INSERT INTO mock_meta(id,source,config_json,config_sha,portfolio_json) VALUES(1,?,?,?,?)')
+            .run(this.source, canonical(this.config), simulationDigest(this.config), canonical(snapshot(this.config,
+              units(this.config.genesis.cash, 8), units(this.config.genesis.quantity, 18), [])));
+          else this.db.prepare('INSERT INTO mock_meta(id, source) VALUES(1, ?)').run(syntheticMockSource);
         }
         this.validateSchema();
         reopenPhaseForTest('mock-replay', () => this.replayAll());
@@ -133,14 +152,16 @@ export class SyntheticMockRobinhoodStore {
       if (row.type !== 'table' || typeof row.sql !== 'string' || Buffer.byteLength(row.sql, 'utf8') > 2048) throw new Error('synthetic mock storage unavailable');
       return row.sql;
     });
-    const expectedSchema = [...schema].sort((a, b) => a.match(/TABLE (\w+)/)![1].localeCompare(b.match(/TABLE (\w+)/)![1]));
-    if (this.db.pragma('application_id', { simple: true }) !== applicationId || this.db.pragma('user_version', { simple: true }) !== schemaVersion
+    const expectedSchema = [...this.statements].sort((a, b) => a.match(/TABLE (\w+)/)![1].localeCompare(b.match(/TABLE (\w+)/)![1]));
+    if (this.db.pragma('application_id', { simple: true }) !== applicationId || this.db.pragma('user_version', { simple: true }) !== this.version
       || canonical(names) !== canonical(expected) || canonical(actualSchema) !== canonical(expectedSchema)) throw new Error('synthetic mock storage unavailable');
     const meta = this.db.prepare('SELECT id, source FROM mock_meta').all() as { id: unknown; source: unknown }[];
-    if (meta.length !== 1 || checkedInteger(meta[0].id) !== 1 || checkedText(meta[0].source, 128) !== syntheticMockSource) throw new Error('synthetic mock storage unavailable');
+    if (meta.length !== 1 || checkedInteger(meta[0].id) !== 1 || checkedText(meta[0].source, 128) !== this.source) throw new Error('synthetic mock storage unavailable');
+    this.validateConfig();
   }
 
   private atomic<T>(work: () => T): T {
+    if (this.config && (process.env.NODE_ENV !== 'test' || process.env.GELT_SYNTHETIC_ORDER_HARNESS !== 'offline-test-only' || process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only')) throw new Error('synthetic mock disabled');
     if (this.closed || this.storage.poisoned) throw new Error('synthetic mock storage unavailable');
     try {
       reopenPhaseForTest('mock-initial-validation', () => this.validateStorage());
@@ -152,7 +173,7 @@ export class SyntheticMockRobinhoodStore {
         try { value = work(); }
         catch (error) { workThrew = true; workError = error; throw error; }
         finally {
-          try { this.validateStorage(); }
+          try { this.validateStorage(); if (this.config) this.replayAll(); }
           catch (error) { rememberReopenFailureForTest(error, 'mock-final-validation', { threw: workThrew, error: workError }); throw error; }
         }
         return value;
@@ -182,7 +203,8 @@ export class SyntheticMockRobinhoodStore {
       + coalesce(length(CAST(projection_json AS BLOB)),0) + coalesce(length(order_id),0) + coalesce(length(dispatch_id),0)),0) AS bytes
       FROM mock_admissions LEFT JOIN mock_orders USING(preview_id)`).get() as { bytes: unknown };
     const events = this.db.prepare(`SELECT coalesce(sum(length(CAST(event_json AS BLOB)) + length(dispatch_id) + 8),0) AS bytes FROM mock_events`).get() as { bytes: unknown };
-    const total = checkedInteger(stored.bytes) + checkedInteger(events.bytes);
+    const meta = this.config ? (this.db.prepare('SELECT length(CAST(config_json AS BLOB))+length(config_sha)+length(CAST(portfolio_json AS BLOB)) AS n FROM mock_meta').get() as { n: unknown }).n : 0;
+    const total = checkedInteger(stored.bytes) + checkedInteger(events.bytes) + checkedInteger(meta);
     if (!Number.isSafeInteger(total)) throw new Error('synthetic mock storage unavailable');
     return total;
   }
@@ -190,7 +212,7 @@ export class SyntheticMockRobinhoodStore {
   admit(raw: SyntheticMockAdmissionInput): { previewId: string; handle: string; expiresAt: string } {
     const input = syntheticMockAdmissionInputSchema.parse(raw);
     const now = this.time();
-    if (!validPreview(input.preview, now) || input.termsHash.length !== 64) fail();
+    if (!this.previewEligible(input.preview, now) || input.termsHash.length !== 64) fail();
     const previewJson = canonical(input.preview);
     if (Buffer.byteLength(previewJson, 'utf8') > bodyLimit) fail();
     const handle = randomBytes(32).toString('base64url');
@@ -198,7 +220,8 @@ export class SyntheticMockRobinhoodStore {
     return this.atomic(() => {
       this.replayAll();
       const currentTime = this.time();
-      if (!validPreview(input.preview, currentTime)) fail();
+      if (!this.previewEligible(input.preview, currentTime)) fail();
+      if (this.config) this.checkAdmission(input.preview);
       const active = this.db.prepare(`SELECT count(*) AS count,
         coalesce(sum(length(CAST(preview_json AS BLOB)) + length(preview_id) + length(preview_sha) + length(terms_hash)
           + length(confirmation_sha) + length(handle_sha) + coalesce(length(consumed_dispatch),0)
@@ -208,7 +231,8 @@ export class SyntheticMockRobinhoodStore {
         WHERE expires_ms>? OR consumed_dispatch IS NOT NULL`).get(currentTime) as { count: unknown; bytes: unknown };
       const admissionBytes = Buffer.byteLength(previewJson, 'utf8') + Buffer.byteLength(input.preview.previewId, 'utf8') + (64 * 4) + 8;
       if (checkedInteger(active.count) >= rowLimit || checkedInteger(active.bytes) + admissionBytes > byteLimit) fail();
-      this.db.prepare('DELETE FROM mock_admissions WHERE expires_ms<=? AND consumed_dispatch IS NULL').run(currentTime);
+      if (!this.config) this.db.prepare('DELETE FROM mock_admissions WHERE expires_ms<=? AND consumed_dispatch IS NULL').run(currentTime);
+      if (this.config && checkedInteger((this.db.prepare('SELECT count(*) AS n FROM mock_admissions').get() as { n: unknown }).n) >= rowLimit) fail();
       if (this.db.prepare('SELECT 1 FROM mock_admissions WHERE preview_id=?').get(input.preview.previewId)) fail();
       if (this.admissionFaultPending) { this.admissionFaultPending = false; throw new Error('synthetic mock admission persistence fault'); }
       this.db.prepare(`INSERT INTO mock_admissions(preview_id,preview_json,preview_sha,terms_hash,confirmation_sha,handle_sha,expires_ms,consumed_dispatch)
@@ -220,7 +244,7 @@ export class SyntheticMockRobinhoodStore {
 
   submit(raw: SyntheticMockSubmitInput): SyntheticMockOrderView {
     const input = syntheticMockSubmitInputSchema.parse(raw);
-    if (!validPreviewPolicy(input.preview)) fail();
+    if (!this.previewPolicy(input.preview)) fail();
     const previewJson = canonical(input.preview);
     const payload = storedSubmit(input);
     const payloadJson = canonical(payload);
@@ -238,7 +262,7 @@ export class SyntheticMockRobinhoodStore {
           || checkedText(existing.payload_sha, 64) !== payloadSha || view.previewId !== input.preview.previewId) fail();
         return view;
       }
-      if (!validPreview(input.preview, currentTime)) {
+      if (!this.previewEligible(input.preview, currentTime)) {
         this.previewDiagnostics?.record('mock-submit-preview-validity', Date.parse(input.preview.expiresAt) <= currentTime ? 'expired' : 'rejected');
         fail();
       }
@@ -252,6 +276,7 @@ export class SyntheticMockRobinhoodStore {
         || checkedText(admission.handle_sha, 64) !== payload.admissionDigest || checkedInteger(admission.expires_ms) <= currentTime) {
         this.previewDiagnostics?.record('mock-submit-admission', 'rejected'); fail();
       }
+      if (this.config) { if (this.unsettled(input.preview.previewId)) fail(); this.checkReservation(input.preview); }
       if (admission.consumed_dispatch !== null || this.orderCount() >= rowLimit || this.eventCount() + 1 > rowLimit) fail();
       const orderId = randomUUID();
       const acceptedEvent = { type: 'accepted' as const, at: currentTime };
@@ -265,6 +290,7 @@ export class SyntheticMockRobinhoodStore {
         .run(input.dispatchId, orderId, input.preview.previewId, payloadJson, payloadSha, initialProjection);
       this.db.prepare('UPDATE mock_admissions SET consumed_dispatch=? WHERE preview_id=? AND consumed_dispatch IS NULL').run(input.dispatchId, input.preview.previewId);
       this.insertEvent(input.dispatchId, 1, acceptedEvent);
+      this.persistPortfolio();
       const created = this.orderRow(input.dispatchId);
       if (!created) throw new Error('synthetic mock storage unavailable');
       return this.readOrder(created);
@@ -304,11 +330,26 @@ export class SyntheticMockRobinhoodStore {
       if (!row) fail();
       const events = this.readEvents(dispatchId);
       const view = this.readOrder(row);
+      if (this.config) {
+        const duplicate = events.find(event => event.type === 'execution-observed' && event.execution.executionId === execution.executionId);
+        if (duplicate?.type === 'execution-observed') {
+          if (canonical(duplicate.execution) !== canonical(execution)) fail();
+          return view;
+        }
+        try {
+          const checked = syntheticMockRunExecutionSchema.parse(execution);
+          const all = this.db.prepare('SELECT event_json FROM mock_events').all() as { event_json: string }[];
+          if (all.some(item => { const event = decode(eventSchema, item.event_json); return event.type === 'execution-observed'
+            && 'version' in event.execution && (event.execution.executionId === checked.executionId || event.execution.receiptId === checked.receiptId); })) fail();
+          this.checkExecution(this.readStoredPayload(row).preview, execution, events, this.time());
+        }
+        catch { fail(); }
+      }
       if (view.status === 'filled' || view.status === 'canceled') fail();
       if (events.some(event => event.type === 'execution-observed' && event.execution.executionId === execution.executionId)) fail();
       const payload = this.readStoredPayload(row);
       if (events.filter(event => event.type === 'execution-observed').length >= 16
-        || compareSyntheticDecimals(execution.price, payload.preview.order.limitPrice) > 0) fail();
+        || (payload.preview.order.side === 'buy' ? compareSyntheticDecimals(execution.price, payload.preview.order.limitPrice) > 0 : compareSyntheticDecimals(execution.price, payload.preview.order.limitPrice) < 0)) fail();
       const prior = events.flatMap(event => event.type === 'execution-observed' ? [event.execution] : []);
       const next = [...prior, execution];
       const common = Math.max(payload.preview.order.quantity.scale, ...next.map(item => item.quantity.scale));
@@ -316,6 +357,19 @@ export class SyntheticMockRobinhoodStore {
       const cap = BigInt(payload.preview.order.quantity.value.replace('.', '')) * 10n ** BigInt(common - payload.preview.order.quantity.scale);
       if (quantity > cap) fail();
       const event = { type: 'execution-observed' as const, at: this.time(), execution };
+      if (this.config && event.at < events[events.length - 1].at) fail();
+      if (this.config) {
+        const projected = this.project(dispatchId, checkedText(row.order_id, 64), payload.preview, [...events, event]);
+        if (Buffer.byteLength(canonical(projected), 'utf8') > bodyLimit) fail();
+        try {
+          const portfolio = this.projectPortfolio(), previousNotional = prior.reduce((sum, fill) => sum + notional(fill.quantity, fill.price), 0n);
+          const currentNotional = previousNotional + notional(execution.quantity, execution.price), buy = payload.preview.order.side === 'buy';
+          const delta = rounded(currentNotional, 36, 8, buy) - rounded(previousNotional, 36, 8, buy);
+          const fee = units(syntheticMockRunExecutionSchema.parse(execution).fee, 8);
+          decimal(units(portfolio.cash, 8) + (buy ? -delta - fee : delta - fee), 8);
+          decimal(units(portfolio.quantity, 18) + (buy ? units(execution.quantity, 18) : -units(execution.quantity, 18)), 18);
+        } catch { fail(); }
+      }
       this.insertEvent(dispatchId, events.length + 1, event);
       return this.persistProjection(row, this.project(dispatchId, checkedText(row.order_id, 64), payload.preview, [...events, event]));
     });
@@ -349,6 +403,7 @@ export class SyntheticMockRobinhoodStore {
   private orderCount(): number { return checkedInteger((this.db.prepare('SELECT count(*) AS n FROM mock_orders').get() as { n: unknown }).n); }
   private eventCount(): number { return checkedInteger((this.db.prepare('SELECT count(*) AS n FROM mock_events').get() as { n: unknown }).n); }
   private replayAll(): void {
+    this.validateSchema();
     const admissionCount = checkedInteger((this.db.prepare('SELECT count(*) AS n FROM mock_admissions').get() as { n: unknown }).n);
     const ordersCount = this.orderCount();
     const eventsCount = this.eventCount();
@@ -375,6 +430,7 @@ export class SyntheticMockRobinhoodStore {
     }
     const admissionIds = this.db.prepare('SELECT preview_id FROM mock_admissions ORDER BY preview_id').all() as { preview_id: unknown }[];
     const consumed = new Map<string, string | null>();
+    const decisions = new Set<string>();
     for (const idRow of admissionIds) {
       const previewId = checkedText(idRow.preview_id, 64);
       const row = this.admissionRow(previewId);
@@ -390,7 +446,11 @@ export class SyntheticMockRobinhoodStore {
       if (![previewSha, termsHash, confirmationSha, handleSha].every(value => /^[a-f0-9]{64}$/.test(value))
         || (dispatchId !== null && !z.string().uuid().safeParse(dispatchId).success)
         || preview.previewId !== previewId || canonical(preview) !== body || syntheticMockDigest(preview) !== previewSha
-        || !validPreviewPolicy(preview) || Date.parse(preview.expiresAt) !== expires) throw new Error('synthetic mock storage unavailable');
+        || !this.previewPolicy(preview) || Date.parse(preview.expiresAt) !== expires) throw new Error('synthetic mock storage unavailable');
+      if (this.config) {
+        if (preview.version !== 2 || decisions.has(preview.decisionId)) throw new Error('synthetic mock storage unavailable');
+        decisions.add(preview.decisionId);
+      }
       consumed.set(previewId, dispatchId);
     }
 
@@ -415,6 +475,12 @@ export class SyntheticMockRobinhoodStore {
     if (replayedEvents !== eventsCount || usedAdmissions.size !== ordersCount || consumedDispatchIds.length !== ordersCount
       || consumedDispatchIds.some(dispatchId => !orderDispatchIds.has(dispatchId))) {
       throw new Error('synthetic mock storage unavailable');
+    }
+    if (this.config) {
+      const actual = this.projectPortfolio();
+      const row = this.db.prepare('SELECT portfolio_json FROM mock_meta WHERE id=1').get() as { portfolio_json: unknown };
+      const body = checkedText(row.portfolio_json, bodyLimit);
+      if (canonical(simulationSnapshotSchema.parse(JSON.parse(body))) !== body || canonical(actual) !== body) throw new Error('synthetic mock storage unavailable');
     }
   }
 
@@ -485,7 +551,7 @@ export class SyntheticMockRobinhoodStore {
     const ackIndex = events.findIndex(event => event.type === 'cancel-acknowledged');
     const settledIndex = events.findIndex(event => event.type === 'cancellation-settled');
     const accepted = events[0];
-    if (!accepted || accepted.type !== 'accepted' || !validPreview(preview, accepted.at)
+    if (!accepted || accepted.type !== 'accepted' || !this.previewEligible(preview, accepted.at)
       || events.filter(event => event.type === 'accepted').length !== 1
       || events.filter(event => event.type === 'cancel-requested').length > 1
       || events.filter(event => event.type === 'cancel-acknowledged').length !== events.filter(event => event.type === 'cancel-requested').length
@@ -498,7 +564,14 @@ export class SyntheticMockRobinhoodStore {
     }
     if (events.some((event, index) => index > 0 && event.at < events[index - 1].at)) throw new Error('synthetic mock storage unavailable');
     const executions = events.flatMap(event => event.type === 'execution-observed' ? [event.execution] : []);
-    if (executions.length > 16 || executions.some(item => compareSyntheticDecimals(item.price, preview.order.limitPrice) > 0)) throw new Error('synthetic mock storage unavailable');
+    if (executions.length > 16 || executions.some(item => preview.order.side === 'buy' ? compareSyntheticDecimals(item.price, preview.order.limitPrice) > 0 : compareSyntheticDecimals(item.price, preview.order.limitPrice) < 0)) throw new Error('synthetic mock storage unavailable');
+    if (this.config) {
+      const prior: MockEvent[] = [];
+      for (const event of events) {
+        if (event.type === 'execution-observed') this.checkExecution(preview, event.execution, prior, event.at);
+        prior.push(event);
+      }
+    } else if (executions.some(item => 'version' in item)) throw new Error('synthetic mock storage unavailable');
     const executionIds = new Set<string>();
     for (const execution of executions) {
       if (executionIds.has(execution.executionId)) throw new Error('synthetic mock storage unavailable');
@@ -522,7 +595,7 @@ export class SyntheticMockRobinhoodStore {
       : quantity === cap ? 'filled'
       : quantity > 0n ? 'partially-filled'
       : events.some(event => event.type === 'cancel-requested') ? 'pending-cancel' : 'accepted';
-    return syntheticMockOrderViewSchema.parse({ source: syntheticMockSource, dispatchId, mockOrderId: `mock-${orderId}`,
+    return syntheticMockOrderViewSchema.parse({ source: this.source, dispatchId, mockOrderId: `mock-${orderId}`,
       previewId: preview.previewId, status, executions, cancelAcknowledged: events.some(event => event.type === 'cancel-acknowledged') });
   }
   private readOrder(row: OrderRow): SyntheticMockOrderView {
@@ -549,7 +622,9 @@ export class SyntheticMockRobinhoodStore {
     this.db.prepare('UPDATE mock_orders SET projection_json=? WHERE dispatch_id=?').run(nextProjection, checkedText(row.dispatch_id, 64));
     const updated = this.orderRow(checkedText(row.dispatch_id, 64));
     if (!updated) throw new Error('synthetic mock storage unavailable');
-    return this.readOrder(updated);
+    const value = this.readOrder(updated);
+    this.persistPortfolio();
+    return value;
   }
   private insertEvent(dispatchId: string, sequence: number, event: MockEvent): void {
     const text = canonical(event);
@@ -557,6 +632,126 @@ export class SyntheticMockRobinhoodStore {
       || this.bytes() + Buffer.byteLength(text, 'utf8') + Buffer.byteLength(dispatchId, 'utf8') + 8 > byteLimit) fail();
     if (this.persistenceFaultPending) { this.persistenceFaultPending = false; throw new Error('synthetic mock persistence fault'); }
     this.db.prepare('INSERT INTO mock_events(dispatch_id,sequence,event_json) VALUES(?,?,?)').run(dispatchId, sequence, text);
+  }
+
+  private validateConfig(): void {
+    if (!this.config) return;
+    const row = this.db.prepare('SELECT config_json,config_sha FROM mock_meta WHERE id=1').get() as { config_json: unknown; config_sha: unknown };
+    const body = checkedText(row.config_json, bodyLimit);
+    if (body !== canonical(this.config) || checkedText(row.config_sha, 64) !== simulationDigest(this.config)
+      || canonical(simulationRunSchema.parse(JSON.parse(body))) !== body) throw new Error('synthetic mock storage unavailable');
+  }
+  private previewPolicy(preview: SyntheticMockPreview): boolean {
+    if (!this.config) return validPreviewPolicy(preview);
+    try {
+      if (preview.version !== 2 || preview.source !== this.source || preview.runId !== this.config.runId
+        || preview.configSha256 !== simulationDigest(this.config) || preview.sourceCommit !== this.config.sourceCommit
+        || preview.classification !== this.config.classification
+        || canonical(preview.fee.amount) !== canonical(this.config.costs.commissionPerOrder)
+        || canonical(preview.quote.price) !== canonical(executionPrice(this.config, preview.order.side, preview.quote.referencePrice))
+        || !feeCap(preview.order.quantity, preview.order.limitPrice, preview.fee.amount)
+        || !feeCap(preview.order.quantity, preview.quote.price, preview.fee.amount)
+        || (preview.order.side === 'buy' ? compareSyntheticDecimals(preview.quote.price, preview.order.limitPrice) > 0
+          : compareSyntheticDecimals(preview.quote.price, preview.order.limitPrice) < 0)) return false;
+      return true;
+    } catch { return false; }
+  }
+  private previewEligible(preview: SyntheticMockPreview, now: number): boolean {
+    if (!this.previewPolicy(preview) || !validPreview(preview, now)) return false;
+    if (!this.config || preview.version !== 2) return true;
+    try {
+      checkObservation(this.config, preview.decisionAt, preview.quote, now);
+      return Date.parse(preview.expiresAt) <= Math.min(now + 60000, Date.parse(this.config.validThrough));
+    } catch { return false; }
+  }
+  private checkReservation(preview: SyntheticMockPreview): void {
+    if (!this.config || preview.version !== 2) fail();
+    const value = this.projectPortfolio();
+    if (preview.portfolioSnapshotSha256 !== simulationDigest(value)) fail();
+    const cash = units(value.cash, 8), qty = units(value.quantity, 18), fee = units(this.config.costs.commissionPerOrder, 8);
+    if (preview.order.side === 'buy') {
+      if (cash < rounded(notional(preview.order.quantity, preview.order.limitPrice), 36, 8, true) + fee) fail();
+    } else if (qty < units(preview.order.quantity, 18) || cash < fee) fail();
+  }
+  private unsettled(exceptPreviewId?: string): boolean {
+    const rows = this.db.prepare('SELECT dispatch_id FROM mock_orders ORDER BY dispatch_id').all() as { dispatch_id: string }[];
+    if (rows.some(row => { const value = this.readOrder(this.orderRow(row.dispatch_id)!); return value.status !== 'filled' && value.status !== 'canceled'; })) return true;
+    const admissions = this.db.prepare('SELECT preview_id FROM mock_admissions WHERE consumed_dispatch IS NULL AND expires_ms>?').all(this.time()) as { preview_id: string }[];
+    return admissions.some(row => row.preview_id !== exceptPreviewId);
+  }
+  private checkAdmission(preview: SyntheticMockPreview): void {
+    if (!this.config || preview.version !== 2 || this.unsettled()) fail();
+    const rows = this.db.prepare('SELECT preview_json FROM mock_admissions').all() as { preview_json: string }[];
+    if (rows.some(row => { const value = decode(syntheticMockPreviewSchema, row.preview_json); return value.version === 2 && value.decisionId === preview.decisionId; })) fail();
+    this.checkReservation(preview);
+  }
+  private checkExecution(preview: SyntheticMockPreview, raw: SyntheticMockExecution, prior: MockEvent[], at: number): void {
+    if (!this.config || preview.version !== 2) throw new Error('simulation execution unavailable');
+    const execution = syntheticMockRunExecutionSchema.parse(raw);
+    if (execution.runId !== preview.runId || execution.configSha256 !== preview.configSha256 || execution.decisionId !== preview.decisionId) throw new Error('simulation execution unavailable');
+    checkObservation(this.config, preview.decisionAt, execution.observation, at);
+    const accepted = prior.find(event => event.type === 'accepted');
+    if (!accepted || Date.parse(execution.observation.observedAt) < accepted.at) throw new Error('simulation execution unavailable');
+    const fills = prior.flatMap(event => event.type === 'execution-observed' ? [event.execution] : []);
+    const quantity = fills.reduce((sum, fill) => sum + units(fill.quantity, 18), units(execution.quantity, 18));
+    const fee = fills.length ? { value: '0', precision: 1, scale: 0 } : this.config.costs.commissionPerOrder;
+    const total = fills.reduce((sum, fill) => sum + notional(fill.quantity, fill.price), notional(execution.quantity, execution.price));
+    if (quantity > units(preview.order.quantity, 18) || canonical(execution.fee) !== canonical(fee)
+      || canonical(execution.price) !== canonical(executionPrice(this.config, preview.order.side, execution.observation.referencePrice))
+      || (preview.order.side === 'buy' ? compareSyntheticDecimals(execution.price, preview.order.limitPrice) > 0
+        : compareSyntheticDecimals(execution.price, preview.order.limitPrice) < 0)
+      || rounded(total, 36, 8, true) + units(this.config.costs.commissionPerOrder, 8) > 1000000000n) throw new Error('simulation execution unavailable');
+  }
+  private projectPortfolio(): SimulationSnapshot {
+    if (!this.config) throw new Error('simulation unavailable');
+    this.validateConfig();
+    let cash = units(this.config.genesis.cash, 8), quantity = units(this.config.genesis.quantity, 18), lastTime = -1;
+    const history: unknown[] = [], receipts = new Set<string>(), executions = new Set<string>(), totals = new Map<string, bigint>(), filled = new Map<string, bigint>(), openOrders = new Set<string>();
+    const rows = this.db.prepare('SELECT rowid AS ordinal,dispatch_id,sequence,event_json FROM mock_events ORDER BY rowid').all() as { ordinal: unknown; dispatch_id: unknown; sequence: unknown; event_json: unknown }[];
+    for (const row of rows) {
+      const dispatchId = checkedText(row.dispatch_id, 64), sequence = checkedInteger(row.sequence), ordinal = checkedInteger(row.ordinal);
+      const event = decode(eventSchema, checkedText(row.event_json, 2048));
+      if (event.at < lastTime) throw new Error('simulation replay unavailable');
+      lastTime = event.at;
+      if (event.type === 'accepted') {
+        if (openOrders.size) throw new Error('simulation replay unavailable');
+        openOrders.add(dispatchId);
+        const row = this.orderRow(dispatchId);
+        if (!row) throw new Error('simulation replay unavailable');
+        const p = this.readStoredPayload(row).preview;
+        if (p.version !== 2 || p.portfolioSnapshotSha256 !== simulationDigest(snapshot(this.config, cash, quantity, history))) throw new Error('simulation replay unavailable');
+        const fee = units(this.config.costs.commissionPerOrder, 8);
+        if (p.order.side === 'buy' ? cash < rounded(notional(p.order.quantity, p.order.limitPrice), 36, 8, true) + fee
+          : cash < fee || quantity < units(p.order.quantity, 18)) throw new Error('simulation replay unavailable');
+      }
+      history.push({ ordinal, dispatchId, sequence, event });
+      if (event.type === 'cancellation-settled') openOrders.delete(dispatchId);
+      if (event.type !== 'execution-observed') continue;
+      const execution = syntheticMockRunExecutionSchema.parse(event.execution), stored = this.orderRow(dispatchId);
+      if (!stored || receipts.has(execution.receiptId) || executions.has(execution.executionId)) throw new Error('simulation replay unavailable');
+      receipts.add(execution.receiptId); executions.add(execution.executionId);
+      const preview = this.readStoredPayload(stored).preview;
+      if (preview.version !== 2) throw new Error('simulation replay unavailable');
+      const before = totals.get(dispatchId) ?? 0n, after = before + notional(execution.quantity, execution.price);
+      const delta = rounded(after, 36, 8, preview.order.side === 'buy') - rounded(before, 36, 8, preview.order.side === 'buy');
+      totals.set(dispatchId, after);
+      const observedQuantity = (filled.get(dispatchId) ?? 0n) + units(execution.quantity, 18);
+      filled.set(dispatchId, observedQuantity);
+      if (observedQuantity === units(preview.order.quantity, 18)) openOrders.delete(dispatchId);
+      if (preview.order.side === 'buy') { cash -= delta + units(execution.fee, 8); quantity += units(execution.quantity, 18); }
+      else { cash += delta - units(execution.fee, 8); quantity -= units(execution.quantity, 18); }
+      if (cash < 0n || quantity < 0n) throw new Error('simulation replay unavailable');
+    }
+    return snapshot(this.config, cash, quantity, history);
+  }
+  private persistPortfolio(): void {
+    if (this.config) this.db.prepare('UPDATE mock_meta SET portfolio_json=? WHERE id=1').run(canonical(this.projectPortfolio()));
+  }
+  portfolio(): { snapshot: SimulationSnapshot; state: 'settled' | 'unsettled' } {
+    return this.atomic(() => {
+      this.replayAll();
+      return { snapshot: this.projectPortfolio(), state: this.unsettled() ? 'unsettled' : 'settled' };
+    });
   }
 
   close(): void { if (this.closed) return; this.closed = true; this.storage.close(); }

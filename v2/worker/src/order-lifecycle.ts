@@ -12,10 +12,11 @@ const isoMillis = z.string().datetime({ precision: 3 }).refine(s => {
   try { return new Date(s).toISOString() === s; } catch { return false; }
 });
 const orderStatus = z.enum(['accepted', 'open', 'partially-filled', 'pending-cancel', 'rejected', 'filled', 'canceled', 'unknown', 'not-found']);
-const termsSchema = z.object({
+const termsObjectSchema = z.object({
   version: z.literal(1), previewId: ledgerId, ownerId: ledgerId, accountId: ledgerId,
   routing: routingSchema, order: orderSchema, fee: decimalSchema, feeCurrency: z.literal('USD'), expiresAt: isoMillis,
-}).strict().refine(t => t.order.side === 'buy' && (t.order.route !== 'RHC' || t.routing.RHC !== undefined));
+}).strict();
+const termsSchema = termsObjectSchema.refine(t => t.order.side === 'buy' && (t.order.route !== 'RHC' || t.routing.RHC !== undefined));
 const previewResponseSchema = z.object({ previewId: ledgerId, order: orderSchema, fee: decimalSchema, feeCurrency: z.literal('USD'), expiresAt: isoMillis }).strict();
 const dispatchResponseSchema = z.discriminatedUnion('outcome', [
   z.object({ outcome: z.literal('accepted'), brokerOrderId: safeId }).strict(),
@@ -34,6 +35,7 @@ const reconciliationResponseSchema = z.object({
 const cancelResponseSchema = z.object({ acknowledged: z.boolean() }).strict();
 export const orderPreviewSchema = z.object({ terms: termsSchema, confirmationToken: z.string().length(43), termsHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
 export const confirmationInputSchema = z.object({ confirmationToken: z.string().length(43), termsHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
+const simulationPreviewSchema = z.object({ terms: termsObjectSchema, confirmationToken: z.string().length(43), termsHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
 export type OrderTerms = z.infer<typeof termsSchema>;
 export type OrderPreview = z.infer<typeof orderPreviewSchema>;
 export type BrokerObservation = z.infer<typeof reconciliationResponseSchema>;
@@ -174,11 +176,21 @@ const lifecycleControls = new WeakMap<LifecycleFacts, LifecycleControl>();
 export class OrderLifecycle {
   private readonly control: LifecycleControl;
   private readonly previews = new Map<string, { terms: OrderTerms; termsHash: string; generation: number }>();
-  constructor(private readonly ledger: LifecycleFacts, private readonly ownerId: string, private readonly selected: () => SelectedOrderAccount | null, private readonly adapter: OrderAdapter, private readonly now = Date.now, private readonly uuid = randomUUID, private readonly token = () => randomBytes(32).toString('base64url')) {
+  constructor(private readonly ledger: LifecycleFacts, private readonly ownerId: string, private readonly selected: () => SelectedOrderAccount | null, private readonly adapter: OrderAdapter, private readonly now = Date.now, private readonly uuid = randomUUID, private readonly token = () => randomBytes(32).toString('base64url'), private readonly options: { configuredSimulation?: true } = {}) {
     ledgerId.parse(ownerId);
+    if (options.configuredSimulation) this.simulationScope();
     const shared = lifecycleControls.get(ledger);
     this.control = shared ?? { halted: true, generation: 0, tail: Promise.resolve() };
     if (!shared) lifecycleControls.set(ledger, this.control);
+  }
+  private simulationScope(order?: z.infer<typeof orderSchema>): void {
+    const account = this.selected();
+    if (process.env.NODE_ENV !== 'test' || process.env.GELT_SYNTHETIC_ORDER_HARNESS !== 'offline-test-only'
+      || process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only'
+      || this.ownerId !== '00000000-0000-4000-8000-000000000001'
+      || account?.accountId !== '00000000-0000-4000-8000-000000000002'
+      || canonical(account.routing) !== canonical({ provider: 'robinhood-official-mcp', ACCOUNT: 'synthetic-account', RHS: 'synthetic-rhs', RHC: 'synthetic-rhc' })
+      || (order && (order.route !== 'RHS' || order.instrumentId !== 'SYNTH-RH-USD' || order.currency !== 'USD'))) throw new Error('order lifecycle unavailable');
   }
   private exclusive<T>(body: () => Promise<T>): Promise<T> {
     const previous = this.control.tail;
@@ -226,14 +238,15 @@ export class OrderLifecycle {
         const account = this.scope();
         if (this.states(account).some(({ state }) => state.open)) throw new Error('order lifecycle unavailable');
         const order = orderSchema.parse(input);
-        if (order.side !== 'buy' || (order.route === 'RHC' && account.routing.RHC === undefined)) throw new Error('order lifecycle unavailable');
+        if (this.options.configuredSimulation) this.simulationScope(order);
+        if ((!this.options.configuredSimulation && order.side !== 'buy') || (order.route === 'RHC' && account.routing.RHC === undefined)) throw new Error('order lifecycle unavailable');
         const requestedOrder = canonical(order);
         const response = previewResponseSchema.parse(await this.adapter.preview({ account: copy(account), order: copy(order) }));
         if (canonical(response.order) !== requestedOrder) throw new Error('order lifecycle unavailable');
         const now = this.now(), expiry = Date.parse(response.expiresAt);
         if (!Number.isSafeInteger(now) || expiry <= now || expiry > now + 300000) throw new Error('order lifecycle unavailable');
         if (!sameAccount(account, this.scope()) || this.control.halted) throw new Error('order lifecycle unavailable');
-        const terms = termsSchema.parse({ version: 1, ownerId: this.ownerId, ...account, order, previewId: response.previewId, fee: response.fee, feeCurrency: response.feeCurrency, expiresAt: response.expiresAt });
+        const terms = (this.options.configuredSimulation ? termsObjectSchema : termsSchema).parse({ version: 1, ownerId: this.ownerId, ...account, order, previewId: response.previewId, fee: response.fee, feeCurrency: response.feeCurrency, expiresAt: response.expiresAt });
         if (!withinFeeInclusiveCap(order.requestedQuantity, order.requestedLimitPrice, response.fee)) throw new Error('order lifecycle unavailable');
         for (const [key, value] of this.previews) if (Date.parse(value.terms.expiresAt) <= now) this.previews.delete(key);
         if (this.previews.size >= 100) throw new Error('order lifecycle unavailable');
@@ -241,7 +254,7 @@ export class OrderLifecycle {
         const confirmationToken = this.token();
         if (typeof confirmationToken !== 'string' || confirmationToken.length !== 43 || this.previews.has(confirmationToken)) throw new Error('order lifecycle unavailable');
         this.previews.set(confirmationToken, { terms, termsHash, generation: this.control.generation });
-        return orderPreviewSchema.parse({ terms, confirmationToken, termsHash });
+        return (this.options.configuredSimulation ? simulationPreviewSchema : orderPreviewSchema).parse({ terms, confirmationToken, termsHash });
       } catch { throw new Error('order lifecycle unavailable'); }
     });
   }
@@ -255,6 +268,7 @@ export class OrderLifecycle {
       let dispatchStarted = false;
       try {
         const account = this.scope();
+        if (this.options.configuredSimulation) this.simulationScope(saved.terms.order);
         if (saved.terms.ownerId !== this.ownerId || saved.terms.accountId !== account.accountId || !sameAccount({ accountId: saved.terms.accountId, routing: saved.terms.routing }, account)) throw new Error('order lifecycle unavailable');
         const now = this.now();
         if (Date.parse(saved.terms.expiresAt) <= now || Date.parse(saved.terms.expiresAt) > now + 300000) throw new Error('order lifecycle unavailable');

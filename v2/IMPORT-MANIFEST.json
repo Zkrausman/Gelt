@@ -3184,7 +3184,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/order-lifecycle.ts",
-      "sha256": "b2e3e73e1cb90d479e332ef8b00c54b8979a1300a156a72008e48b3d5364dfc0",
+      "sha256": "f5b74cea49961c1cfbbc2157fa099578b06fb2de5f2dfcfcf6fe7b24c6935a56",
       "reason": "ZAR-216 internal offline one-use confirmation and fail-closed lifecycle"
     },
     {
@@ -3232,7 +3232,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "8c82e8ccb41d3039e3cbc472b73ef1b8b96e5ba24a135bf69ffcc537c8437c27",
+      "sha256": "dc1dd8d8173d7a2298db0ab240c5da619e1cd84d6b5e4f39d1b7b8f3828bc9cc",
       "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route"
     },
     {
@@ -3576,7 +3576,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-transport.ts",
-      "sha256": "c54191b54bc1951ee448894af2a6da585050d4ca5bb1743c074881f4bf398316",
+      "sha256": "22bf2c3a858b9afce1aee5a380ddd9fbdc8fe22937701e25337e51dea146213e",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3592,7 +3592,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-contract.ts",
-      "sha256": "c0f3046e51475ce9faa5f9716a1854d67fc0d2625d0d66ad22630eb48bc97c6e",
+      "sha256": "7b377f805432590e91e1fb9eeff52fa98a8133cddd355d83cfe4759570d6ad4a",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3600,7 +3600,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-adapter.ts",
-      "sha256": "91588e2f3aae198cfbfe8152db0fa029548c8fd6be541b9d31464998ba731445",
+      "sha256": "f22e8d5adbe7a420e96a54e8d132b51e7fa4f51f5e36b2d9f841535bedc63ec9",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3616,7 +3616,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "bfd3145cd417b3dc1d949b2b3d307df85e45d2f8f0f5170a27fb14a0e9b3f9a0",
+      "sha256": "d963367a9c0fb15a6b006fe3856c9b8e8379c96e1ac8265f82c89cb0066204a2",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3770,6 +3770,22 @@
       "path": "worker/src/shadow-rule.test.ts",
       "sha256": "e92be14f2e49168eaa8f69bd5d06bf59c724fb48768aaa0fd1efb4884dc67858",
       "reason": "G05 approved shadow-first pure rule/input-bound receipt adaptation; no model or execution authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/synthetic-simulation-economics.ts",
+      "status": "added",
+      "sha256": "8b1e2e3a4b1939ca993279b086ec09b316b46fe6c5f8c9780a0d67214368de35",
+      "reason": "Owner-approved G06 configured simulator capability; exact declared economics or constructed offline tests, no production execution."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/synthetic-simulation.test.ts",
+      "status": "added",
+      "sha256": "d6540a5ca542866c765dea8e2f9e293fe01fe4c732dd59ca8f463c0bd1b66fe3",
+      "reason": "Owner-approved G06 configured simulator capability; exact declared economics or constructed offline tests, no production execution."
     }
   ]
 }

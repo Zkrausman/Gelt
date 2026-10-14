@@ -13,7 +13,8 @@ import { canonical } from './ledger-canonical.js';
 import { decimalSchema, eventSchema, intentSchema, ledgerId, orderSchema, projectionSchema, routingSchema, type Projection, type Result, type WriteReceipt } from './ledger-contract.js';
 import { OrderLifecycle, hasUnresolvedLifecycle, validateLifecycleProjections, type OrderAdapter } from './order-lifecycle.js';
 import { equalSecret } from './security.js';
-import { SyntheticMockRobinhoodAdapter } from './synthetic-mock-robinhood-adapter.js';
+import { simulationRunSchema } from './synthetic-simulation-economics.js';
+import { SyntheticMockRobinhoodAdapter, type SimulationAdapterOptions } from './synthetic-mock-robinhood-adapter.js';
 import { SyntheticMockRobinhoodStore } from './synthetic-mock-robinhood-storage.js';
 import { SyntheticMockRobinhoodTransport } from './synthetic-mock-robinhood-transport.js';
 
@@ -190,8 +191,10 @@ const sessionLifetimeMs = 300000;
 function fixtureEnabled() {
   return process.env.NODE_ENV === 'test' && process.env.GELT_SYNTHETIC_ORDER_HARNESS === 'offline-test-only';
 }
-export function createSyntheticOrderHarness(sessionClock: () => number = Date.now, options: { applicationMock?: boolean; mockRequestTimeoutMsForTest?: number; previewDiagnosticsForTest?: boolean } = {}) {
+export function createSyntheticOrderHarness(sessionClock: () => number = Date.now, options: { applicationMock?: boolean; mockRequestTimeoutMsForTest?: number; previewDiagnosticsForTest?: boolean; simulationRun?: SimulationAdapterOptions } = {}) {
   if (!fixtureEnabled() || (options.applicationMock && process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only')) throw new Error('synthetic harness disabled');
+  if (options.simulationRun && !options.applicationMock) throw new Error('synthetic harness disabled');
+  const simulation = options.simulationRun ? { config: simulationRunSchema.parse(options.simulationRun.config), decision: options.simulationRun.decision } : undefined;
   const mockRequestTimeoutMsForTest = options.mockRequestTimeoutMsForTest === undefined ? 5000 : options.mockRequestTimeoutMsForTest;
   // Validate the explicit test budget before creating any private fixture/lock.
   if (!Number.isSafeInteger(mockRequestTimeoutMsForTest) || mockRequestTimeoutMsForTest < 5000 || mockRequestTimeoutMsForTest > 30000
@@ -214,9 +217,9 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     let mockTransport: SyntheticMockRobinhoodTransport | undefined;
     let mockAdapter: SyntheticMockRobinhoodAdapter | undefined;
     try {
-      mockStore = options.applicationMock ? new SyntheticMockRobinhoodStore(mockPath, sessionClock, previewDiagnostics) : undefined;
+      mockStore = options.applicationMock ? new SyntheticMockRobinhoodStore(mockPath, sessionClock, previewDiagnostics, { simulationRun: simulation?.config }) : undefined;
       mockTransport = mockStore ? new SyntheticMockRobinhoodTransport(mockStore, mockRequestTimeoutMsForTest, previewDiagnostics) : undefined;
-      mockAdapter = mockTransport ? new SyntheticMockRobinhoodAdapter(mockTransport.client, sessionClock, previewDiagnostics) : undefined;
+      mockAdapter = mockTransport ? new SyntheticMockRobinhoodAdapter(mockTransport.client, sessionClock, previewDiagnostics, simulation) : undefined;
     } catch (error) {
       try { mockTransport ? void mockTransport.close() : mockStore?.close(); } catch { /* preserve uncertain writer ownership */ }
       try { facts.close(); } catch { /* preserve uncertain lifecycle ownership */ }
@@ -241,7 +244,7 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
       },
       async cancel() { return { acknowledged: true }; },
     };
-    const lifecycle = new OrderLifecycle(facts, owner, () => ({ accountId: account, routing: route }), adapter, sessionClock);
+    const lifecycle = new OrderLifecycle(facts, owner, () => ({ accountId: account, routing: route }), adapter, sessionClock, randomUUID, () => randomBytes(32).toString('base64url'), simulation ? { configuredSimulation: true } : {});
     let mockPreviewAdmissionTail = Promise.resolve();
     const previewAndAdmitMock = async (rawOrder: unknown) => {
       let release!: () => void;

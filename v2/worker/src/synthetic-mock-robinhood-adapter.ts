@@ -7,6 +7,10 @@ import {
   syntheticMockSource, type SyntheticMockPreview,
 } from './synthetic-mock-robinhood-contract.js';
 import { SyntheticMockRobinhoodClient } from './synthetic-mock-robinhood-transport.js';
+import { matchesShadowRuleReceipt } from './shadow-rule.js';
+import { shadowRuleReceiptSchema, shadowRuleInputSchema } from './shadow-rule-contract.js';
+import { parseResearchJSON } from './research-json.js';
+import { simulationRunSchema, simulationObservationSchema, simulationDigest, simulationSource, simulationPolicy, executionPrice, checkObservation, units, type SimulationRun, type SimulationObservation } from './synthetic-simulation-economics.js';
 import { SyntheticPreviewDiagnostics } from './synthetic-preview-diagnostics.js';
 
 function enabled(): boolean {
@@ -14,14 +18,18 @@ function enabled(): boolean {
 }
 function tokenDigest(value: string): string { return createHash('sha256').update(value, 'utf8').digest('hex'); }
 
+export type SimulationDecisionContext = { inputBytes: Buffer; receipt: unknown; observation: SimulationObservation };
+export type SimulationAdapterOptions = { config: SimulationRun; decision: () => SimulationDecisionContext };
+
 export class SyntheticMockRobinhoodAdapter implements OrderAdapter {
   private prepared?: SyntheticMockPreview;
   private pending?: { preview: SyntheticMockPreview; confirmationToken: string; termsHash: string; handle: string };
   private admitting = false;
 
   constructor(private readonly client: SyntheticMockRobinhoodClient, private readonly now: () => number = Date.now,
-    private readonly previewDiagnostics?: SyntheticPreviewDiagnostics) {
+    private readonly previewDiagnostics?: SyntheticPreviewDiagnostics, private readonly simulation?: SimulationAdapterOptions) {
     if (!enabled()) throw new Error('synthetic mock disabled');
+    if (simulation) simulationRunSchema.parse(simulation.config);
   }
 
   async preview(input: Parameters<OrderAdapter['preview']>[0]): Promise<unknown> {
@@ -31,9 +39,9 @@ export class SyntheticMockRobinhoodAdapter implements OrderAdapter {
     if (!this.admitting && this.prepared && Date.parse(this.prepared.expiresAt) <= now) this.prepared = undefined;
     if (!this.admitting && this.pending && Date.parse(this.pending.preview.expiresAt) <= now) this.pending = undefined;
     if (this.admitting || this.prepared || this.pending || input.account.accountId !== '00000000-0000-4000-8000-000000000002'
-      || input.order.route !== 'RHS' || input.order.side !== 'buy' || input.order.currency !== 'USD'
+      || input.order.route !== 'RHS' || (!this.simulation && input.order.side !== 'buy') || input.order.currency !== 'USD'
       || input.order.instrumentId !== syntheticMockInstrument) throw new Error('synthetic mock unavailable');
-    const preview = syntheticMockPreviewSchema.parse({
+    const preview = this.simulation ? await this.runPreview(input, now) : syntheticMockPreviewSchema.parse({
       version: 1, source: syntheticMockSource, previewId: randomUUID(), principal: 'gelt-test-principal-v1', account: 'gelt-test-account-v1',
       policyId: 'synthetic-limit-fee-cap-10.v1',
       quote: { instrumentId: syntheticMockInstrument, price: syntheticMockQuote, source: 'gelt-synthetic-robinhood-quote-v1' },
@@ -43,7 +51,39 @@ export class SyntheticMockRobinhoodAdapter implements OrderAdapter {
       expiresAt: new Date(now + 60000).toISOString(),
     });
     this.prepared = preview;
-    return { previewId: preview.previewId, order: input.order, fee: syntheticMockFee, feeCurrency: 'USD', expiresAt: preview.expiresAt };
+    return { previewId: preview.previewId, order: input.order, fee: preview.fee.amount, feeCurrency: 'USD', expiresAt: preview.expiresAt };
+  }
+
+  private async runPreview(input: Parameters<OrderAdapter['preview']>[0], now: number): Promise<SyntheticMockPreview> {
+    const simulation = this.simulation!;
+    const config = simulationRunSchema.parse(simulation.config);
+    const context = simulation.decision(), observation = simulationObservationSchema.parse(context.observation);
+    if (!matchesShadowRuleReceipt(context.inputBytes, context.receipt)) throw new Error('synthetic decision unavailable');
+    const receipt = shadowRuleReceiptSchema.parse(context.receipt), decisionInput = shadowRuleInputSchema.parse(parseResearchJSON(context.inputBytes));
+    const portfolio = await this.client.portfolio();
+    if (portfolio.state !== 'settled' || receipt.inputValidation !== 'valid' || receipt.decision === 'abstain'
+      || receipt.runId !== config.runId || receipt.sourceCommit !== config.sourceCommit || !receipt.decisionAt
+      || receipt.classification !== (config.classification === 'constructed_offline_test' ? 'constructed_offline_test' : 'market_shadow_input')
+      || decisionInput.instrument.id !== config.instrumentId || decisionInput.instrument.currency !== 'USD'
+      || decisionInput.portfolio.snapshotSha256 !== simulationDigest(portfolio.snapshot)
+      || simulationDigest(config) !== portfolio.snapshot.configSha256
+      || units(decisionInput.costs.commissionPerTrade, 8) !== units(config.costs.commissionPerOrder, 8)
+      || units(decisionInput.costs.spreadFraction, 18) !== units(config.costs.spreadFraction, 18)
+      || units(decisionInput.costs.slippageFraction, 18) !== units(config.costs.slippageFraction, 18)
+      || decisionInput.costs.evidenceSha256 !== config.calibrationEvidenceSha256
+      || (receipt.decision === 'target_long' ? input.order.side !== 'buy' : input.order.side !== 'sell')) throw new Error('synthetic decision unavailable');
+    checkObservation(config, receipt.decisionAt, observation, now);
+    return syntheticMockPreviewSchema.parse({
+      version: 2, source: simulationSource, previewId: randomUUID(), principal: 'gelt-test-principal-v1', account: 'gelt-test-account-v1',
+      policyId: simulationPolicy, runId: config.runId, configSha256: simulationDigest(config), sourceCommit: config.sourceCommit,
+      decisionId: receipt.decisionId, decisionAt: receipt.decisionAt, inputSha256: receipt.inputSha256,
+      portfolioSnapshotSha256: simulationDigest(portfolio.snapshot), classification: config.classification,
+      quote: { ...observation, instrumentId: config.instrumentId, price: executionPrice(config, input.order.side, observation.referencePrice), source: 'declared-simulated-observation-v2' },
+      fee: { amount: config.costs.commissionPerOrder, currency: 'USD', source: 'declared-simulated-cost-v2' },
+      order: { instrumentId: config.instrumentId, route: 'RHS', side: input.order.side, type: 'limit', timeInForce: 'day',
+        quantity: input.order.requestedQuantity, limitPrice: input.order.requestedLimitPrice, currency: 'USD' },
+      expiresAt: new Date(Math.min(now + 60000, Date.parse(config.validThrough))).toISOString(),
+    });
   }
 
   // Called only by the test-owned harness before the exact preview is returned to its caller.
@@ -93,8 +133,8 @@ export class SyntheticMockRobinhoodAdapter implements OrderAdapter {
     try {
       const pending = this.pending;
       this.pending = undefined; // the fixture never retries an uncertain submission
-      if (!enabled() || !pending || input.feeCurrency !== 'USD' || canonical(input.fee) !== canonical(syntheticMockFee)
-        || input.intent.order.instrumentId !== syntheticMockInstrument || input.intent.order.side !== 'buy'
+      if (!enabled() || !pending || input.feeCurrency !== 'USD' || canonical(input.fee) !== canonical(pending.preview.fee.amount)
+        || input.intent.order.instrumentId !== syntheticMockInstrument || input.intent.order.side !== pending.preview.order.side
         || input.intent.order.route !== 'RHS' || input.intent.order.currency !== 'USD'
         || input.intent.order.requestedQuantity.value !== pending.preview.order.quantity.value
         || input.intent.order.requestedQuantity.precision !== pending.preview.order.quantity.precision
