@@ -3786,6 +3786,30 @@
       "status": "added",
       "sha256": "37c58057b428a9d6c970678ca05c500b63d3d0e36a25e54f86188759c8026b4d",
       "reason": "Owner-approved G06 configured simulator capability; exact declared economics or constructed offline tests, no production execution."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/shadow-sizing-contract.ts",
+      "status": "added",
+      "sha256": "94dbed583ab46c8aa09ae2c8bd88ebf837ab1fc6be47ec8323f79a1d2dd53efa",
+      "reason": "Owner-approved standalone pure sizing proposal/schema or constructed offline test; no provider/execution changes."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/shadow-sizing.ts",
+      "status": "added",
+      "sha256": "da8197e0c180830b6b54ced6f3263195ae300fc1a57e4a037345df2f05dbff30",
+      "reason": "Owner-approved standalone pure sizing proposal/schema or constructed offline test; no provider/execution changes."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/shadow-sizing.test.ts",
+      "status": "added",
+      "sha256": "c07a8c31c1ad53881f6112dab285330fbf72897d1ba8f2acc03c20540df6cb97",
+      "reason": "Owner-approved standalone pure sizing proposal/schema or constructed offline test; no provider/execution changes."
     }
   ]
 }
