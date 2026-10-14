@@ -66,8 +66,10 @@ export function evaluateShadowRule(bytes: Buffer): ShadowRuleReceipt {
 // Exact input/result replay comparison, not provenance authentication or effect
 // admission. Rejected/unbound inputs never become a correlatable valid decision.
 export function matchesShadowRuleReceipt(bytes: Buffer, value: unknown): boolean {
-  const parsed = shadowRuleReceiptSchema.safeParse(value);
-  if (!parsed.success || parsed.data.inputValidation !== 'valid') return false;
-  const expected = evaluateShadowRule(bytes);
-  return expected.inputValidation === 'valid' && canonical(expected) === canonical(parsed.data);
+  try {
+    const parsed = shadowRuleReceiptSchema.safeParse(value);
+    if (!parsed.success || parsed.data.inputValidation !== 'valid') return false;
+    const expected = evaluateShadowRule(bytes);
+    return expected.inputValidation === 'valid' && canonical(expected) === canonical(parsed.data);
+  } catch { return false; }
 }

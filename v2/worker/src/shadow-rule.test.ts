@@ -114,4 +114,21 @@ describe('frozen shadow-rule adaptation (constructed offline cases)', () => {
     }
     const invalid = evaluateShadowRule(Buffer.from('{')); expect(matchesShadowRuleReceipt(Buffer.from('{'), invalid)).toBe(false);
   });
+  it.each([
+    { value: 'not-a-decimal', precision: 13, scale: 0 },
+    { value: '1', precision: 1, scale: 1_000_000_000 },
+    { value: '1', precision: 1, scale: -1 },
+    { value: '1', precision: 1, scale: 0.5 },
+  ])('rejects malformed fraction %j before bounded arithmetic in input and receipt', bad => {
+    const original = fixture(), bytes = Buffer.from(JSON.stringify(original)), receipt = evaluateShadowRule(bytes);
+    for (const field of ['exposure', 'spread', 'slippage']) {
+      const a: any = fixture();
+      if (field === 'exposure') a.policy.exposureCap = bad;
+      if (field === 'spread') a.costs.spreadFraction = bad;
+      if (field === 'slippage') a.costs.slippageFraction = bad;
+      expect(run(a)).toMatchObject({ decision: 'abstain', reason: 'invalid_input' });
+    }
+    expect(() => matchesShadowRuleReceipt(bytes, { ...receipt, targetExposure: bad })).not.toThrow();
+    expect(matchesShadowRuleReceipt(bytes, { ...receipt, targetExposure: bad })).toBe(false);
+  });
 });

@@ -9,11 +9,17 @@ const timestamp = z.string().datetime({ precision: 3 }).refine(s => {
 });
 const label = z.string().min(1).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
 const positive = decimalSchema.refine(d => /[1-9]/.test(d.value));
-const fraction = decimalSchema.refine(d => decimalCompare(d, { value: '1', precision: 1, scale: 0 }) <= 0);
+const fraction = decimalSchema.refine(d => {
+  // Zod refinements may run on a dirty value. Check bounded decimal validity
+  // before any BigInt conversion/exponentiation, rather than relying on order.
+  const bounded = decimalSchema.safeParse(d);
+  return bounded.success && decimalCompare(bounded.data, { value: '1', precision: 1, scale: 0 }) <= 0;
+});
 const exposure = fraction.refine(d => /[1-9]/.test(d.value));
 
 // Compare exact decimal strings across scales; never convert money to Number.
 export function decimalCompare(a: z.infer<typeof decimalSchema>, b: z.infer<typeof decimalSchema>): number {
+  if (!decimalSchema.safeParse(a).success || !decimalSchema.safeParse(b).success) throw new Error('invalid bounded decimal');
   const left = BigInt(a.value.replace('.', '')) * 10n ** BigInt(b.scale);
   const right = BigInt(b.value.replace('.', '')) * 10n ** BigInt(a.scale);
   return left > right ? 1 : left < right ? -1 : 0;

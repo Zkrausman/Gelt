@@ -21,7 +21,8 @@ No tuning, model inference, data acquisition, scheduler, sockets, filesystem,
 orders, new store, framework or G06 execution integration is added.
 
 Changed files: `shadow-rule-contract.ts`, `shadow-rule.ts`,
-`shadow-rule.test.ts` under `v2/worker/src/`, and this closeout.
+`shadow-rule.test.ts` under `v2/worker/src/`, `v2/IMPORT-MANIFEST.json` for their
+explicit source inventory/hashes, and this closeout. No dependency changes.
 The pure evaluator uses strict bounded duplicate-key-rejecting JSON, existing
 exact decimal schemas and canonical SHA256. It validates canonical timestamps,
 positive prices, contiguous unique observation ordinals, availability at or
@@ -42,6 +43,12 @@ independent rights, instrument, calendar or market verification. Receipts always
 state market evaluation not established, no effect authority and no promotion.
 Costs are frozen input bindings only: this core computes no costs/P&L or benchmark
 returns and does not establish their realism or evaluation acceptance.
+
+Independent review found that dirty Zod refinements could reach BigInt before
+bounded decimal validation. Conversion now explicitly requires successful
+bounded validation; malformed receipt comparison returns false. Regression cases
+cover invalid fraction strings and excessive, negative and fractional scales in
+input and receipt paths. Full final source reviews repeat after this correction.
 
 Constructed offline tests cover exact above-safe-integer/cross-scale sign,
 deterministic replay without mutation, changed bindings, readiness abstention,
