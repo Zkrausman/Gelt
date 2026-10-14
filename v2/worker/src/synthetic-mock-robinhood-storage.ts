@@ -230,6 +230,7 @@ export class SyntheticMockRobinhoodStore {
         FROM mock_admissions LEFT JOIN mock_orders USING(preview_id)
         WHERE expires_ms>? OR consumed_dispatch IS NOT NULL`).get(currentTime) as { count: unknown; bytes: unknown };
       const admissionBytes = Buffer.byteLength(previewJson, 'utf8') + Buffer.byteLength(input.preview.previewId, 'utf8') + (64 * 4) + 8;
+      this.configuredCapacity(0, admissionBytes);
       if (checkedInteger(active.count) >= rowLimit || checkedInteger(active.bytes) + admissionBytes > byteLimit) fail();
       if (!this.config) this.db.prepare('DELETE FROM mock_admissions WHERE expires_ms<=? AND consumed_dispatch IS NULL').run(currentTime);
       if (this.config && checkedInteger((this.db.prepare('SELECT count(*) AS n FROM mock_admissions').get() as { n: unknown }).n) >= rowLimit) fail();
@@ -285,6 +286,7 @@ export class SyntheticMockRobinhoodStore {
       const initialBytes = Buffer.byteLength(payloadJson, 'utf8') + 64 + Buffer.byteLength(initialProjection, 'utf8')
         + Buffer.byteLength(input.dispatchId, 'utf8') + Buffer.byteLength(orderId, 'utf8') + Buffer.byteLength(input.preview.previewId, 'utf8')
         + Buffer.byteLength(initialEvent, 'utf8') + Buffer.byteLength(input.dispatchId, 'utf8') + 8;
+      this.configuredCapacity(1, initialBytes);
       if (this.bytes() + initialBytes > byteLimit) fail();
       this.db.prepare('INSERT INTO mock_orders(dispatch_id,order_id,preview_id,payload_json,payload_sha,projection_json) VALUES(?,?,?,?,?,?)')
         .run(input.dispatchId, orderId, input.preview.previewId, payloadJson, payloadSha, initialProjection);
@@ -313,6 +315,7 @@ export class SyntheticMockRobinhoodStore {
       const current = this.readOrder(row);
       if (current.cancelAcknowledged || current.status === 'filled' || current.status === 'canceled') fail();
       const events = this.readEvents(dispatchId);
+      this.configuredCapacity(2);
       const now = this.time();
       this.insertEvent(dispatchId, events.length + 1, { type: 'cancel-requested', at: now });
       this.insertEvent(dispatchId, events.length + 2, { type: 'cancel-acknowledged', at: now });
@@ -336,6 +339,7 @@ export class SyntheticMockRobinhoodStore {
           if (canonical(duplicate.execution) !== canonical(execution)) fail();
           return view;
         }
+        this.configuredCapacity(1);
         try {
           const checked = syntheticMockRunExecutionSchema.parse(execution);
           const all = this.db.prepare('SELECT event_json FROM mock_events').all() as { event_json: string }[];
@@ -384,6 +388,7 @@ export class SyntheticMockRobinhoodStore {
       const events = this.readEvents(dispatchId);
       const view = this.readOrder(row);
       if (!view.cancelAcknowledged || view.status === 'filled' || view.status === 'canceled') fail();
+      this.configuredCapacity(1);
       const event = { type: 'cancellation-settled' as const, at: this.time() };
       this.insertEvent(dispatchId, events.length + 1, event);
       const payload = this.readStoredPayload(row);
@@ -408,6 +413,7 @@ export class SyntheticMockRobinhoodStore {
     const ordersCount = this.orderCount();
     const eventsCount = this.eventCount();
     if (admissionCount > rowLimit || ordersCount > rowLimit || eventsCount > rowLimit) throw new Error('synthetic mock storage unavailable');
+    if (this.config && this.bytes() > byteLimit) throw new Error('synthetic mock storage unavailable');
     const foreignKeyErrors = this.db.pragma('foreign_key_check') as unknown[];
     if (foreignKeyErrors.length) throw new Error('synthetic mock storage unavailable');
 
@@ -634,8 +640,28 @@ export class SyntheticMockRobinhoodStore {
     this.db.prepare('INSERT INTO mock_events(dispatch_id,sequence,event_json) VALUES(?,?,?)').run(dispatchId, sequence, text);
   }
 
+  private validateMetadataBounds(): void {
+    // SQL returns scalar types/byte counts, never the untrusted metadata bodies.
+    // This guard precedes every body fetch, including initial construction/reopen.
+    const row = this.db.prepare(`SELECT typeof(config_json) AS config_type, length(CAST(config_json AS BLOB)) AS config_bytes,
+      typeof(config_sha) AS sha_type, length(CAST(config_sha AS BLOB)) AS sha_bytes,
+      typeof(portfolio_json) AS portfolio_type, length(CAST(portfolio_json AS BLOB)) AS portfolio_bytes
+      FROM mock_meta WHERE id=1`).get() as Record<string, unknown> | undefined;
+    if (!row || row.config_type !== 'text' || checkedInteger(row.config_bytes) > bodyLimit
+      || row.sha_type !== 'text' || checkedInteger(row.sha_bytes) !== 64
+      || row.portfolio_type !== 'text' || checkedInteger(row.portfolio_bytes) > bodyLimit) throw new Error('synthetic mock storage unavailable');
+  }
+  private configuredCapacity(eventGrowth: number, byteGrowth = 0): void {
+    if (!this.config) return;
+    // Include retained tombstones and metadata, reserving a conservative two
+    // bounded bodies for projection/snapshot growth before the first mutation.
+    if (this.eventCount() + eventGrowth > rowLimit || this.bytes() + byteGrowth + 2 * bodyLimit > byteLimit) fail();
+    const last = this.db.prepare('SELECT event_json FROM mock_events ORDER BY rowid DESC LIMIT 1').get() as { event_json: string } | undefined;
+    if (last && this.time() < decode(eventSchema, last.event_json).at) fail();
+  }
   private validateConfig(): void {
     if (!this.config) return;
+    this.validateMetadataBounds();
     const row = this.db.prepare('SELECT config_json,config_sha FROM mock_meta WHERE id=1').get() as { config_json: unknown; config_sha: unknown };
     const body = checkedText(row.config_json, bodyLimit);
     if (body !== canonical(this.config) || checkedText(row.config_sha, 64) !== simulationDigest(this.config)
@@ -748,6 +774,7 @@ export class SyntheticMockRobinhoodStore {
     if (this.config) this.db.prepare('UPDATE mock_meta SET portfolio_json=? WHERE id=1').run(canonical(this.projectPortfolio()));
   }
   portfolio(): { snapshot: SimulationSnapshot; state: 'settled' | 'unsettled' } {
+    if (!this.config) fail(); // Unsupported v1 reads must not poison or mutate its handle.
     return this.atomic(() => {
       this.replayAll();
       return { snapshot: this.projectPortfolio(), state: this.unsettled() ? 'unsettled' : 'settled' };

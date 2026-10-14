@@ -3,7 +3,7 @@ import { request } from 'node:http';
 import { dirname } from 'node:path';
 import { existsSync, rmSync } from 'node:fs';
 import Database from 'better-sqlite3';
-import { afterEach, beforeEach, expect, it } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { canonical } from './ledger-canonical.js';
 import { createSyntheticOrderHarness } from './synthetic-order-harness.js';
 import { SyntheticMockRobinhoodStore } from './synthetic-mock-robinhood-storage.js';
@@ -175,7 +175,7 @@ it('retains exact dispatch/fill duplicates but rejects changed payloads and reus
     expect(() => f.h.mockStore!.submit({ ...a, termsHash: '9'.repeat(64) })).toThrow();
     f.h.mockStore!.cancel(a.dispatchId); f.h.mockStore!.settleCanceled(a.dispatchId);
     const after = f.h.mockStore!.portfolio().snapshot; expect(after.cash.value).toBe('20.00000000');
-    expect(after.historySha256).not.toBe(p.portfolioSnapshotSha256);
+    expect(simulationDigest(after)).not.toBe(p.portfolioSnapshotSha256); expect(after.revision).toBe(4);
     await f.h.close(); const reopened = f.h.reopen();
     try {
       const newPreview = { ...p, previewId: randomUUID(), portfolioSnapshotSha256: simulationDigest(after) };
@@ -191,8 +191,9 @@ it('keeps expired unused decision tombstones and refuses overlapping cash/positi
     const p = f.preview('buy'); f.h.mockStore!.admit({ preview: p, termsHash: '7'.repeat(64), confirmationToken: 'T'.repeat(43) });
     expect(() => f.submit(f.preview('buy'))).toThrow();
     f.advance(60001);
-    expect(() => f.h.mockStore!.admit({ preview: { ...p, previewId: randomUUID(), expiresAt: iso(f.now() + 60000) }, termsHash: '7'.repeat(64), confirmationToken: 'T'.repeat(43) })).toThrow();
+    expect(() => f.h.mockStore!.admit({ preview: { ...p, previewId: randomUUID(), expiresAt: iso(f.now() + 60000), quote: { ...p.quote, observedAt: iso(f.now() - 100), availableAt: iso(f.now() - 100) } }, termsHash: '7'.repeat(64), confirmationToken: 'T'.repeat(43) })).toThrow();
     expect(f.h.mockStore!.portfolio().state).toBe('settled');
+    expect(f.submit(f.preview('buy')).dispatchId).toBeTruthy();
   } finally { await f.h.close(); }
 });
 
@@ -292,7 +293,7 @@ it.each(['tampered-receipt', 'direction', 'cost', 'stale-portfolio'] as const)('
   } finally { await f.h.close(); }
 });
 
-it('concurrent confirmations admit exactly one order; old decisions cannot be reused after fill', async () => {
+it('concurrent confirmations admit exactly one order', async () => {
   const f = fixture(); const port = await f.h.start();
   try {
     f.set('buy'); await post(f.h, port, 'resume'); const p = await post(f.h, port, 'preview', order('buy'));
@@ -311,5 +312,57 @@ it('global receipt/execution identity reuse and stale equal-balance snapshots do
     const before = f.h.mockStore!.portfolio(), orderBefore = f.h.mockStore!.read(second.dispatchId);
     const newFill = { ...f.fill(second), executionId: e.executionId }; expect(() => f.h.mockStore!.observeExecution(second.dispatchId, newFill)).toThrow();
     expect(f.h.mockStore!.portfolio()).toEqual(before); expect(f.h.mockStore!.read(second.dispatchId)).toEqual(orderBefore);
+  } finally { await f.h.close(); }
+});
+
+
+// Controlled SQLite corruption in fresh private test fixtures only. Restoring
+// the exact STRICT declaration leaves an invalid BLOB cell for replay guards.
+function corruptMetadata(path: string, column: 'config_json' | 'config_sha' | 'portfolio_json', kind: 'TEXT' | 'BLOB'): void {
+  let db = new Database(path);
+  try {
+    if (kind === 'TEXT') { db.prepare(`UPDATE mock_meta SET ${column}=? WHERE id=1`).run('x'.repeat(8193)); return; }
+    const original = (db.prepare("SELECT sql FROM sqlite_schema WHERE name='mock_meta'").get() as { sql: string }).sql;
+    const version = db.pragma('schema_version', { simple: true }) as number;
+    db.pragma('writable_schema=ON'); db.prepare("UPDATE sqlite_schema SET sql=? WHERE name='mock_meta'").run(original.replace(/ STRICT$/, ''));
+    db.pragma(`schema_version=${version + 1}`); db.close(); db = new Database(path);
+    db.prepare(`UPDATE mock_meta SET ${column}=? WHERE id=1`).run(Buffer.alloc(8193));
+    db.pragma('writable_schema=ON'); db.prepare("UPDATE sqlite_schema SET sql=? WHERE name='mock_meta'").run(original);
+    db.pragma(`schema_version=${version + 2}`);
+  } finally { if (db.open) db.close(); }
+}
+const metadataCases = (['config_json', 'config_sha', 'portfolio_json'] as const).flatMap(column =>
+  (['TEXT', 'BLOB'] as const).flatMap(kind => (['read', 'reopen'] as const).map(phase => ({ column, kind, phase }))));
+it.each(metadataCases)('rejects oversized $kind $column on $phase before body materialization and retains ownership', async ({ column, kind, phase }) => {
+  const f = fixture(); if (phase === 'reopen') await f.h.close();
+  corruptMetadata(f.h.mockPath!, column, kind);
+  const spy = vi.spyOn(Database.prototype, 'prepare');
+  try {
+    if (phase === 'reopen') expect(() => f.h.reopen()).toThrow(); else expect(() => f.h.mockStore!.portfolio()).toThrow();
+    // The native driver never receives a statement that fetches these bodies.
+    expect(spy.mock.calls.some(([sql]) => /^SELECT (config_json|portfolio_json)/.test(sql))).toBe(false);
+  } finally { spy.mockRestore(); try { await f.h.close(); } catch { /* poisoned fixture keeps its marker */ } }
+  expect(existsSync(f.h.mockPath! + '.lock')).toBe(true);
+});
+
+it('unsupported default-v1 portfolio reads reject without poisoning or affecting subsequent order reads', async () => {
+  const legacy = createSyntheticOrderHarness(() => initialTime, { applicationMock: true }); roots.push(dirname(dirname(legacy.path)));
+  await legacy.start();
+  try {
+    expect(() => legacy.mockStore!.portfolio()).toThrow();
+    await expect(legacy.mockTransport!.client.portfolio()).rejects.toThrow();
+    expect(legacy.mockStore!.read(randomUUID())).toBeUndefined();
+    expect(existsSync(legacy.mockPath! + '.lock')).toBe(true);
+  } finally { await legacy.close(); }
+  expect(existsSync(legacy.mockPath! + '.lock')).toBe(false);
+});
+
+it('a decision remains consumed after a filled order even with its refreshed current snapshot', async () => {
+  const f = fixture();
+  try {
+    const p = f.preview('buy'), a = f.submit(p); f.advance(); f.h.mockStore!.observeExecution(a.dispatchId, f.fill(a));
+    const state = f.h.mockStore!.portfolio(); expect(state.state).toBe('settled');
+    expect(() => f.h.mockStore!.admit({ preview: { ...p, previewId: randomUUID(), portfolioSnapshotSha256: simulationDigest(state.snapshot) }, termsHash: '7'.repeat(64), confirmationToken: 'T'.repeat(43) })).toThrow();
+    expect(f.h.mockStore!.portfolio()).toEqual(state);
   } finally { await f.h.close(); }
 });

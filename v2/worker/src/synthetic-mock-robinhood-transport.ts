@@ -107,6 +107,7 @@ export class SyntheticMockRobinhoodTransport {
       || rawUrl !== routePath) { respond(operation ? 403 : 404); return; }
     try {
       if (operation === 'portfolio:read') {
+        if (this.store.version !== 2) { respond(404); return; }
         if (req.headers['content-length'] !== undefined || req.headers['transfer-encoding'] !== undefined) { respond(400); return; }
         respond(200, simulationPortfolioReadSchema.parse(this.store.portfolio()));
       } else if (operation === 'orders:admit') {

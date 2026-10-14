@@ -62,7 +62,15 @@ slice does not implement G05 target-allocation sizing or G07 scheduling/pause.
 Changed source: synthetic-simulation-economics.ts and synthetic-simulation.test.ts;
 existing synthetic-mock-robinhood contract/storage/transport/adapter,
 synthetic-order-harness.ts and order-lifecycle.ts; import inventory and this report.
-Existing tests remain unchanged. New constructed offline cases cover actual
+Existing tests remain unchanged. Independent source review found new metadata
+bodies fetched before their bounds checks. SQL now checks types and byte lengths
+for config_json/config_sha/portfolio_json before any body materialization on
+constructor/read/reopen paths. Corruption cases include oversized TEXT/BLOB and
+verify ownership retention plus absence of body reads before rejection. Self-review
+also corrected unsupported default-v1 portfolio reads to reject without poisoning,
+and made configured aggregate capacity include expired decision tombstones and
+metadata with conservative bounded projection growth before mutations. Full fresh
+source reviews repeat after these changes. New constructed offline cases cover actual
 G05-generated entry/exit through lifecycle/transport, two cost policies, partial
 cancel/late fills, cumulative rounding, directional limits/quantity/cash/caps,
 duplicate/consumption/restart/corruption and UNKNOWN fences. They are simulator
