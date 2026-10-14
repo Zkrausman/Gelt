@@ -3616,7 +3616,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "5eaad85d4481f7e2bbfe745a34cc8eafe48a05ffd799df534b3ffc5cf2417041",
+      "sha256": "c1f9e9d065140009c3f3afb6ae1408975598dc8066af0d34d9c883377163b704",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -3824,7 +3824,7 @@
       "upstreamSha256": null,
       "path": "worker/src/synthetic-sizing-binding.test.ts",
       "status": "added",
-      "sha256": "bf1988d6df8e90e227d81013272e65c8aba8f1375567649a46d228a6eadde427",
+      "sha256": "ebbc976ea40de8325e8afc3f5eb9ec214937ff0a94c643ed735478fd56dfd1bc",
       "reason": "Owner-approved constructed offline G06 sizing binding/evidence/tests; no genuine-run or provider authority."
     }
   ]

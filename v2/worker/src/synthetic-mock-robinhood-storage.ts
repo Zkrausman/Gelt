@@ -813,8 +813,17 @@ export class SyntheticMockRobinhoodStore {
 
   prepareSizingEvidence(bytes: Buffer, proposal: ShadowSizingProposal): SizingEvidence {
     if (!this.evidence || this.sizingBoundReadOnly || this.closed || this.storage.poisoned) fail();
-    try { return this.evidence.prepare(bytes, proposal); }
-    catch (error) { if (!(error instanceof SizingEvidenceRejected)) this.storage.poisoned = true; throw error; }
+    try {
+      // Cached flags cannot establish current writer token/database identity.
+      this.validateStorage();
+      return this.evidence.prepare(bytes, proposal);
+    } catch (error) {
+      if (!(error instanceof SizingEvidenceRejected)) this.storage.poisoned = true;
+      throw error;
+    } finally {
+      // Also validate after a rejection or uncertain write; retain all orphans.
+      this.validateStorage();
+    }
   }
 
   close(): void { if (this.closed) return; this.closed = true; this.storage.close(); }

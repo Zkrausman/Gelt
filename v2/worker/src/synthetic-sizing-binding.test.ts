@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
-import { readFileSync, readdirSync, rmSync, writeFileSync, symlinkSync, mkdirSync } from 'node:fs';
+import { readFileSync, readdirSync, rmSync, writeFileSync, symlinkSync, mkdirSync, existsSync } from 'node:fs';
 import Database from 'better-sqlite3';
 import { canonical, digest } from './ledger-canonical.js';
 import { createSyntheticOrderHarness } from './synthetic-order-harness.js';
@@ -13,7 +13,7 @@ import { simulationRunSchema, simulationDigest, executionPrice, type SimulationR
 import { shadowRuleId, type ShadowRuleInput } from './shadow-rule-contract.js';
 import { evaluateShadowRule } from './shadow-rule.js';
 import { shadowSizingPolicyId } from './shadow-sizing-contract.js';
-import { matchesShadowSizingProposal } from './shadow-sizing.js';
+import { matchesShadowSizingProposal, proposeShadowSizing } from './shadow-sizing.js';
 import type { SimulationDecisionContext } from './synthetic-mock-robinhood-adapter.js';
 import { OrderLifecycle, hasUnresolvedLifecycle, assertConfiguredSubmitPermit, consumeConfiguredSubmitPermit,
   type ConfiguredDispatchBinding, type LifecycleFacts, type OrderAdapter } from './order-lifecycle.js';
@@ -225,6 +225,34 @@ describe('actual constructed G05 sizing to isolated durable simulator', () => {
     else if (kind === 'symlink') { rmSync(file); symlinkSync(join(f.evidenceRoot, 'policy.json'), file); }
     else writeFileSync(file, kind === 'oversize' ? Buffer.alloc(262145) : '{}');
     expect(() => f.h.mockStore!.portfolio()).toThrow(); expect(f.counts()).toEqual([{ n: 1 }, { n: 0 }]);
+  });
+  it.each([['proposal', 'missing'], ['proposal', 'mismatch'], ['no_action', 'missing'], ['no_action', 'mismatch']] as const)
+  ('validates current writer ownership before new %s evidence publication with %s marker', async (outcome, fault) => {
+    const f = await fixture(); f.cash(outcome === 'proposal'); await f.h.previewSizingBound();
+    const before = readdirSync(f.evidenceRoot).sort(), key = before.find(n => /^[a-f0-9]{64}$/.test(n))!;
+    const input = JSON.parse(readFileSync(join(f.evidenceRoot, key, 'input.json'), 'utf8')); input.evaluationAt = iso(initial + 1);
+    const bytes = Buffer.from(canonical(input)), proposal = proposeShadowSizing(bytes);
+    expect(proposal.outcome).toBe(outcome); expect(matchesShadowSizingProposal(bytes, proposal)).toBe(true);
+    const marker = f.h.mockPath! + '.lock';
+    if (fault === 'missing') rmSync(marker); else writeFileSync(marker, 'different-constructed-writer');
+    expect(() => f.h.mockStore!.prepareSizingEvidence(bytes, proposal)).toThrow();
+    expect(readdirSync(f.evidenceRoot).sort()).toEqual(before);
+    expect(f.counts()).toEqual([{ n: outcome === 'proposal' ? 1 : 0 }, { n: 0 }]);
+    await expect(f.h.previewSizingBound()).rejects.toThrow();
+    try { await f.h.close(); } catch { /* owner loss must not remove/recreate the marker */ }
+    expect(existsSync(marker)).toBe(fault === 'mismatch');
+    if (fault === 'mismatch') expect(readFileSync(marker, 'utf8') === 'different-constructed-writer').toBe(true);
+  });
+  it('detects writer loss after complete publication and retains the orphan without admission', async () => {
+    let marker: string | undefined;
+    const f = await fixture(undefined, undefined, stage => { if (stage === 'artifact-root-sync') writeFileSync(marker!, 'different-constructed-writer'); });
+    marker = f.h.mockPath! + '.lock';
+    await expect(f.h.previewSizingBound()).rejects.toThrow();
+    expect(readdirSync(f.evidenceRoot).filter(n => /^[a-f0-9]{64}$/.test(n))).toHaveLength(1);
+    expect(f.counts()).toEqual([{ n: 0 }, { n: 0 }]);
+    expect(() => f.h.mockStore!.portfolio()).toThrow();
+    try { await f.h.close(); } catch { /* ownership uncertainty is retained */ }
+    expect(readFileSync(marker, 'utf8') === 'different-constructed-writer').toBe(true);
   });
   it('publishes all file and directory durability stages before DB admission', async () => {
     const stages: EvidenceStage[] = [], f = await fixture(undefined, undefined, stage => stages.push(stage)); await f.prepare();

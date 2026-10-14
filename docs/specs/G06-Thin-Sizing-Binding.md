@@ -122,3 +122,22 @@ findings (turn01a13c29-19ec-77db-ae17-e514c18ca86b). That historical result does
 not override the independent HOLD or accept this corrected source. All three
 independent findings are consolidated; both fresh complete reviews must decide
 the resulting exact head before any runtime/publication gate.
+
+
+The next independent complete review held source236879 on current writer
+validation for filesystem evidence preparation (turn01a13c36-373e-70d0-9926-
+eb5721001f6d); the three earlier fixes were verified. Evidence preparation now
+calls the existing native ownership/database identity validation before mutation
+and in a finally block after success, rejection or uncertainty. Validation failure
+poisons the owner and does not remove or recreate its marker. Ordinary prewrite
+capacity rejection remains distinct; complete/orphan replay artifacts remain
+retained. New constructed regression source covers removed/mismatched markers
+for both proposals and valid no_action evidence, plus ownership loss immediately
+after durable artifact publication: no admission/usable authority is produced,
+and the published orphan is retained. These tests have not run. Complete fresh
+reviews on the eventual consolidated head still precede runtime/publication.
+
+The complete adversarial source review of frozen236879 reported no blocker/high
+findings (turn01a13c37-043d-7001-819a-baf45c62d572). It remains historical
+acceptance of that source and cannot clear the current-ownership correction.
+Both full fresh source reviews must identify the next exact head.
