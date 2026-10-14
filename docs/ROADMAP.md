@@ -67,6 +67,25 @@ shadow observation, and an owner-reviewed recommendation. It depends on acceptan
 of the execution-first MVP; it does **not** authorize automatic live promotion.
 See the linked specification for the editable tldraw roadmap and authority boundaries.
 
+## Future product goal: automatic strategy lifecycle (implementation unplanned)
+
+The intended product automatically evaluates strategy eligibility, promotes
+qualifying strategies into live trading, and demotes or stops strategies under
+an explicit policy. Routine strategy management must not require manual
+per-strategy owner decisions.
+
+Implementation is unplanned; this goal adds no tasks, thresholds or performance
+claims. Evidence requirements, exposure and loss limits, safe rollback and
+shutdown remain requirements for any later implementation. The historical
+auto-promotion backlog below provides context, not a selected implementation plan.
+Its legacy approval labels, task breakdown and example thresholds are historical
+only; they do not define the plan, policy or implementation authority for this
+future goal. A future implementation plan remains to be established.
+
+This goal does not expand the current simulation/research delivery or release
+G05/G06 holds. Real-money activation and financial transactions require user
+handoff; this roadmap update authorizes neither.
+
 The phases below retain historical roadmap context. In particular, the legacy
 Phase 13 auto-promotion proposal and Phase 10 cloud plan are not part of the
 execution-first MVP; auto-promotion is also not part of ZAR-209. This documentation change
