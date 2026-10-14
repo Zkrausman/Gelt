@@ -43,7 +43,7 @@ export type BrokerObservation = z.infer<typeof reconciliationResponseSchema>;
 export interface SelectedOrderAccount { accountId: string; routing: Intent['routing'] }
 export interface OrderAdapter {
   preview(input: { account: SelectedOrderAccount; order: z.infer<typeof orderSchema> }): Promise<unknown>;
-  dispatch(input: { dispatchId: string; intent: Intent; fee: z.infer<typeof decimalSchema>; feeCurrency: 'USD' }): Promise<unknown>;
+  dispatch(input: { dispatchId: string; intent: Intent; fee: z.infer<typeof decimalSchema>; feeCurrency: 'USD'; configuredSubmitPermit?: unknown }): Promise<unknown>;
   reconcile(input: { dispatchId: string; intent: Intent; brokerOrderId?: string }): Promise<unknown>;
   cancel(input: { cancelId: string; intent: Intent; brokerOrderId: string }): Promise<unknown>;
 }
@@ -79,9 +79,10 @@ function successful<T>(result: Result<T>): T {
   if (!result.ok) throw new Error('order lifecycle unavailable');
   return result.value;
 }
-function append(ledger: LifecycleFacts, event: LedgerEvent): void {
+function append(ledger: LifecycleFacts, event: LedgerEvent): Projection {
   const receipt = successful(ledger.append(event));
   if (receipt.disposition !== 'committed') throw new Error('order lifecycle unavailable');
+  return receipt.projection;
 }
 function eventBase(intent: Intent, now: () => number) {
   return { version: 1 as const, ownerId: intent.ownerId, accountId: intent.accountId, intentId: intent.intentId, eventId: randomUUID(), idempotencyKey: randomUUID(), occurredAt: currentTime(now) };
@@ -173,10 +174,31 @@ export type LifecycleFacts = Pick<Ledger, 'recordIntent' | 'append' | 'history' 
 type LifecycleControl = { halted: boolean; generation: number; tail: Promise<void> };
 const lifecycleControls = new WeakMap<LifecycleFacts, LifecycleControl>();
 
+export type ConfiguredBindingLease = { assertActive(): void };
+const configuredDispatchBindingSchema = z.object({
+  dispatchId: ledgerId, intent: intentSchema, fee: decimalSchema, feeCurrency: z.literal('USD'),
+  previewTerms: termsObjectSchema, termsHash: z.string().regex(/^[a-f0-9]{64}$/),
+}).strict();
+export type ConfiguredDispatchBinding = z.infer<typeof configuredDispatchBindingSchema>;
+type SubmitPermit = { binding: string; actualBinding: string; consumed: boolean; invalidated: boolean; assertCurrent(): void };
+const submitPermits = new WeakMap<object, SubmitPermit>();
+export function assertConfiguredSubmitPermit(raw: unknown, expectedBinding: string, actualArguments: unknown): void {
+  if (!raw || typeof raw !== 'object') throw new Error('order lifecycle unavailable');
+  const p = submitPermits.get(raw);
+  if (!p || p.consumed || p.invalidated || p.binding !== expectedBinding) throw new Error('order lifecycle unavailable');
+  if (canonical(configuredDispatchBindingSchema.parse(actualArguments)) !== p.actualBinding) throw new Error('order lifecycle unavailable');
+  p.assertCurrent();
+}
+export function consumeConfiguredSubmitPermit(raw: unknown, expectedBinding: string, actualArguments: unknown): void {
+  assertConfiguredSubmitPermit(raw, expectedBinding, actualArguments);
+  submitPermits.get(raw as object)!.consumed = true;
+}
+function permitConsumed(raw: object | undefined): boolean { return !!raw && submitPermits.get(raw)?.consumed === true; }
+
 export class OrderLifecycle {
   private readonly control: LifecycleControl;
-  private readonly previews = new Map<string, { terms: OrderTerms; termsHash: string; generation: number }>();
-  constructor(private readonly ledger: LifecycleFacts, private readonly ownerId: string, private readonly selected: () => SelectedOrderAccount | null, private readonly adapter: OrderAdapter, private readonly now = Date.now, private readonly uuid = randomUUID, private readonly token = () => randomBytes(32).toString('base64url'), private readonly options: { configuredSimulation?: true } = {}) {
+  private readonly previews = new Map<string, { terms: OrderTerms; termsHash: string; generation: number; sizingBinding?: string }>();
+  constructor(private readonly ledger: LifecycleFacts, private readonly ownerId: string, private readonly selected: () => SelectedOrderAccount | null, private readonly adapter: OrderAdapter, private readonly now = Date.now, private readonly uuid = randomUUID, private readonly token = () => randomBytes(32).toString('base64url'), private readonly options: { configuredSimulation?: true; boundClaimCheck?: (ownerId: string, expected: Projection) => void; boundBeforeClaim?: (binding: string) => Promise<void> } = {}) {
     ledgerId.parse(ownerId);
     if (options.configuredSimulation) this.simulationScope();
     const shared = lifecycleControls.get(ledger);
@@ -231,8 +253,11 @@ export class OrderLifecycle {
       } catch { this.stopNewOrders(); throw new Error('order lifecycle unavailable'); }
     });
   }
-  async preview(input: unknown): Promise<OrderPreview> {
-    return this.exclusive(async () => {
+  async preview(input: unknown): Promise<OrderPreview> { return this.exclusive(() => {
+    if (this.options.boundClaimCheck) throw new Error('order lifecycle unavailable');
+    return this.previewLocked(input);
+  }); }
+  private async previewLocked(input: unknown): Promise<OrderPreview> {
       if (this.control.halted) throw new Error('order lifecycle unavailable');
       try {
         const account = this.scope();
@@ -256,6 +281,28 @@ export class OrderLifecycle {
         this.previews.set(confirmationToken, { terms, termsHash, generation: this.control.generation });
         return (this.options.configuredSimulation ? simulationPreviewSchema : orderPreviewSchema).parse({ terms, confirmationToken, termsHash });
       } catch { throw new Error('order lifecycle unavailable'); }
+  }
+  async previewBoundSimulation(prepareOrder: (lease: ConfiguredBindingLease) => Promise<{ order: unknown; sizingBinding: string } | { noOrder: unknown }>,
+    admitPreview: (preview: OrderPreview, lease: ConfiguredBindingLease) => Promise<void>): Promise<OrderPreview | { noOrder: unknown }> {
+    return this.exclusive(async () => {
+      if (!this.options.configuredSimulation || !this.options.boundClaimCheck) throw new Error('order lifecycle unavailable');
+      this.simulationScope(); const account = this.scope(), generation = this.control.generation;
+      const lease = { assertActive: () => {
+        this.simulationScope();
+        if (this.control.halted || generation !== this.control.generation || !sameAccount(account, this.scope())
+          || successful(this.ledger.ownerHasUnresolvedLifecycle(this.ownerId)) || this.states(account).some(s => s.state.open)) throw new Error('order lifecycle unavailable');
+      } };
+      try {
+        lease.assertActive(); const prepared = await prepareOrder(lease); lease.assertActive();
+        if ('noOrder' in prepared) return prepared;
+        const preview = await this.previewLocked(prepared.order); lease.assertActive();
+        const saved = this.previews.get(preview.confirmationToken);
+        if (!saved || typeof prepared.sizingBinding !== 'string' || prepared.sizingBinding.length > 8192) throw new Error('order lifecycle unavailable');
+        saved.sizingBinding = prepared.sizingBinding;
+        await admitPreview(preview, lease); lease.assertActive();
+        if (Date.parse(preview.terms.expiresAt) <= this.now()) throw new Error('order lifecycle unavailable');
+        return preview;
+      } catch { this.stopNewOrders(); throw new Error('order lifecycle unavailable'); }
     });
   }
   async confirm(input: unknown): Promise<{ intentId: string; outcome: 'acknowledged' | 'rejected' | 'unknown' }> {
@@ -264,8 +311,9 @@ export class OrderLifecycle {
       if (!decoded.success) throw new Error('order lifecycle unavailable');
       const saved = this.previews.get(decoded.data.confirmationToken);
       this.previews.delete(decoded.data.confirmationToken); // one use, even on expiry or changed terms
-      if (!saved || saved.termsHash !== decoded.data.termsHash || saved.generation !== this.control.generation || this.control.halted) throw new Error('order lifecycle unavailable');
+      if ((this.options.boundClaimCheck && !saved?.sizingBinding) || !saved || saved.termsHash !== decoded.data.termsHash || saved.generation !== this.control.generation || this.control.halted) throw new Error('order lifecycle unavailable');
       let dispatchStarted = false;
+      let configuredPermit: object | undefined;
       try {
         const account = this.scope();
         if (this.options.configuredSimulation) this.simulationScope(saved.terms.order);
@@ -273,23 +321,50 @@ export class OrderLifecycle {
         const now = this.now();
         if (Date.parse(saved.terms.expiresAt) <= now || Date.parse(saved.terms.expiresAt) > now + 300000) throw new Error('order lifecycle unavailable');
         if (!withinFeeInclusiveCap(saved.terms.order.requestedQuantity, saved.terms.order.requestedLimitPrice, saved.terms.fee)) throw new Error('order lifecycle unavailable');
-        if (this.states(account).some(({ state }) => state.open)) throw new Error('order lifecycle unavailable');
-        const occurredAt = currentTime(this.now);
+        if (this.states(account).some(({ state }) => state.open)
+          || (saved.sizingBinding && successful(this.ledger.ownerHasUnresolvedLifecycle(this.ownerId)))) throw new Error('order lifecycle unavailable');
+        if (saved.sizingBinding) {
+          if (!this.options.boundBeforeClaim) throw new Error('order lifecycle unavailable');
+          await this.options.boundBeforeClaim(saved.sizingBinding);
+          if (this.control.halted || saved.generation !== this.control.generation || !sameAccount(account, this.scope())
+            || successful(this.ledger.ownerHasUnresolvedLifecycle(this.ownerId))) throw new Error('order lifecycle unavailable');
+        }
+        const claimTime = this.now();
+        if (!Number.isSafeInteger(claimTime) || claimTime < 0 || Date.parse(saved.terms.expiresAt) <= claimTime
+          || Date.parse(saved.terms.expiresAt) > claimTime + 300000) throw new Error('order lifecycle unavailable');
+        const occurredAt = new Date(claimTime).toISOString();
         const intent = intentSchema.parse({ version: 1, ownerId: this.ownerId, accountId: account.accountId, intentId: this.uuid(), idempotencyKey: this.uuid(), recordedAt: occurredAt, routing: account.routing, order: saved.terms.order });
         const intentReceipt = successful(this.ledger.recordIntent(intent));
         if (intentReceipt.disposition !== 'committed') throw new Error('order lifecycle unavailable');
         const confirmationId = this.uuid();
         const termsHash = binding(intent, saved.terms.previewId, saved.terms.fee, saved.terms.feeCurrency, saved.terms.expiresAt);
-        append(this.ledger, eventSchema.parse({ ...eventBase(intent, () => Date.parse(occurredAt)), type: 'preview-confirmed', previewId: saved.terms.previewId, confirmationId, fee: saved.terms.fee, feeCurrency: saved.terms.feeCurrency, expiresAt: saved.terms.expiresAt, termsHash }));
-        append(this.ledger, eventSchema.parse({ ...eventBase(intent, this.now), type: 'dispatch-claimed', dispatchId: intent.intentId, previewId: saved.terms.previewId, confirmationId, termsHash }));
+        const confirmedEvent = eventSchema.parse({ ...eventBase(intent, () => Date.parse(occurredAt)), type: 'preview-confirmed', previewId: saved.terms.previewId, confirmationId, fee: saved.terms.fee, feeCurrency: saved.terms.feeCurrency, expiresAt: saved.terms.expiresAt, termsHash });
+        const claimedEvent = eventSchema.parse({ ...eventBase(intent, this.now), type: 'dispatch-claimed', dispatchId: intent.intentId, previewId: saved.terms.previewId, confirmationId, termsHash });
+        append(this.ledger, confirmedEvent); append(this.ledger, claimedEvent);
+        if (saved.sizingBinding) {
+          if (!this.options.configuredSimulation || !this.options.boundClaimCheck || intentReceipt.projection.facts.length) throw new Error('order lifecycle unavailable');
+          const expected = copy(projectionSchema.parse({ version: 1, intent, eventCount: 2, facts: [confirmedEvent, claimedEvent] }));
+          configuredPermit = Object.freeze({});
+          const generation = saved.generation;
+          const assertCurrent = () => {
+            this.simulationScope(saved.terms.order);
+            const current = this.now();
+            if (!Number.isSafeInteger(current) || current < 0 || this.control.halted || generation !== this.control.generation || !sameAccount(account, this.scope())
+              || Date.parse(saved.terms.expiresAt) <= current) throw new Error('order lifecycle unavailable');
+            this.options.boundClaimCheck!(this.ownerId, copy(expected));
+          };
+          assertCurrent(); submitPermits.set(configuredPermit, { binding: saved.sizingBinding, actualBinding: canonical(configuredDispatchBindingSchema.parse({ dispatchId: intent.intentId, intent, fee: saved.terms.fee, feeCurrency: saved.terms.feeCurrency, previewTerms: saved.terms, termsHash: saved.termsHash })), consumed: false, invalidated: false, assertCurrent });
+        }
         // The durable claim above is the only authorization to invoke an injected adapter.
         // Recheck expiry immediately before the call; a stale claim remains unresolved.
         if (Date.parse(saved.terms.expiresAt) <= this.now()) throw new Error('order lifecycle unavailable');
         // It is never replayed as a dispatch after restart.
-        dispatchStarted = true;
+        dispatchStarted = !configuredPermit;
         let outcome: z.infer<typeof dispatchResponseSchema>;
-        try { outcome = dispatchResponseSchema.parse(await this.adapter.dispatch({ dispatchId: intent.intentId, intent: copy(intent), fee: copy(saved.terms.fee), feeCurrency: saved.terms.feeCurrency })); }
-        catch { outcome = { outcome: 'unknown' }; }
+        try { outcome = dispatchResponseSchema.parse(await this.adapter.dispatch({ dispatchId: intent.intentId, intent: copy(intent), fee: copy(saved.terms.fee), feeCurrency: saved.terms.feeCurrency,
+          ...(configuredPermit ? { configuredSubmitPermit: configuredPermit } : {}) })); }
+        catch { if (configuredPermit && !permitConsumed(configuredPermit)) throw new Error('order lifecycle unavailable'); outcome = { outcome: 'unknown' }; }
+        if (configuredPermit && !permitConsumed(configuredPermit)) throw new Error('order lifecycle unavailable');
         if (outcome.outcome === 'accepted' && outcome.brokerOrderId) {
           append(this.ledger, eventSchema.parse({ ...eventBase(intent, this.now), type: 'broker-acknowledged', brokerOrderId: outcome.brokerOrderId }));
           return { intentId: intent.intentId, outcome: 'acknowledged' };
@@ -304,9 +379,9 @@ export class OrderLifecycle {
       } catch {
         this.stopNewOrders();
         // Any error after the durable claim may hide a completed provider action.
-        if (dispatchStarted) throw new Error('order outcome unknown; reconciliation required');
+        if (dispatchStarted || permitConsumed(configuredPermit)) throw new Error('order outcome unknown; reconciliation required');
         throw new Error('order lifecycle unavailable');
-      }
+      } finally { const permit = configuredPermit ? submitPermits.get(configuredPermit) : undefined; if (permit) permit.invalidated = true; }
     });
   }
   async reconcileAll(): Promise<number> {

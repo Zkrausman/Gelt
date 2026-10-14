@@ -13,6 +13,8 @@ import { canonical } from './ledger-canonical.js';
 import { decimalSchema, eventSchema, intentSchema, ledgerId, orderSchema, projectionSchema, routingSchema, type Projection, type Result, type WriteReceipt } from './ledger-contract.js';
 import { OrderLifecycle, hasUnresolvedLifecycle, validateLifecycleProjections, type OrderAdapter } from './order-lifecycle.js';
 import { equalSecret } from './security.js';
+import { sizingBindingPolicySchema } from './synthetic-mock-robinhood-contract.js';
+import type { EvidenceStage } from './synthetic-sizing-binding-evidence.js';
 import { simulationRunSchema } from './synthetic-simulation-economics.js';
 import { SyntheticMockRobinhoodAdapter, type SimulationAdapterOptions } from './synthetic-mock-robinhood-adapter.js';
 import { SyntheticMockRobinhoodStore } from './synthetic-mock-robinhood-storage.js';
@@ -180,6 +182,16 @@ class SyntheticFacts {
       return hasUnresolvedLifecycle(all);
     })()));
   }
+  validateBoundClaim(ownerId: string, expected: Projection): void {
+    const result = this.guard(() => ok(this.storage.db.transaction(() => {
+      if (ownerId !== owner) throw new Error();
+      const all = this.read(), own = all.find(p => p.intent.intentId === expected.intent.intentId);
+      if (!own || canonical(own) !== canonical(expected) || !hasUnresolvedLifecycle([own])
+        || hasUnresolvedLifecycle(all.filter(p => p !== own))) throw new Error();
+      return true;
+    })()));
+    if (!result.ok || !result.value) throw new Error('order lifecycle unavailable');
+  }
   close(): void { this.storage.poisoned ||= this.poisoned; this.storage.close(); }
 }
 const scenarioSchema = z.object({ dispatch: z.enum(['accepted', 'rejected', 'unknown']).optional(), reconcile: z.enum(['partial', 'late-partial', 'canceled', 'filled', 'unknown']).optional() }).strict().refine(v => Object.keys(v).length === 1);
@@ -191,10 +203,17 @@ const sessionLifetimeMs = 300000;
 function fixtureEnabled() {
   return process.env.NODE_ENV === 'test' && process.env.GELT_SYNTHETIC_ORDER_HARNESS === 'offline-test-only';
 }
-export function createSyntheticOrderHarness(sessionClock: () => number = Date.now, options: { applicationMock?: boolean; mockRequestTimeoutMsForTest?: number; previewDiagnosticsForTest?: boolean; simulationRun?: SimulationAdapterOptions } = {}) {
+export function createSyntheticOrderHarness(sessionClock: () => number = Date.now, options: { applicationMock?: boolean; mockRequestTimeoutMsForTest?: number; previewDiagnosticsForTest?: boolean; simulationRun?: SimulationAdapterOptions; sizingEvidenceStageForTest?: (stage: EvidenceStage) => void } = {}) {
   if (!fixtureEnabled() || (options.applicationMock && process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only')) throw new Error('synthetic harness disabled');
   if (options.simulationRun && !options.applicationMock) throw new Error('synthetic harness disabled');
-  const simulation = options.simulationRun ? { config: simulationRunSchema.parse(options.simulationRun.config), decision: options.simulationRun.decision } : undefined;
+  const rawSimulation = options.simulationRun;
+  if (rawSimulation && (Boolean(rawSimulation.decision) === Boolean(rawSimulation.sizingBinding)
+    || (rawSimulation.decision && typeof rawSimulation.decision !== 'function')
+    || (rawSimulation.sizingBinding && typeof rawSimulation.sizingBinding.producer !== 'function'))) throw new Error('synthetic harness disabled');
+  if (options.sizingEvidenceStageForTest && !rawSimulation?.sizingBinding) throw new Error('synthetic harness disabled');
+  const simulation: SimulationAdapterOptions | undefined = rawSimulation ? { config: simulationRunSchema.parse(rawSimulation.config),
+    ...(rawSimulation.decision ? { decision: rawSimulation.decision } : {}),
+    ...(rawSimulation.sizingBinding ? { sizingBinding: { policy: sizingBindingPolicySchema.parse(rawSimulation.sizingBinding.policy), producer: rawSimulation.sizingBinding.producer } } : {}) } : undefined;
   const mockRequestTimeoutMsForTest = options.mockRequestTimeoutMsForTest === undefined ? 5000 : options.mockRequestTimeoutMsForTest;
   // Validate the explicit test budget before creating any private fixture/lock.
   if (!Number.isSafeInteger(mockRequestTimeoutMsForTest) || mockRequestTimeoutMsForTest < 5000 || mockRequestTimeoutMsForTest > 30000
@@ -217,9 +236,9 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     let mockTransport: SyntheticMockRobinhoodTransport | undefined;
     let mockAdapter: SyntheticMockRobinhoodAdapter | undefined;
     try {
-      mockStore = options.applicationMock ? new SyntheticMockRobinhoodStore(mockPath, sessionClock, previewDiagnostics, { simulationRun: simulation?.config }) : undefined;
+      mockStore = options.applicationMock ? new SyntheticMockRobinhoodStore(mockPath, sessionClock, previewDiagnostics, { simulationRun: simulation?.config, sizingPolicy: simulation?.sizingBinding?.policy, evidenceStageForTest: options.sizingEvidenceStageForTest }) : undefined;
       mockTransport = mockStore ? new SyntheticMockRobinhoodTransport(mockStore, mockRequestTimeoutMsForTest, previewDiagnostics) : undefined;
-      mockAdapter = mockTransport ? new SyntheticMockRobinhoodAdapter(mockTransport.client, sessionClock, previewDiagnostics, simulation) : undefined;
+      mockAdapter = mockTransport ? new SyntheticMockRobinhoodAdapter(mockTransport.client, sessionClock, previewDiagnostics, simulation, simulation?.sizingBinding ? (bytes, proposal) => mockStore!.prepareSizingEvidence(bytes, proposal) : undefined) : undefined;
     } catch (error) {
       try { mockTransport ? void mockTransport.close() : mockStore?.close(); } catch { /* preserve uncertain writer ownership */ }
       try { facts.close(); } catch { /* preserve uncertain lifecycle ownership */ }
@@ -244,7 +263,16 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
       },
       async cancel() { return { acknowledged: true }; },
     };
-    const lifecycle = new OrderLifecycle(facts, owner, () => ({ accountId: account, routing: route }), adapter, sessionClock, randomUUID, () => randomBytes(32).toString('base64url'), simulation ? { configuredSimulation: true } : {});
+    const lifecycle = new OrderLifecycle(facts, owner, () => ({ accountId: account, routing: route }), adapter, sessionClock, randomUUID, () => randomBytes(32).toString('base64url'), simulation ? { configuredSimulation: true, ...(simulation.sizingBinding ? {
+      boundClaimCheck: (ownerId: string, expected: Projection) => facts.validateBoundClaim(ownerId, expected),
+      boundBeforeClaim: (binding: string) => mockAdapter!.beforeBoundClaim(binding),
+    } : {}) } : {});
+    const previewSizingBound = async () => {
+      if (!fixtureEnabled() || !simulation?.sizingBinding || mockStore?.sizingBoundReadOnly) throw new Error('synthetic binding unavailable');
+      try { return await lifecycle.previewBoundSimulation(lease => mockAdapter!.prepareSizing(lease), async (preview, lease) => {
+        lease.assertActive(); await mockAdapter!.admitPreview(preview); lease.assertActive();
+      }); } catch { mockAdapter!.invalidateBound(); throw new Error('synthetic binding unavailable'); }
+    };
     let mockPreviewAdmissionTail = Promise.resolve();
     const previewAndAdmitMock = async (rawOrder: unknown) => {
       let release!: () => void;
@@ -294,10 +322,12 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
         for await (const chunk of req) { body += chunk; if (Buffer.byteLength(body) > maxBody) throw new Error(); }
         if (Buffer.byteLength(body) !== Number(req.headers['content-length'])) throw new Error();
         const input: unknown = JSON.parse(body);
+        if (mockStore?.sizingBoundReadOnly && !['history', 'mock-history'].includes(operation)) throw new Error();
         let value: unknown;
         switch (operation) {
           case 'resume': empty.parse(input); await lifecycle.resumeNewOrders(); value = { ready: true }; break;
           case 'preview': {
+            if (simulation?.sizingBinding) throw new Error(); // Bound orders are constructed in-process, never from caller quantities.
             const order = orderSchema.parse(input);
             const preview = mockAdapter ? await previewAndAdmitMock(order) : await lifecycle.preview(order);
             value = preview;
@@ -336,6 +366,12 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
     server.requestTimeout = 5000; server.headersTimeout = 5000; server.maxHeadersCount = 32;
     return {
       auth, path,
+      previewSizingBound,
+      haltSizingBound: () => { if (!fixtureEnabled() || !simulation?.sizingBinding) throw new Error(); lifecycle.haltNewOrders(); mockAdapter!.invalidateBound(); },
+      confirmSizingBound: async (input: unknown) => {
+        if (!fixtureEnabled() || !simulation?.sizingBinding || mockStore?.sizingBoundReadOnly) throw new Error('synthetic binding unavailable');
+        try { return await lifecycle.confirm(input); } catch (error) { mockAdapter!.invalidateBound(); throw error; }
+      },
       mockPath: mockAdapter ? mockPath : undefined,
       mockStore,
       mockTransport,
