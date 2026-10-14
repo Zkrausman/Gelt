@@ -98,3 +98,27 @@ the delivery PR and receipt; no test pass is claimed by this source-stage report
 Genuine dataset/rights/availability/calibration/control/schedule/mapping and
 prospective producer/runner admission remain separate prerequisites. G07 is not
 implemented or accepted by this constructed binding.
+
+
+The first complete independent source review held candidate bc130377 with two
+high findings and one medium finding (turn01a13c24-8e9a-7632-96a4-94d56b551fb7).
+Actionable lifecycle orders incorrectly included mock-only type/timeInForce
+fields; the constructed order and permit fixture now use only the retained strict
+lifecycle shape. Mock previews still carry their separate LIMIT/DAY fields.
+Permit assertions now require the complete actual dispatch arguments as well as
+sizing identity: dispatchId, full intent/owner/account/routing/order, fee/currency,
+preview terms/hash/expiry must match the privately minted claim. The adapter
+snapshots these values before awaits and validates them before one-use consumption;
+new substitution cases retain a genuine permit while altering actual arguments.
+Confirmation also samples safe current time and checks expiry after pre-claim
+await and before any durable intent write; its new case keeps observation freshness
+valid so expiry rejection is tested independently. These are source corrections,
+not runtime pass claims. The stale adversarial G05 result is excluded from binding
+acceptance. Both complete fresh source reviews remain required on the corrected
+head; no test, CI or publication has occurred.
+
+The corrected adversarial review of frozen bc130377 returned no blocker/high
+findings (turn01a13c29-19ec-77db-ae17-e514c18ca86b). That historical result does
+not override the independent HOLD or accept this corrected source. All three
+independent findings are consolidated; both fresh complete reviews must decide
+the resulting exact head before any runtime/publication gate.

@@ -16,7 +16,7 @@ import { shadowSizingPolicyId } from './shadow-sizing-contract.js';
 import { matchesShadowSizingProposal } from './shadow-sizing.js';
 import type { SimulationDecisionContext } from './synthetic-mock-robinhood-adapter.js';
 import { OrderLifecycle, hasUnresolvedLifecycle, assertConfiguredSubmitPermit, consumeConfiguredSubmitPermit,
-  type LifecycleFacts, type OrderAdapter } from './order-lifecycle.js';
+  type ConfiguredDispatchBinding, type LifecycleFacts, type OrderAdapter } from './order-lifecycle.js';
 import { intentSchema, eventSchema, type Projection, type Result, type WriteReceipt } from './ledger-contract.js';
 
 // Constructed clocks/bars/costs only. These are not provider or prospective-run evidence.
@@ -141,6 +141,13 @@ describe('actual constructed G05 sizing to isolated durable simulator', () => {
     expect(fullEvidence(f, f.previews()[0]).input).toEqual(before); expect(f.counts()).toEqual([{ n: 1 }, { n: 0 }]);
     expect((await f.request('history')).body).toHaveProperty('value.items', []);
   });
+  it('rechecks preview expiry after pre-claim await while observation freshness still passes', async () => {
+    const c = config(); c.maxObservationAgeMs = 120000;
+    const f = await fixture(c), prepared = await f.prepare(), client = f.h.mockTransport!.client, original = client.portfolio.bind(client);
+    vi.spyOn(client, 'portfolio').mockImplementation(async () => { const value = await original(); f.time(initial + 60001); return value; });
+    await expect(f.h.confirmSizingBound({ confirmationToken: prepared.confirmationToken, termsHash: prepared.termsHash })).rejects.toThrow();
+    expect(f.counts()).toEqual([{ n: 1 }, { n: 0 }]); expect((await f.request('history')).body).toHaveProperty('value.items', []);
+  });
   it('fences a committed admission with a lost response and never returns dispatch authority', async () => {
     const f = await fixture(), client = f.h.mockTransport!.client, original = client.admit.bind(client);
     vi.spyOn(client, 'admit').mockImplementation(async input => { await original(input); throw new Error('constructed response loss'); });
@@ -245,6 +252,15 @@ describe('actual constructed G05 sizing to isolated durable simulator', () => {
   });
 });
 
+function permitArguments(input: Parameters<OrderAdapter['dispatch']>[0], records: Map<string, Projection>): ConfiguredDispatchBinding {
+  const projection = records.get(input.intent.intentId)!;
+  const event = projection.facts.find(e => e.type === 'preview-confirmed');
+  if (!event || event.type !== 'preview-confirmed') throw new Error();
+  return { dispatchId: input.dispatchId, intent: input.intent, fee: input.fee, feeCurrency: input.feeCurrency,
+    previewTerms: { version: 1, ownerId: input.intent.ownerId, accountId: input.intent.accountId, routing: input.intent.routing,
+      order: input.intent.order, previewId: event.previewId, fee: event.fee, feeCurrency: event.feeCurrency, expiresAt: event.expiresAt }, termsHash: event.termsHash };
+}
+
 // Isolated lifecycle state-machine tests use an explicit in-memory facts fixture;
 // the integrated cases above use the actual isolated native stores/transport.
 function permitFixture(dispatch: OrderAdapter['dispatch']) {
@@ -256,7 +272,7 @@ function permitFixture(dispatch: OrderAdapter['dispatch']) {
     history: (rawScope, rawPage) => { const scope = rawScope as { accountId: string }, page = rawPage as { after: number; limit: number }; return ok([...records.values()].filter(p => p.intent.accountId === scope.accountId).slice(page.after, page.after + page.limit)); },
     ownerHasUnresolvedLifecycle: () => ok(hasUnresolvedLifecycle([...records.values()])),
   };
-  const order = { instrumentId: 'SYNTH-RH-USD', currency: 'USD', route: 'RHS', side: 'buy', type: 'limit', timeInForce: 'day', requestedQuantity: d('1'), requestedLimitPrice: d('1.10') };
+  const order = { instrumentId: 'SYNTH-RH-USD', currency: 'USD', route: 'RHS', side: 'buy', requestedQuantity: d('1'), requestedLimitPrice: d('1.10') };
   const adapter: OrderAdapter = { preview: async input => ({ previewId: randomUUID(), order: input.order, fee: d('0.01'), feeCurrency: 'USD', expiresAt: iso(initial + 60000) }),
     dispatch, reconcile: async () => ({ status: 'unknown', executions: [] }), cancel: async () => ({ acknowledged: true }) };
   const lifecycle = new OrderLifecycle(facts, owner, () => ({ accountId: account, routing }), adapter, () => initial, randomUUID, undefined,
@@ -269,27 +285,48 @@ function permitFixture(dispatch: OrderAdapter['dispatch']) {
 }
 describe('phase-specific lifecycle-owned permit', () => {
   it('mints only for the exact new own claim and consumes once; forged, cloned, changed and reused permits reject', async () => {
-    let saved: unknown, calls = 0;
+    let saved: unknown, savedArguments: ConfiguredDispatchBinding, calls = 0;
     const f = permitFixture(async input => {
-      saved = input.configuredSubmitPermit;
-      expect(() => assertConfiguredSubmitPermit({}, 'exact-test-context')).toThrow();
-      expect(() => assertConfiguredSubmitPermit({ ...(saved as object) }, 'exact-test-context')).toThrow();
-      expect(() => assertConfiguredSubmitPermit(saved, 'different')).toThrow();
-      assertConfiguredSubmitPermit(saved, 'exact-test-context'); consumeConfiguredSubmitPermit(saved, 'exact-test-context'); calls++;
-      expect(() => consumeConfiguredSubmitPermit(saved, 'exact-test-context')).toThrow();
+      saved = input.configuredSubmitPermit; savedArguments = permitArguments(input, f.records);
+      expect(() => assertConfiguredSubmitPermit({}, 'exact-test-context', savedArguments)).toThrow();
+      expect(() => assertConfiguredSubmitPermit({ ...(saved as object) }, 'exact-test-context', savedArguments)).toThrow();
+      expect(() => assertConfiguredSubmitPermit(saved, 'different', savedArguments)).toThrow();
+      assertConfiguredSubmitPermit(saved, 'exact-test-context', savedArguments); consumeConfiguredSubmitPermit(saved, 'exact-test-context', savedArguments); calls++;
+      expect(() => consumeConfiguredSubmitPermit(saved, 'exact-test-context', savedArguments)).toThrow();
       return { outcome: 'accepted', brokerOrderId: 'mock-permit-fixture' };
     });
     const preview = await f.prepare(); expect((await f.lifecycle.confirm({ confirmationToken: preview.confirmationToken, termsHash: preview.termsHash })).outcome).toBe('acknowledged');
-    expect(calls).toBe(1); expect(() => assertConfiguredSubmitPermit(saved, 'exact-test-context')).toThrow();
+    expect(calls).toBe(1); expect(() => assertConfiguredSubmitPermit(saved, 'exact-test-context', savedArguments)).toThrow();
+  });
+  it.each(['dispatchId', 'intentId', 'owner', 'account', 'routing', 'order', 'fee', 'preview', 'termsHash', 'expiry'] as const)
+  ('rejects substituted actual %s arguments retaining the genuine permit', async changed => {
+    const f = permitFixture(async input => {
+      const argumentsNow = permitArguments(input, f.records), wrong = JSON.parse(canonical(argumentsNow)) as ConfiguredDispatchBinding;
+      if (changed === 'dispatchId') wrong.dispatchId = randomUUID();
+      if (changed === 'intentId') wrong.intent.intentId = randomUUID();
+      if (changed === 'owner') { wrong.intent.ownerId = randomUUID(); wrong.previewTerms.ownerId = wrong.intent.ownerId; }
+      if (changed === 'account') { wrong.intent.accountId = randomUUID(); wrong.previewTerms.accountId = wrong.intent.accountId; }
+      if (changed === 'routing') { wrong.intent.routing.ACCOUNT = 'other-synthetic'; wrong.previewTerms.routing = JSON.parse(canonical(wrong.intent.routing)); }
+      if (changed === 'order') { wrong.intent.order.requestedQuantity = d('0.01'); wrong.previewTerms.order = JSON.parse(canonical(wrong.intent.order)); }
+      if (changed === 'fee') { wrong.fee = d('0.02'); wrong.previewTerms.fee = wrong.fee; }
+      if (changed === 'preview') wrong.previewTerms.previewId = randomUUID();
+      if (changed === 'termsHash') wrong.termsHash = 'f'.repeat(64);
+      if (changed === 'expiry') wrong.previewTerms.expiresAt = iso(initial + 59000);
+      expect(() => assertConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context', wrong)).toThrow();
+      expect(() => consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context', wrong)).toThrow();
+      consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context', argumentsNow);
+      return { outcome: 'accepted', brokerOrderId: 'mock-permit-fixture' };
+    });
+    const preview = await f.prepare(); expect((await f.lifecycle.confirm({ confirmationToken: preview.confirmationToken, termsHash: preview.termsHash })).outcome).toBe('acknowledged');
   });
   it('halts after claim but before invocation without recording a fictitious submitted UNKNOWN', async () => {
-    const f = permitFixture(async input => { f.lifecycle.haltNewOrders(); consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context'); return { outcome: 'accepted', brokerOrderId: 'mock-unused' }; });
+    const f = permitFixture(async input => { f.lifecycle.haltNewOrders(); consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context', permitArguments(input, f.records)); return { outcome: 'accepted', brokerOrderId: 'mock-unused' }; });
     const preview = await f.prepare(); await expect(f.lifecycle.confirm({ confirmationToken: preview.confirmationToken, termsHash: preview.termsHash })).rejects.toThrow('order lifecycle unavailable');
     expect([...f.records.values()][0].facts.map(e => e.type)).toEqual(['preview-confirmed', 'dispatch-claimed']);
     await expect(f.lifecycle.resumeNewOrders()).rejects.toThrow();
   });
   it('preserves UNKNOWN when invocation consumed the permit before an exception', async () => {
-    const f = permitFixture(async input => { consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context'); throw new Error('post-invocation loss'); });
+    const f = permitFixture(async input => { consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context', permitArguments(input, f.records)); throw new Error('post-invocation loss'); });
     const preview = await f.prepare(); expect((await f.lifecycle.confirm({ confirmationToken: preview.confirmationToken, termsHash: preview.termsHash })).outcome).toBe('unknown');
     expect([...f.records.values()][0].facts.at(-1)!.type).toBe('dispatch-outcome-unknown'); await expect(f.lifecycle.resumeNewOrders()).rejects.toThrow();
   });
@@ -304,14 +341,14 @@ describe('phase-specific lifecycle-owned permit', () => {
         if (event.type === 'preview-confirmed') { event.confirmationId = randomUUID(); event.termsHash = termsHash; }
         if (event.type === 'dispatch-claimed') { event.dispatchId = other.intent.intentId; event.confirmationId = confirmation.confirmationId; event.termsHash = termsHash; } }
       f.records.set(other.intent.intentId, other);
-      consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context'); return { outcome: 'accepted', brokerOrderId: 'mock-unused' };
+      consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context', permitArguments(input, f.records)); return { outcome: 'accepted', brokerOrderId: 'mock-unused' };
     });
     const preview = await f.prepare(); await expect(f.lifecycle.confirm({ confirmationToken: preview.confirmationToken, termsHash: preview.termsHash })).rejects.toThrow();
     expect(f.records.size).toBe(2); expect([...f.records.values()].flatMap(p => p.facts).some(e => e.type === 'broker-acknowledged')).toBe(false);
   });
   it('rejects an unexpected fact in the own just-minted claim', async () => {
     const f = permitFixture(async input => { const own = f.records.get(input.dispatchId)!; own.eventCount++; own.facts.push(own.facts[0]);
-      consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context'); return { outcome: 'accepted', brokerOrderId: 'mock-unused' }; });
+      consumeConfiguredSubmitPermit(input.configuredSubmitPermit, 'exact-test-context', permitArguments(input, f.records)); return { outcome: 'accepted', brokerOrderId: 'mock-unused' }; });
     const preview = await f.prepare(); await expect(f.lifecycle.confirm({ confirmationToken: preview.confirmationToken, termsHash: preview.termsHash })).rejects.toThrow();
     expect([...f.records.values()][0].facts).not.toEqual(expect.arrayContaining([expect.objectContaining({ type: 'broker-acknowledged' })]));
   });

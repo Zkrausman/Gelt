@@ -1,3 +1,4 @@
+import { intentSchema, decimalSchema, ledgerId } from './ledger-contract.js';
 import { shadowSizingInputSchema, type ShadowSizingProposal } from './shadow-sizing-contract.js';
 import { proposeShadowSizing, matchesShadowSizingProposal } from './shadow-sizing.js';
 import { assertConfiguredSubmitPermit, consumeConfiguredSubmitPermit, type ConfiguredBindingLease } from './order-lifecycle.js';
@@ -79,7 +80,7 @@ export class SyntheticMockRobinhoodAdapter implements OrderAdapter {
     this.bound = { bytes: Buffer.from(bytes), proposal: JSON.parse(canonical(proposal)), identity, lease };
     this.checkBound(this.bound, this.now()); lease.assertActive();
     return { order: { instrumentId: this.simulation!.config.instrumentId, currency: 'USD', route: 'RHS', side: proposal.side,
-      type: 'limit', timeInForce: 'day', requestedQuantity: proposal.quantity, requestedLimitPrice: proposal.hypothetical!.orderLimit }, sizingBinding: identity };
+      requestedQuantity: proposal.quantity, requestedLimitPrice: proposal.hypothetical!.orderLimit }, sizingBinding: identity };
   }
   async beforeBoundClaim(identity: string): Promise<void> {
     const context = this.pending?.bound;
@@ -218,14 +219,21 @@ export class SyntheticMockRobinhoodAdapter implements OrderAdapter {
         || input.intent.order.requestedLimitPrice.precision !== pending.preview.order.limitPrice.precision
         || input.intent.order.requestedLimitPrice.scale !== pending.preview.order.limitPrice.scale) throw new Error('synthetic mock unavailable');
       if (pending.bound) {
-        assertConfiguredSubmitPermit(input.configuredSubmitPermit, pending.bound.identity);
+        // Snapshot actual call data before awaits; only the opaque permit keeps identity.
+        input = { dispatchId: ledgerId.parse(input.dispatchId), intent: intentSchema.parse(input.intent),
+          fee: decimalSchema.parse(input.fee), feeCurrency: input.feeCurrency, configuredSubmitPermit: input.configuredSubmitPermit };
+        const actualArguments = { dispatchId: input.dispatchId, intent: input.intent, fee: input.fee, feeCurrency: input.feeCurrency,
+          previewTerms: { version: 1, ownerId: input.intent.ownerId, accountId: input.intent.accountId, routing: input.intent.routing,
+            order: input.intent.order, previewId: pending.preview.previewId, fee: pending.preview.fee.amount,
+            feeCurrency: 'USD', expiresAt: pending.preview.expiresAt }, termsHash: pending.termsHash };
+        assertConfiguredSubmitPermit(input.configuredSubmitPermit, pending.bound.identity, actualArguments);
         await this.currentBoundPortfolio(pending.bound);
-        assertConfiguredSubmitPermit(input.configuredSubmitPermit, pending.bound.identity);
+        assertConfiguredSubmitPermit(input.configuredSubmitPermit, pending.bound.identity, actualArguments);
         this.checkBound(pending.bound, this.now());
         const payload = { dispatchId: input.dispatchId, preview: pending.preview, termsHash: pending.termsHash,
           confirmationToken: pending.confirmationToken, admissionHandle: pending.handle };
         if (Buffer.byteLength(JSON.stringify(payload)) > 8192) throw new Error('synthetic binding unavailable');
-        consumeConfiguredSubmitPermit(input.configuredSubmitPermit, pending.bound.identity);
+        consumeConfiguredSubmitPermit(input.configuredSubmitPermit, pending.bound.identity, actualArguments);
       } else if (this.simulation?.sizingBinding || input.configuredSubmitPermit) throw new Error('synthetic binding unavailable');
       this.bound = undefined;
       const order = await this.client.submit({ dispatchId: input.dispatchId, preview: pending.preview, termsHash: pending.termsHash,

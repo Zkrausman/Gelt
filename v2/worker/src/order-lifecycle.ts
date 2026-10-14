@@ -175,16 +175,22 @@ type LifecycleControl = { halted: boolean; generation: number; tail: Promise<voi
 const lifecycleControls = new WeakMap<LifecycleFacts, LifecycleControl>();
 
 export type ConfiguredBindingLease = { assertActive(): void };
-type SubmitPermit = { binding: string; consumed: boolean; invalidated: boolean; assertCurrent(): void };
+const configuredDispatchBindingSchema = z.object({
+  dispatchId: ledgerId, intent: intentSchema, fee: decimalSchema, feeCurrency: z.literal('USD'),
+  previewTerms: termsObjectSchema, termsHash: z.string().regex(/^[a-f0-9]{64}$/),
+}).strict();
+export type ConfiguredDispatchBinding = z.infer<typeof configuredDispatchBindingSchema>;
+type SubmitPermit = { binding: string; actualBinding: string; consumed: boolean; invalidated: boolean; assertCurrent(): void };
 const submitPermits = new WeakMap<object, SubmitPermit>();
-export function assertConfiguredSubmitPermit(raw: unknown, expectedBinding: string): void {
+export function assertConfiguredSubmitPermit(raw: unknown, expectedBinding: string, actualArguments: unknown): void {
   if (!raw || typeof raw !== 'object') throw new Error('order lifecycle unavailable');
   const p = submitPermits.get(raw);
   if (!p || p.consumed || p.invalidated || p.binding !== expectedBinding) throw new Error('order lifecycle unavailable');
+  if (canonical(configuredDispatchBindingSchema.parse(actualArguments)) !== p.actualBinding) throw new Error('order lifecycle unavailable');
   p.assertCurrent();
 }
-export function consumeConfiguredSubmitPermit(raw: unknown, expectedBinding: string): void {
-  assertConfiguredSubmitPermit(raw, expectedBinding);
+export function consumeConfiguredSubmitPermit(raw: unknown, expectedBinding: string, actualArguments: unknown): void {
+  assertConfiguredSubmitPermit(raw, expectedBinding, actualArguments);
   submitPermits.get(raw as object)!.consumed = true;
 }
 function permitConsumed(raw: object | undefined): boolean { return !!raw && submitPermits.get(raw)?.consumed === true; }
@@ -323,7 +329,10 @@ export class OrderLifecycle {
           if (this.control.halted || saved.generation !== this.control.generation || !sameAccount(account, this.scope())
             || successful(this.ledger.ownerHasUnresolvedLifecycle(this.ownerId))) throw new Error('order lifecycle unavailable');
         }
-        const occurredAt = currentTime(this.now);
+        const claimTime = this.now();
+        if (!Number.isSafeInteger(claimTime) || claimTime < 0 || Date.parse(saved.terms.expiresAt) <= claimTime
+          || Date.parse(saved.terms.expiresAt) > claimTime + 300000) throw new Error('order lifecycle unavailable');
+        const occurredAt = new Date(claimTime).toISOString();
         const intent = intentSchema.parse({ version: 1, ownerId: this.ownerId, accountId: account.accountId, intentId: this.uuid(), idempotencyKey: this.uuid(), recordedAt: occurredAt, routing: account.routing, order: saved.terms.order });
         const intentReceipt = successful(this.ledger.recordIntent(intent));
         if (intentReceipt.disposition !== 'committed') throw new Error('order lifecycle unavailable');
@@ -344,7 +353,7 @@ export class OrderLifecycle {
               || Date.parse(saved.terms.expiresAt) <= current) throw new Error('order lifecycle unavailable');
             this.options.boundClaimCheck!(this.ownerId, copy(expected));
           };
-          assertCurrent(); submitPermits.set(configuredPermit, { binding: saved.sizingBinding, consumed: false, invalidated: false, assertCurrent });
+          assertCurrent(); submitPermits.set(configuredPermit, { binding: saved.sizingBinding, actualBinding: canonical(configuredDispatchBindingSchema.parse({ dispatchId: intent.intentId, intent, fee: saved.terms.fee, feeCurrency: saved.terms.feeCurrency, previewTerms: saved.terms, termsHash: saved.termsHash })), consumed: false, invalidated: false, assertCurrent });
         }
         // The durable claim above is the only authorization to invoke an injected adapter.
         // Recheck expiry immediately before the call; a stale claim remains unresolved.
