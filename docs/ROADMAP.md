@@ -78,6 +78,9 @@ Implementation is unplanned; this goal adds no tasks, thresholds or performance
 claims. Evidence requirements, exposure and loss limits, safe rollback and
 shutdown remain requirements for any later implementation. The historical
 auto-promotion backlog below provides context, not a selected implementation plan.
+Its legacy approval labels, task breakdown and example thresholds are historical
+only; they do not define the plan, policy or implementation authority for this
+future goal. A future implementation plan remains to be established.
 
 This goal does not expand the current simulation/research delivery or release
 G05/G06 holds. Real-money activation and financial transactions require user

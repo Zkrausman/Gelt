@@ -20,6 +20,11 @@ acceptance. Evidence, exposure/loss limits, rollback and shutdown remain later
 design requirements. Current simulation/research scope and G05/G06 holds remain;
 real-money activation and financial transactions require user handoff.
 
+Final review identified ambiguity with the linked legacy epic's approval label
+and thresholds. The roadmap now explicitly qualifies those labels, tasks and
+examples as historical only, not the plan, policy or implementation authority
+for this future goal. The legacy document remains unchanged.
+
 Verification is limited to the complete documentation diff, whitespace and
 repository identity/status checks before fresh independent and adversarial
 reviews. Existing applicable remote checks will be inspected on the exact
