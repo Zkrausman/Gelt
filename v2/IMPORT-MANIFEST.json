@@ -3746,6 +3746,30 @@
       "path": "worker/src/synthetic-preview-diagnostics.test.ts",
       "sha256": "c4a6ebf709e27348af58c520ab99eb3d91dd6a03332dd9151bc6a450213bf3ed",
       "reason": "G03 opt-in fixture-only bounded replacement preview phase/outcome evidence; no guard or timeout change"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/shadow-rule-contract.ts",
+      "sha256": "ca6d8cfc2659b1d9fa56e689d804df0d5e0c393070549730225930d74f517e70",
+      "reason": "G05 approved shadow-first pure rule/input-bound receipt adaptation; no model or execution authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/shadow-rule.ts",
+      "sha256": "e26e6338f4d7a28a77efd485b0c00f81a268ff99f7c47cf9cedbc779b73f721c",
+      "reason": "G05 approved shadow-first pure rule/input-bound receipt adaptation; no model or execution authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/shadow-rule.test.ts",
+      "sha256": "e92be14f2e49168eaa8f69bd5d06bf59c724fb48768aaa0fd1efb4884dc67858",
+      "reason": "G05 approved shadow-first pure rule/input-bound receipt adaptation; no model or execution authority"
     }
   ]
 }
