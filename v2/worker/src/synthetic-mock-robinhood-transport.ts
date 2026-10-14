@@ -236,7 +236,11 @@ export class SyntheticMockRobinhoodClient {
             const text = new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks, receivedBytes));
             const envelope = JSON.parse(text) as { version?: unknown; source?: unknown; value?: unknown };
             if (envelope.version !== (this.options.simulationRun ? 2 : 1) || envelope.source !== (this.options.simulationRun ? simulationSource : syntheticMockSource)) throw new Error();
-            settleValue(schema.parse(envelope.value));
+            const value = schema.parse(envelope.value);
+            // Optional compact sizing linkage is configured synthetic evidence only.
+            // Full replay input never passes through this unchanged 8KiB boundary.
+            if (!this.options.simulationRun && value && typeof value === 'object' && 'sizingEvidence' in value) throw new Error();
+            settleValue(value);
           } catch { fail('invalid-response'); }
         });
         res.once('close', () => { if (!responseEnded || !res.complete) fail('premature-close'); });

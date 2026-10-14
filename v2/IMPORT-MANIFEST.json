@@ -3184,8 +3184,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/order-lifecycle.ts",
-      "sha256": "f5b74cea49961c1cfbbc2157fa099578b06fb2de5f2dfcfcf6fe7b24c6935a56",
-      "reason": "ZAR-216 internal offline one-use confirmation and fail-closed lifecycle"
+      "sha256": "acf72a02467a5c227444ae5b3a9d1c94a7f9b61a67870f170bd205821097cd69",
+      "reason": "ZAR-216 internal offline one-use confirmation and fail-closed lifecycle; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
       "upstreamPath": null,
@@ -3232,8 +3232,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "dc1dd8d8173d7a2298db0ab240c5da619e1cd84d6b5e4f39d1b7b8f3828bc9cc",
-      "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route"
+      "sha256": "9f611822356128417390ae5f01f422bccd8914dfe4053e07521ea264d2e9d0d3",
+      "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
       "upstreamPath": null,
@@ -3576,8 +3576,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-transport.ts",
-      "sha256": "c48a82e5291167524416ae3d45d17e15ce6f3a00cbe3b945469e797208de9c25",
-      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
+      "sha256": "5d21aaac64bfa298ced1a4ce5313ec5c29a237aa0ea40fa659c59b5993c3a07e",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
       "upstreamPath": null,
@@ -3592,16 +3592,16 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-contract.ts",
-      "sha256": "7b377f805432590e91e1fb9eeff52fa98a8133cddd355d83cfe4759570d6ad4a",
-      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
+      "sha256": "5d2f5a86ebe1547ba332b88e4cd5f123b8c04d6d50a2bde117c170a479c22c6d",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-adapter.ts",
-      "sha256": "f22e8d5adbe7a420e96a54e8d132b51e7fa4f51f5e36b2d9f841535bedc63ec9",
-      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
+      "sha256": "1cde2be0a07fbf864d82d068e7d58769839ce005703612fded0d6605a175bcf1",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
       "upstreamPath": null,
@@ -3616,8 +3616,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "93c0fd4cb04c95fd54f7a4ae148e356348f3d4769bfd32df40f8a4af483085bc",
-      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
+      "sha256": "5eaad85d4481f7e2bbfe745a34cc8eafe48a05ffd799df534b3ffc5cf2417041",
+      "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
       "upstreamPath": null,
@@ -3810,6 +3810,22 @@
       "status": "added",
       "sha256": "c07a8c31c1ad53881f6112dab285330fbf72897d1ba8f2acc03c20540df6cb97",
       "reason": "Owner-approved standalone pure sizing proposal/schema or constructed offline test; no provider/execution changes."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/synthetic-sizing-binding-evidence.ts",
+      "status": "added",
+      "sha256": "f7216eda0f5dfc09d4fe4f47d4ee06b70e1f7c8fbcf79d580c72fd5f5c327103",
+      "reason": "Owner-approved constructed offline G06 sizing binding/evidence/tests; no genuine-run or provider authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/synthetic-sizing-binding.test.ts",
+      "status": "added",
+      "sha256": "539f3b5b9a32b23d757696c2c1389655434d0e6803a2c492fa27c7d9928b1f55",
+      "reason": "Owner-approved constructed offline G06 sizing binding/evidence/tests; no genuine-run or provider authority."
     }
   ]
 }

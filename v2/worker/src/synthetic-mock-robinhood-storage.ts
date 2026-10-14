@@ -1,4 +1,7 @@
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { SyntheticSizingEvidence, SizingEvidenceRejected, type EvidenceStage } from './synthetic-sizing-binding-evidence.js';
+import type { ShadowSizingProposal } from './shadow-sizing-contract.js';
 import Database from 'better-sqlite3';
 import { z } from 'zod';
 import { canonical, decode } from './ledger-canonical.js';
@@ -11,7 +14,7 @@ import {
   syntheticMockExecutionSchema, syntheticMockOrderViewSchema, syntheticMockPreviewSchema,
   syntheticMockSource, syntheticMockSubmitInputSchema, withinSyntheticFeeCap, syntheticMockRunExecutionSchema,
   type SyntheticMockAdmissionInput, type SyntheticMockExecution, type SyntheticMockOrderView,
-  type SyntheticMockPreview, type SyntheticMockSubmitInput,
+  type SyntheticMockPreview, type SyntheticMockSubmitInput, type SizingBindingPolicy, type SizingEvidence,
 } from './synthetic-mock-robinhood-contract.js';
 
 const applicationId = 1196184660;
@@ -101,20 +104,28 @@ export class SyntheticMockRobinhoodStore {
   private readonly storage: LedgerStorage;
   private readonly db: Database.Database;
   private closed = false;
+  private constructing = true;
   private persistenceFaultPending = false;
   private admissionFaultPending = false;
   private readonly config?: SimulationRun;
+  private evidence?: SyntheticSizingEvidence;
+  private readonly evidenceRoot: string;
+  get bindingPolicy() { return this.evidence ? JSON.parse(canonical(this.evidence.policy)) as SizingBindingPolicy : undefined; }
+  get sizingBoundReadOnly() { return this.evidence?.reopened === true; }
   private readonly statements: string[];
   get source() { return this.config ? simulationSource : syntheticMockSource; }
   get version() { return this.config ? 2 : 1; }
   get runConfig() { return this.config ? simulationRunSchema.parse(this.config) : undefined; }
   constructor(path: string, private readonly now: () => number = Date.now, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics,
-    options: { simulationRun?: unknown } = {}) {
+    options: { simulationRun?: unknown; sizingPolicy?: unknown; evidenceStageForTest?: (stage: EvidenceStage) => void } = {}) {
     if (options.simulationRun !== undefined) {
       if (process.env.NODE_ENV !== 'test' || process.env.GELT_SYNTHETIC_ORDER_HARNESS !== 'offline-test-only'
         || process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only') throw new Error('synthetic mock disabled');
       this.config = simulationRunSchema.parse(options.simulationRun);
     }
+    if (options.sizingPolicy !== undefined && (!this.config || this.config.classification !== 'constructed_offline_test')) throw new Error('synthetic mock disabled');
+    if (options.evidenceStageForTest && (!options.sizingPolicy || process.env.NODE_ENV !== 'test')) throw new Error('synthetic mock disabled');
+    this.evidenceRoot = path + '.sizing-evidence';
     this.statements = this.config ? [
       `CREATE TABLE mock_meta (id INTEGER PRIMARY KEY CHECK(id=1), source TEXT NOT NULL CHECK(source='${simulationSource}'), config_json TEXT NOT NULL, config_sha TEXT NOT NULL, portfolio_json TEXT NOT NULL) STRICT`,
       ...schema.slice(1),
@@ -134,9 +145,15 @@ export class SyntheticMockRobinhoodStore {
               units(this.config.genesis.cash, 8), units(this.config.genesis.quantity, 18), [])));
           else this.db.prepare('INSERT INTO mock_meta(id, source) VALUES(1, ?)').run(syntheticMockSource);
         }
+        const evidenceRoot = this.evidenceRoot;
+        if (!this.evidence) {
+          if (options.sizingPolicy !== undefined) this.evidence = new SyntheticSizingEvidence(evidenceRoot, this.config!, options.sizingPolicy, !existing.length, options.evidenceStageForTest);
+          else if (existsSync(evidenceRoot)) throw new Error('synthetic sizing mode unavailable');
+        }
         this.validateSchema();
         reopenPhaseForTest('mock-replay', () => this.replayAll());
       });
+      this.constructing = false;
     } catch (error) {
       this.storage.poisoned = true;
       try { this.storage.close(); } catch { /* ownership marker is intentionally retained */ }
@@ -158,6 +175,7 @@ export class SyntheticMockRobinhoodStore {
     const meta = this.db.prepare('SELECT id, source FROM mock_meta').all() as { id: unknown; source: unknown }[];
     if (meta.length !== 1 || checkedInteger(meta[0].id) !== 1 || checkedText(meta[0].source, 128) !== this.source) throw new Error('synthetic mock storage unavailable');
     this.validateConfig();
+    this.evidence?.validatePolicy();
   }
 
   private atomic<T>(work: () => T): T {
@@ -187,7 +205,7 @@ export class SyntheticMockRobinhoodStore {
     }
   }
   private validateStorage(): void {
-    try { this.storage.validate(); }
+    try { this.storage.validate(); this.evidence?.validatePolicy(); if (!this.constructing && !this.evidence && existsSync(this.evidenceRoot)) throw new Error('synthetic sizing mode unavailable'); }
     catch (error) { this.storage.poisoned = true; throw error; }
   }
   private time(): number {
@@ -210,6 +228,7 @@ export class SyntheticMockRobinhoodStore {
   }
 
   admit(raw: SyntheticMockAdmissionInput): { previewId: string; handle: string; expiresAt: string } {
+    if (this.sizingBoundReadOnly) fail();
     const input = syntheticMockAdmissionInputSchema.parse(raw);
     const now = this.time();
     if (!this.previewEligible(input.preview, now) || input.termsHash.length !== 64) fail();
@@ -263,6 +282,7 @@ export class SyntheticMockRobinhoodStore {
           || checkedText(existing.payload_sha, 64) !== payloadSha || view.previewId !== input.preview.previewId) fail();
         return view;
       }
+      if (this.sizingBoundReadOnly) fail();
       if (!this.previewEligible(input.preview, currentTime)) {
         this.previewDiagnostics?.record('mock-submit-preview-validity', Date.parse(input.preview.expiresAt) <= currentTime ? 'expired' : 'rejected');
         fail();
@@ -308,6 +328,7 @@ export class SyntheticMockRobinhoodStore {
   }
 
   cancel(dispatchId: string): SyntheticMockOrderView {
+    if (this.sizingBoundReadOnly) fail();
     return this.atomic(() => {
       this.replayAll();
       const row = this.orderRow(dispatchId);
@@ -326,6 +347,7 @@ export class SyntheticMockRobinhoodStore {
 
   // Fixture-only observation hook. The loopback protocol has no fill or settlement route.
   observeExecution(dispatchId: string, executionRaw: SyntheticMockExecution): SyntheticMockOrderView {
+    if (this.sizingBoundReadOnly) fail();
     const execution = syntheticMockExecutionSchema.parse(executionRaw);
     return this.atomic(() => {
       this.replayAll();
@@ -381,6 +403,7 @@ export class SyntheticMockRobinhoodStore {
 
   // Fixture-only terminal observation; never exposed by the HTTP transport.
   settleCanceled(dispatchId: string): SyntheticMockOrderView {
+    if (this.sizingBoundReadOnly) fail();
     return this.atomic(() => {
       this.replayAll();
       const row = this.orderRow(dispatchId);
@@ -602,7 +625,7 @@ export class SyntheticMockRobinhoodStore {
       : quantity > 0n ? 'partially-filled'
       : events.some(event => event.type === 'cancel-requested') ? 'pending-cancel' : 'accepted';
     return syntheticMockOrderViewSchema.parse({ source: this.source, dispatchId, mockOrderId: `mock-${orderId}`,
-      previewId: preview.previewId, status, executions, cancelAcknowledged: events.some(event => event.type === 'cancel-acknowledged') });
+      previewId: preview.previewId, ...(preview.version === 2 && preview.sizingEvidence ? { sizingEvidence: preview.sizingEvidence } : {}), status, executions, cancelAcknowledged: events.some(event => event.type === 'cancel-acknowledged') });
   }
   private readOrder(row: OrderRow): SyntheticMockOrderView {
     const payload = this.readStoredPayload(row);
@@ -669,6 +692,10 @@ export class SyntheticMockRobinhoodStore {
   }
   private previewPolicy(preview: SyntheticMockPreview): boolean {
     if (!this.config) return validPreviewPolicy(preview);
+    if (this.evidence) {
+      if (preview.version !== 2 || !preview.sizingEvidence) return false;
+      try { this.evidence.verifyPreview(preview); } catch (error) { this.storage.poisoned = true; throw error; }
+    } else if (preview.version === 2 && preview.sizingEvidence) return false;
     try {
       if (preview.version !== 2 || preview.source !== this.source || preview.runId !== this.config.runId
         || preview.configSha256 !== simulationDigest(this.config) || preview.sourceCommit !== this.config.sourceCommit
@@ -782,6 +809,12 @@ export class SyntheticMockRobinhoodStore {
       this.replayAll();
       return { snapshot: this.projectPortfolio(), state: this.unsettled() ? 'unsettled' : 'settled' };
     });
+  }
+
+  prepareSizingEvidence(bytes: Buffer, proposal: ShadowSizingProposal): SizingEvidence {
+    if (!this.evidence || this.sizingBoundReadOnly || this.closed || this.storage.poisoned) fail();
+    try { return this.evidence.prepare(bytes, proposal); }
+    catch (error) { if (!(error instanceof SizingEvidenceRejected)) this.storage.poisoned = true; throw error; }
   }
 
   close(): void { if (this.closed) return; this.closed = true; this.storage.close(); }
