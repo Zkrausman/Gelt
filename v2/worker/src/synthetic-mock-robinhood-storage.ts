@@ -686,7 +686,10 @@ export class SyntheticMockRobinhoodStore {
     if (!this.previewPolicy(preview) || !validPreview(preview, now)) return false;
     if (!this.config || preview.version !== 2) return true;
     try {
-      checkObservation(this.config, preview.decisionAt, preview.quote, now);
+      checkObservation(this.config, preview.decisionAt, {
+        referencePrice: preview.quote.referencePrice, observedAt: preview.quote.observedAt,
+        availableAt: preview.quote.availableAt, evidenceSha256: preview.quote.evidenceSha256,
+      }, now);
       return Date.parse(preview.expiresAt) <= Math.min(now + 60000, Date.parse(this.config.validThrough));
     } catch { return false; }
   }

@@ -237,7 +237,7 @@ it('explicit adverse rounding rejects nonpositive sell prices and never silently
 it('response loss keeps lifecycle UNKNOWN, durable reservation and refuses resume/new dispatch after reopen', async () => {
   const f = fixture(); const port = await f.h.start();
   try {
-    f.set('buy'); await post(f.h, port, 'resume'); const p = await post(f.h, port, 'preview', order('buy'));
+    f.set('buy'); await post(f.h, port, 'resume'); const p = await post(f.h, port, 'preview', order('buy')); expect(p.status).toBe(200);
     f.h.mockTransport!.loseNextSubmitResponseForTest(); const lost = await post(f.h, port, 'confirm', { confirmationToken: p.value.confirmationToken, termsHash: p.value.termsHash });
     expect(lost.value.outcome).toBe('unknown'); expect(f.h.mockStore!.portfolio().state).toBe('unsettled');
     await f.h.close(); const reopened = f.h.reopen(); const reopenedPort = await reopened.start();
@@ -297,6 +297,7 @@ it('concurrent confirmations admit exactly one order', async () => {
   const f = fixture(); const port = await f.h.start();
   try {
     f.set('buy'); await post(f.h, port, 'resume'); const p = await post(f.h, port, 'preview', order('buy'));
+    expect(p.status).toBe(200);
     const confirmation = { confirmationToken: p.value.confirmationToken, termsHash: p.value.termsHash };
     const results = await Promise.all([post(f.h, port, 'confirm', confirmation), post(f.h, port, 'confirm', confirmation)]);
     expect(results.filter(x => x.status === 200)).toHaveLength(1); expect(results.filter(x => x.status === 409)).toHaveLength(1);
@@ -324,9 +325,11 @@ function corruptMetadata(path: string, column: 'config_json' | 'config_sha' | 'p
     if (kind === 'TEXT') { db.prepare(`UPDATE mock_meta SET ${column}=? WHERE id=1`).run('x'.repeat(8193)); return; }
     const original = (db.prepare("SELECT sql FROM sqlite_schema WHERE name='mock_meta'").get() as { sql: string }).sql;
     const version = db.pragma('schema_version', { simple: true }) as number;
+    db.unsafeMode(true); // Only this fresh corruption fixture disables SQLite defensive mode.
     db.pragma('writable_schema=ON'); db.prepare("UPDATE sqlite_schema SET sql=? WHERE name='mock_meta'").run(original.replace(/ STRICT$/, ''));
     db.pragma(`schema_version=${version + 1}`); db.close(); db = new Database(path);
     db.prepare(`UPDATE mock_meta SET ${column}=? WHERE id=1`).run(Buffer.alloc(8193));
+    db.unsafeMode(true); // Restore the exact declaration on the fixture connection.
     db.pragma('writable_schema=ON'); db.prepare("UPDATE sqlite_schema SET sql=? WHERE name='mock_meta'").run(original);
     db.pragma(`schema_version=${version + 2}`);
   } finally { if (db.open) db.close(); }

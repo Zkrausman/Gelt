@@ -87,3 +87,16 @@ allocation sizing remain prerequisites for genuine G06 shadow acceptance.
 Original selected MCP/recovery/native/inference/source-access holds remain on
 those routes. No held-route workaround, live money or automatic-promotion
 implementation is authorized by this simulated capability.
+
+First candidate Linux CI failed (run38605773233/check115996132699): new suite
+26 passed/32 failed, legacy worker/web442 passed. Twenty-six failures stemmed
+from passing the full version2 quote envelope to the strict observation-only
+validator. The store now explicitly projects its validated observation fields;
+the strict observation schema and quote schema remain intact. Six BLOB corruption
+setups hit native SQLite defensive mode; only the fresh fixture connections now
+explicitly disable that mode while constructing/restoring corrupted cells. No
+product storage connection changes. Expected preview status assertions now
+precede confirmation access in loss/concurrency tests. Go/science passed that
+candidate; build/smoke/browser were blocked by unit failure. No unchanged rerun
+is performed. Full fresh source reviews and new-candidate hosted verification
+remain required; no remediation runtime pass is claimed here.

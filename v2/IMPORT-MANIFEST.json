@@ -3616,7 +3616,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "0cc45471020857247e88c5ef84ee53260b037b1bda34a4004ce21f46ac15578d",
+      "sha256": "93c0fd4cb04c95fd54f7a4ae148e356348f3d4769bfd32df40f8a4af483085bc",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route"
     },
     {
@@ -3784,7 +3784,7 @@
       "upstreamSha256": null,
       "path": "worker/src/synthetic-simulation.test.ts",
       "status": "added",
-      "sha256": "879be740465717b36a9f5e63f8e8f533586707b91d6d6f3308450e481896da77",
+      "sha256": "37c58057b428a9d6c970678ca05c500b63d3d0e36a25e54f86188759c8026b4d",
       "reason": "Owner-approved G06 configured simulator capability; exact declared economics or constructed offline tests, no production execution."
     }
   ]
