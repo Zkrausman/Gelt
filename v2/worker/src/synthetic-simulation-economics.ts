@@ -5,6 +5,9 @@ import { canonical, digest } from './ledger-canonical.js';
 export const simulationSource = 'gelt-synthetic-robinhood-mock-v2' as const;
 export const simulationPolicy = 'synthetic-limit-fee-cap-10.v2' as const;
 export const simulationInstrument = 'SYNTH-RH-USD' as const;
+// This identity and fixed cap are used only by the separate pure G06 paper API.
+// The legacy feeCap below intentionally remains fixed at USD10.
+export const paperSizingPolicyId = 'gelt.spy-long-cash-paper-policy.v1' as const;
 export const simulationTimestamp = z.string().datetime({ precision: 3 }).refine(s => {
   try { return new Date(s).toISOString() === s; } catch { return false; }
 });
@@ -79,6 +82,7 @@ export function notional(quantity: Decimal, price: Decimal): bigint {
 export function feeCap(quantity: Decimal, price: Decimal, fee: Decimal): boolean {
   return rounded(notional(quantity, price), 36, 8, true) + units(fee, 8) <= 10n * pow(8);
 }
+export const paperSizingFeeInclusiveCapUnits = 10_000n * pow(8);
 export function checkObservation(config: SimulationRun, decisionAt: string, observation: SimulationObservation, now: number): void {
   const decision = Date.parse(simulationTimestamp.parse(decisionAt)), o = simulationObservationSchema.parse(observation);
   const observed = Date.parse(o.observedAt), available = Date.parse(o.availableAt);
