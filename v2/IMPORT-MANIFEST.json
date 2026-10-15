@@ -3776,7 +3776,7 @@
       "upstreamSha256": null,
       "path": "worker/src/synthetic-simulation-economics.ts",
       "status": "added",
-      "sha256": "8b1e2e3a4b1939ca993279b086ec09b316b46fe6c5f8c9780a0d67214368de35",
+      "sha256": "0cacaec788d3e7eb4ad4a581c2627060240c13ebd404694d2975d9bf82c56d0e",
       "reason": "Owner-approved G06 configured simulator capability; exact declared economics or constructed offline tests, no production execution."
     },
     {
@@ -3792,16 +3792,16 @@
       "upstreamSha256": null,
       "path": "worker/src/shadow-sizing-contract.ts",
       "status": "added",
-      "sha256": "94dbed583ab46c8aa09ae2c8bd88ebf837ab1fc6be47ec8323f79a1d2dd53efa",
-      "reason": "Owner-approved standalone pure sizing proposal/schema or constructed offline test; no provider/execution changes."
+      "sha256": "4b6f1587a1905cd8fef1eb87f25a5a9b140ad2e4f61d7c3bd971deae7d234e54",
+      "reason": "Owner-approved standalone pure sizing contract with closed mapping identity and constructed-only inputs; no provider/execution changes."
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "path": "worker/src/shadow-sizing.ts",
       "status": "added",
-      "sha256": "da8197e0c180830b6b54ced6f3263195ae300fc1a57e4a037345df2f05dbff30",
-      "reason": "Owner-approved standalone pure sizing proposal/schema or constructed offline test; no provider/execution changes."
+      "sha256": "43b8ba45581b66deb6e05e5674f919e6ab2c9ad6714a92563fb933530b5b0eab",
+      "reason": "Owner-approved standalone pure sizing proposal with bounded constructed snapshots; no provider/execution changes."
     },
     {
       "upstreamPath": null,
@@ -3810,6 +3810,14 @@
       "status": "added",
       "sha256": "c07a8c31c1ad53881f6112dab285330fbf72897d1ba8f2acc03c20540df6cb97",
       "reason": "Owner-approved standalone pure sizing proposal/schema or constructed offline test; no provider/execution changes."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/paper-policy-sizing.test.ts",
+      "status": "added",
+      "sha256": "736dd83679ccf79edac40c1713deccb311caff243437e1a3ac96db432b26f8fd",
+      "reason": "G06 pure paper-policy sizing and exact replay over constructed fixtures only; no market/runtime/execution authority."
     },
     {
       "upstreamPath": null,
