@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "node scripts/start.mjs",
     "build": "npm run build -w server && tsc -p worker && npm run build -w web",
+    "build:worker": "tsc -p worker",
     "start": "node scripts/start.mjs",
     "test": "npm run test -w server && vitest run --config worker/vitest.config.ts && node --test scripts/*.test.mjs && node scripts/verify-import.mjs",
     "lint": "npm run lint -w web",
