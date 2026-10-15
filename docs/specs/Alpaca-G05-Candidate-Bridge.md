@@ -130,17 +130,18 @@ short warm-up, missing rights/schedule/controls/portfolio fields, and the
 adjustment/request identity, calendar identity, and same-capture availability
 revision identity; raw page bodies above 256 KiB excluded from G05 input;
 promotion/authority-field rejection; and separate constructed G05 warm-up,
-stale, UNKNOWN, cost, long, and cash outcomes. Tests for calendar mutation
+stale, UNKNOWN, cost, long, and cash outcomes. The nested-accessor regression
+uses a deep-cloned normalization input so the synthetic getter cannot mutate
+another case's fixture. Tests for calendar mutation
 exercise both layers: a stale digest or incomplete completion marker fails the
 strict normalization schema, while a digest-consistent renumbering/session
 removal or late availability is rejected by the existing normalizer's
 acquisition/chronology checks. The frozen-digest and expected-window cases
 exercise the bridge checks directly. These cases do not model an exchange
-calendar. Those constructed G05 cases do not relabel connector-derived data.
-Those constructed G05 cases do not relabel connector-derived data. The schema's
-bounded field sizes make a valid bridge input over 256 KiB unreachable today;
-the implementation still fails closed if serialization exceeds the existing
-limit. The transport tests use the synthetic `AAPL` label and consecutive
+calendar. Constructed G05 cases remain separate from connector data. The
+schema's bounded field sizes make a valid bridge input over 256 KiB unreachable
+today; the implementation still fails closed if serialization exceeds the
+existing limit. The transport tests use the synthetic `AAPL` label and consecutive
 calendar days, including weekends; this is not a selected instrument or an
 exchange/provider calendar. All rights, availability, policy, cost, control,
 and portfolio hashes and values in these cases are invented test assertions,
@@ -150,7 +151,16 @@ not accepted evidence.
 
 Source and test files were authored against the exact shipped seam APIs. The
 implementer did not run tests, builds, import-manifest verification, or runtime
-probes in this environment, per the delegated execution boundary. All runtime
-verification and complete-diff reviews are pending the parent-owned hosted CI
-and review loop. No verification pass is claimed here. The candidate remains
+probes in this environment, per the delegated execution boundary. The first
+parent-owned hosted Linux CI run (`da896`) failed two bridge tests: 13 of 15
+bridge tests passed, 688 worker/web tests passed, and 28 tests were skipped.
+One test shallow-copied normalization input and then replaced its shared
+availability array entry with an accessor, poisoning later checks in that same
+fixture. The test now deep-clones only the normalization input before inserting
+the accessor. The other test expected a source mismatch to reach the normalizer,
+but the stricter bridge schema correctly blocks it first; assertions now expect
+`invalid_normalization_input` for that value and `normalization_rejected` for
+validly shaped symbol, `asof`, and adjustment mismatches. No unchanged rerun was
+performed. A fresh full hosted CI run, independent reviews, and final diff
+review remain pending; no verification pass is claimed. The candidate remains
 disabled and provides no execution authority.

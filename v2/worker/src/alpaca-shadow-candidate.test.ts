@@ -250,7 +250,7 @@ describe('in-memory Alpaca-to-G05 candidate bridge (synthetic transport only)', 
     const fixture = await capture({ count: 2 });
     const secret = 'SYNTHETIC_PRIVATE_GETTER_VALUE';
     let normalizationGetterCalls = 0;
-    const attackedNormalization = { ...fixture.normalizationInput };
+    const attackedNormalization = structuredClone(fixture.normalizationInput);
     const attackedFact = { ...attackedNormalization.availability[0] };
     Object.defineProperty(attackedFact, 'evidenceSha256', {
       enumerable: true,
@@ -322,13 +322,19 @@ describe('in-memory Alpaca-to-G05 candidate bridge (synthetic transport only)', 
     copied.pages[0].sha256 = hash('9');
     expect(candidate(fixture, { acquisition: copied })).toMatchObject({ status: 'blocked', reason: 'normalization_rejected' });
 
-    for (const field of ['source', 'symbol', 'asof', 'adjustment'] as const) {
+    for (const [field, expectedReason] of [
+      ['source', 'invalid_normalization_input'],
+      ['symbol', 'normalization_rejected'],
+      ['asof', 'normalization_rejected'],
+      ['adjustment', 'normalization_rejected'],
+    ] as const) {
       const altered = { ...fixture.normalizationInput };
       if (field === 'source') altered.source = 'other-source' as never;
       if (field === 'symbol') altered.symbol = 'MSFT';
       if (field === 'asof') altered.asof = '2026-10-13';
       if (field === 'adjustment') altered.adjustment = 'split';
-      expect(candidate(fixture, { normalizationInput: altered })).toMatchObject({ status: 'blocked', reason: 'normalization_rejected' });
+      expect(candidate(fixture, { normalizationInput: altered }))
+        .toMatchObject({ status: 'blocked', reason: expectedReason });
     }
   });
 

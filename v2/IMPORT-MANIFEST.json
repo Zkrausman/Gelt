@@ -3880,7 +3880,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-shadow-candidate.test.ts",
-      "sha256": "d9a7277e9c876289cb774a4afce2871aa15693d063650d0e6ef4bd1444509c44",
+      "sha256": "5d7a512f740fdec9587584b7173e5938acdd1ba9d53c394e2e8c31cffa2a06f5",
       "reason": "Owner-approved synthetic-only Alpaca-to-G05 candidate bridge cases; no provider, admission, or execution authority."
     },
     {
