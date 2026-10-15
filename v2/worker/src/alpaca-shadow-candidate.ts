@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import {
   alpacaAvailabilitySchema,
+  alpacaAdjustmentSchema,
+  alpacaAsOfSchema,
+  alpacaIexFeed,
+  alpacaIexMaxObservations,
+  alpacaIexSource,
   alpacaSessionCalendarSchema,
+  alpacaSymbolSchema,
   type AlpacaAvailability,
   type AlpacaIexAcquisition,
   type AlpacaIexNormalizedBars,
@@ -22,6 +28,9 @@ import {
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
 const sourceCommit = z.string().regex(/^[a-f0-9]{40}$/);
 const ordinal = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
+const timestamp = z.string().datetime({ precision: 3 }).refine(value => {
+  try { return new Date(value).toISOString() === value; } catch { return false; }
+});
 
 // PR13 is the accepted source pin for the shipped acquisition/normalization
 // seam. The caller's G05 sourceCommit remains a separate assertion.
@@ -47,6 +56,18 @@ const contextSchema = z.object({
   costs: shadowRuleInputSchema.shape.costs,
   controls: shadowRuleInputSchema.shape.controls,
   portfolio: shadowRuleInputSchema.shape.portfolio,
+}).strict();
+
+const normalizationInputSchema = z.object({
+  source: z.literal(alpacaIexSource),
+  feed: z.literal(alpacaIexFeed),
+  symbol: alpacaSymbolSchema,
+  adjustment: alpacaAdjustmentSchema,
+  asof: alpacaAsOfSchema,
+  calendar: alpacaSessionCalendarSchema,
+  availability: z.array(alpacaAvailabilitySchema).max(alpacaIexMaxObservations),
+  receivedAt: timestamp,
+  decisionAt: timestamp,
 }).strict();
 
 export type AlpacaShadowCandidateContext = z.infer<typeof contextSchema>;
@@ -148,19 +169,58 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-function exactKeys(value: unknown, keys: readonly string[]): boolean {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const prototype = Object.getPrototypeOf(value);
-  if (prototype !== Object.prototype && prototype !== null) return false;
-  const ownKeys = Reflect.ownKeys(value);
-  if (ownKeys.some(key => typeof key !== 'string')) return false;
-  const stringKeys = (ownKeys as string[]).sort();
-  const expected = [...keys].sort();
-  if (stringKeys.length !== expected.length || stringKeys.some((key, index) => key !== expected[index])) return false;
-  return stringKeys.every(key => {
-    const descriptor = Object.getOwnPropertyDescriptor(value, key);
-    return Boolean(descriptor && descriptor.enumerable && 'value' in descriptor);
-  });
+function ownedPlainSnapshot(value: unknown): unknown {
+  let nodes = 0;
+  const active = new WeakSet<object>();
+  const visit = (current: unknown, depth: number): unknown => {
+    if (depth > 12 || ++nodes > 5000) throw new Error();
+    if (current === undefined) return undefined;
+    if (current === null || typeof current === 'boolean') return current;
+    if (typeof current === 'string') {
+      if (current.length > 4096) throw new Error();
+      return current;
+    }
+    if (typeof current === 'number') {
+      if (!Number.isFinite(current)) throw new Error();
+      return current;
+    }
+    if (typeof current !== 'object') throw new Error();
+    if (active.has(current)) throw new Error();
+    active.add(current);
+
+    if (Array.isArray(current)) {
+      if (Object.getPrototypeOf(current) !== Array.prototype) throw new Error();
+      const lengthDescriptor = Object.getOwnPropertyDescriptor(current, 'length');
+      if (!lengthDescriptor || !('value' in lengthDescriptor) || !Number.isInteger(lengthDescriptor.value)
+        || lengthDescriptor.value < 0 || lengthDescriptor.value > alpacaIexMaxObservations) throw new Error();
+      const length = lengthDescriptor.value as number;
+      const keys = Reflect.ownKeys(current);
+      if (keys.length !== length + 1 || keys.some(key => typeof key !== 'string')) throw new Error();
+      const result = new Array<unknown>(length);
+      for (let index = 0; index < length; index++) {
+        const descriptor = Object.getOwnPropertyDescriptor(current, String(index));
+        if (!descriptor || !descriptor.enumerable || !('value' in descriptor)) throw new Error();
+        result[index] = visit(descriptor.value, depth + 1);
+      }
+      active.delete(current);
+      return result;
+    }
+
+    const prototype = Object.getPrototypeOf(current);
+    if (prototype !== Object.prototype && prototype !== null) throw new Error();
+    const keys = Reflect.ownKeys(current);
+    if (keys.length > 64) throw new Error();
+    if (keys.some(key => typeof key !== 'string')) throw new Error();
+    const result = Object.create(null) as Record<string, unknown>;
+    for (const key of keys as string[]) {
+      const descriptor = Object.getOwnPropertyDescriptor(current, key);
+      if (!descriptor || !descriptor.enumerable || !('value' in descriptor)) throw new Error();
+      result[key] = visit(descriptor.value, depth + 1);
+    }
+    active.delete(current);
+    return result;
+  };
+  return visit(value, 0);
 }
 
 function missingContextFields(issues: readonly z.ZodIssue[]): string[] {
@@ -221,12 +281,6 @@ function buildDataBody(
   };
 }
 
-function asNormalizationInput(input: AlpacaIexNormalizationInput): boolean {
-  return exactKeys(input, [
-    'source', 'feed', 'symbol', 'adjustment', 'asof', 'calendar', 'availability', 'receivedAt', 'decisionAt',
-  ]);
-}
-
 /**
  * Assemble and evaluate an in-memory, permanently unverified Alpaca candidate.
  * This function does not acquire data, read a clock, store evidence, or promote it.
@@ -237,9 +291,17 @@ export function buildAlpacaShadowCandidate(
   contextInput: unknown,
 ): AlpacaShadowCandidate {
   if (contextInput === undefined) return block('missing_context', ['context']);
+
+  let ownedNormalizationInput: unknown;
+  let ownedContextInput: unknown;
+  try { ownedNormalizationInput = ownedPlainSnapshot(normalizationInput); }
+  catch { return block('invalid_normalization_input'); }
+  try { ownedContextInput = ownedPlainSnapshot(contextInput); }
+  catch { return block('invalid_context'); }
+
   let context: AlpacaShadowCandidateContext;
   let parsedContext: ReturnType<typeof contextSchema.safeParse>;
-  try { parsedContext = contextSchema.safeParse(contextInput); }
+  try { parsedContext = contextSchema.safeParse(ownedContextInput); }
   catch { return block('invalid_context'); }
   if (!parsedContext.success) {
     const missing = missingContextFields(parsedContext.error.issues);
@@ -247,34 +309,24 @@ export function buildAlpacaShadowCandidate(
       !(issue.code === 'invalid_type' && 'received' in issue && issue.received === 'undefined'));
     return block(missing.length > 0 && !hasOtherError ? 'missing_context' : 'invalid_context', missing);
   }
-  try {
-    if (!exactKeys(contextInput, [
-      'runId', 'sourceCommit', 'expectedCalendarSha256', 'expectedWindow', 'rightsEvidenceSha256',
-      'policy', 'costs', 'controls', 'portfolio',
-    ])) return block('invalid_context');
-  } catch { return block('invalid_context'); }
   context = parsedContext.data;
 
-  try {
-    if (!asNormalizationInput(normalizationInput)) return block('invalid_normalization_input');
-  } catch { return block('invalid_normalization_input'); }
+  let parsedNormalizationInput: ReturnType<typeof normalizationInputSchema.safeParse>;
+  try { parsedNormalizationInput = normalizationInputSchema.safeParse(ownedNormalizationInput); }
+  catch { return block('invalid_normalization_input'); }
+  if (!parsedNormalizationInput.success) return block('invalid_normalization_input');
+  const normalizedInput = parsedNormalizationInput.data;
 
   let normalized: AlpacaIexNormalizedBars;
   try {
     // Preserve the existing process-local issuance and raw-response checks.
-    normalized = normalizeAlpacaIexBars(acquisition, normalizationInput);
+    normalized = normalizeAlpacaIexBars(acquisition, normalizedInput);
   } catch {
     return block('normalization_rejected');
   }
 
-  let calendar: AlpacaSessionCalendar;
-  let availability: AlpacaAvailability[];
-  try {
-    calendar = alpacaSessionCalendarSchema.parse(normalizationInput.calendar);
-    availability = normalizationInput.availability.map(fact => alpacaAvailabilitySchema.parse(fact));
-  } catch {
-    return block('normalization_rejected');
-  }
+  const calendar: AlpacaSessionCalendar = normalizedInput.calendar;
+  const availability: AlpacaAvailability[] = normalizedInput.availability;
 
   if (context.expectedCalendarSha256 !== calendar.sha256
     || context.expectedCalendarSha256 !== normalized.calendarSha256) return block('calendar_mismatch');
@@ -294,7 +346,7 @@ export function buildAlpacaShadowCandidate(
   const pointInTimeBody = {
     schema: 'gelt.alpaca-shadow-candidate-point-in-time.v1',
     datasetSha256,
-    decisionAt: normalizationInput.decisionAt,
+    decisionAt: normalizedInput.decisionAt,
     receivedAt: normalized.receivedAt,
     expectedCalendarSha256: context.expectedCalendarSha256,
     expectedWindow: { ...expectedWindow },
@@ -309,7 +361,7 @@ export function buildAlpacaShadowCandidate(
     ruleId: shadowRuleId,
     runId: context.runId,
     sourceCommit: context.sourceCommit,
-    decisionAt: normalizationInput.decisionAt,
+    decisionAt: normalizedInput.decisionAt,
     instrument: {
       id: normalized.symbol,
       currency: 'USD',

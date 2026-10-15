@@ -74,6 +74,20 @@ not evidence that all expected exchange sessions are present. If both the data
 and frozen declaration are changed together in a separately issued synthetic
 capture, the result is another unverified candidate and A3 remains unresolved.
 
+Before schema parsing or normalization, the bridge makes bounded owned plain
+snapshots of both caller-supplied normalization input and context. Snapshotting
+is limited by depth, total nodes, object key count, and array length; it rejects
+cycles, symbols, non-plain objects, accessors, functions, and malformed
+descriptors without invoking getters. Required undefined context fields reach
+strict schema parsing and are reported as missing context without defaults.
+Descriptor/proxy exceptions are reduced to generic blocked results. The
+existing normalizer receives only the parsed owned snapshot, and all later
+decision-time, calendar, availability, and manifest values come from that
+snapshot. This closes a time-of-check/time-of-use
+gap where a nested caller getter could otherwise change `decisionAt` after the
+normalizer captured it. The minted acquisition object remains the original
+object so the existing process-local issuance check still applies.
+
 The G05 input is canonicalized and checked against the existing 256 KiB limit
 before evaluation. The result exposes the canonical input as a string rather
 than a mutable buffer, an immutable parsed input/receipt, and the exact replay
@@ -108,11 +122,21 @@ candidate bridge does not call the provisioning helper.
 The new offline test file covers the approved C01–C09 cases with injected fake
 transport and synthetic values only: exact large decimal preservation and
 receipt replay; missing/extra context; duplicate-key and exponent raw JSON plus
-copy/tamper rejection; backdated capture, calendar, chronology, and availability
-rejection; short warm-up, frozen-window mismatch, and the 254-observation cap;
-price, adjustment, and availability revision identity; raw page bodies above
-256 KiB excluded from G05 input; promotion/authority-field rejection; and
-separate constructed G05 warm-up, stale, UNKNOWN, cost, long, and cash outcomes.
+copy/tamper rejection; nested getter mutation and throwing-getter sanitization;
+backdated capture, altered completion/calendar chronology, renumbered or
+removed sessions, future availability, and frozen calendar/window mismatch;
+short warm-up, missing rights/schedule/controls/portfolio fields, and the
+254-observation cap; corrected-price normalized-bar identity, separate
+adjustment/request identity, calendar identity, and same-capture availability
+revision identity; raw page bodies above 256 KiB excluded from G05 input;
+promotion/authority-field rejection; and separate constructed G05 warm-up,
+stale, UNKNOWN, cost, long, and cash outcomes. Tests for calendar mutation
+exercise both layers: a stale digest or incomplete completion marker fails the
+strict normalization schema, while a digest-consistent renumbering/session
+removal or late availability is rejected by the existing normalizer's
+acquisition/chronology checks. The frozen-digest and expected-window cases
+exercise the bridge checks directly. These cases do not model an exchange
+calendar. Those constructed G05 cases do not relabel connector-derived data.
 Those constructed G05 cases do not relabel connector-derived data. The schema's
 bounded field sizes make a valid bridge input over 256 KiB unreachable today;
 the implementation still fails closed if serialization exceeds the existing

@@ -16,7 +16,7 @@ const syntheticKeyPair = {
 const hash = (character: string) => character.repeat(64);
 const addMs = (timestamp: string, milliseconds: number) => new Date(Date.parse(timestamp) + milliseconds).toISOString();
 
-function makeRequest(count = 253, adjustment: AlpacaIexRequest['adjustment'] = 'raw'): AlpacaIexRequest {
+function makeRequest(count = 253, adjustment: AlpacaIexRequest['adjustment'] = 'raw', calendarMarker = 'a'): AlpacaIexRequest {
   const sessions = Array.from({ length: count }, (_, index) => {
     const day = new Date(Date.UTC(2025, 0, 1 + index)).toISOString().slice(0, 10);
     return {
@@ -25,7 +25,7 @@ function makeRequest(count = 253, adjustment: AlpacaIexRequest['adjustment'] = '
       closedAt: `${day}T21:00:00.000Z`,
       completedAt: `${day}T21:05:00.000Z`,
       completed: true as const,
-      completionEvidenceSha256: hash('a'),
+      completionEvidenceSha256: hash(calendarMarker),
     };
   });
   return {
@@ -59,12 +59,13 @@ function pageBody(symbol: string, rows: string[], nextPageToken: string | null):
 type CaptureOptions = Readonly<{
   count?: number;
   adjustment?: AlpacaIexRequest['adjustment'];
+  calendarMarker?: string;
   latestClose?: string;
   transformFirstPage?: (bytes: Buffer) => Buffer;
 }>;
 
 async function capture(options: CaptureOptions = {}) {
-  const request = makeRequest(options.count ?? 253, options.adjustment ?? 'raw');
+  const request = makeRequest(options.count ?? 253, options.adjustment ?? 'raw', options.calendarMarker ?? 'a');
   const descending = [...request.calendar.sessions].reverse();
   const acquisition = await acquireAlpacaIexDailyBars(request, syntheticKeyPair, {
     fetcher: async input => {
@@ -205,15 +206,103 @@ describe('in-memory Alpaca-to-G05 candidate bridge (synthetic transport only)', 
 
   it('C02 blocks missing required context without a payload and rejects extra authority fields', async () => {
     const fixture = await capture({ count: 2 });
-    const missing = { ...fixture.context, costs: undefined };
+    const { costs: _costs, ...missing } = fixture.context;
     const blockedMissing = candidate(fixture, { context: missing });
     expect(blockedMissing).toMatchObject({ status: 'blocked', reason: 'missing_context' });
     if (blockedMissing.status === 'blocked') {
       expect(blockedMissing.missingContextFields).toContain('costs');
       expect(Object.hasOwn(blockedMissing, 'input')).toBe(false);
     }
+    expect(candidate(fixture, { context: { ...fixture.context, costs: undefined } }))
+      .toMatchObject({ status: 'blocked', reason: 'missing_context', missingContextFields: ['costs'] });
     const extra = { ...fixture.context, approval: true, eligibility: 'declared' };
     expect(candidate(fixture, { context: extra })).toMatchObject({ status: 'blocked', reason: 'invalid_context' });
+  });
+
+  it.each([
+    ['rights reference', (context: AlpacaShadowCandidateContext) => {
+      const { rightsEvidenceSha256: _rights, ...rest } = context;
+      return rest;
+    }, 'rightsEvidenceSha256'],
+    ['schedule reference', (context: AlpacaShadowCandidateContext) => {
+      const { scheduleSha256: _schedule, ...policy } = context.policy;
+      return { ...context, policy };
+    }, 'policy.scheduleSha256'],
+    ['controls', (context: AlpacaShadowCandidateContext) => {
+      const { controls: _controls, ...rest } = context;
+      return rest;
+    }, 'controls'],
+    ['portfolio', (context: AlpacaShadowCandidateContext) => {
+      const { portfolio: _portfolio, ...rest } = context;
+      return rest;
+    }, 'portfolio'],
+  ] as const)('C02 blocks missing %s context without fabricating G05 values', async (_name, omit, field) => {
+    const fixture = await capture({ count: 2 });
+    const result = candidate(fixture, { context: omit(fixture.context) });
+    expect(result).toMatchObject({ status: 'blocked', reason: 'missing_context' });
+    if (result.status === 'blocked') {
+      expect(result.missingContextFields).toContain(field);
+      expect(Object.hasOwn(result, 'input')).toBe(false);
+    }
+  });
+
+  it('rejects nested accessors before invoking them or allowing decisionAt mutation', async () => {
+    const fixture = await capture({ count: 2 });
+    const secret = 'SYNTHETIC_PRIVATE_GETTER_VALUE';
+    let normalizationGetterCalls = 0;
+    const attackedNormalization = { ...fixture.normalizationInput };
+    const attackedFact = { ...attackedNormalization.availability[0] };
+    Object.defineProperty(attackedFact, 'evidenceSha256', {
+      enumerable: true,
+      get() {
+        normalizationGetterCalls++;
+        attackedNormalization.decisionAt = '2020-01-01T00:00:00.000Z';
+        throw new Error(secret);
+      },
+    });
+    attackedNormalization.availability[0] = attackedFact;
+    const normalizationBlocked = candidate(fixture, { normalizationInput: attackedNormalization });
+    expect(normalizationBlocked).toMatchObject({ status: 'blocked', reason: 'invalid_normalization_input' });
+    expect(normalizationGetterCalls).toBe(0);
+    expect(attackedNormalization.decisionAt).toBe(fixture.normalizationInput.decisionAt);
+    expect(JSON.stringify(normalizationBlocked)).not.toContain(secret);
+
+    let contextGetterCalls = 0;
+    const attackedContext = { ...fixture.context };
+    Object.defineProperty(attackedContext, 'policy', {
+      enumerable: true,
+      get() { contextGetterCalls++; throw new Error(secret); },
+    });
+    const contextBlocked = candidate(fixture, { context: attackedContext });
+    expect(contextBlocked).toMatchObject({ status: 'blocked', reason: 'invalid_context' });
+    expect(contextGetterCalls).toBe(0);
+    expect(JSON.stringify(contextBlocked)).not.toContain(secret);
+
+    const throwingProxy = new Proxy(fixture.context, {
+      getOwnPropertyDescriptor() { throw new Error(secret); },
+    });
+    const proxyBlocked = candidate(fixture, { context: throwingProxy });
+    expect(proxyBlocked).toMatchObject({ status: 'blocked', reason: 'invalid_context' });
+    expect(JSON.stringify(proxyBlocked)).not.toContain(secret);
+  });
+
+  it('bounds owned snapshots and rejects cycles, symbols, and oversized arrays', async () => {
+    const fixture = await capture({ count: 2 });
+    const cyclic: any = { ...fixture.normalizationInput };
+    cyclic.loop = cyclic;
+    expect(candidate(fixture, { normalizationInput: cyclic }))
+      .toMatchObject({ status: 'blocked', reason: 'invalid_normalization_input' });
+
+    const symbolContext = { ...fixture.context, [Symbol('extra')]: true };
+    expect(candidate(fixture, { context: symbolContext }))
+      .toMatchObject({ status: 'blocked', reason: 'invalid_context' });
+
+    const oversized = {
+      ...fixture.normalizationInput,
+      availability: Array.from({ length: alpacaIexMaxObservations + 1 }, () => fixture.normalizationInput.availability[0]),
+    };
+    expect(candidate(fixture, { normalizationInput: oversized }))
+      .toMatchObject({ status: 'blocked', reason: 'invalid_normalization_input' });
   });
 
   it('C03 keeps raw-number and connector issuance defenses in force', async () => {
@@ -251,7 +340,7 @@ describe('in-memory Alpaca-to-G05 candidate bridge (synthetic transport only)', 
 
     const changedCalendar = structuredClone(fixture.normalizationInput);
     changedCalendar.calendar.sessions[0].closedAt = addMs(changedCalendar.calendar.sessions[0].closedAt, 1_000);
-    expect(candidate(fixture, { normalizationInput: changedCalendar })).toMatchObject({ status: 'blocked', reason: 'normalization_rejected' });
+    expect(candidate(fixture, { normalizationInput: changedCalendar })).toMatchObject({ status: 'blocked', reason: 'invalid_normalization_input' });
 
     const lateAvailability = structuredClone(fixture.normalizationInput);
     lateAvailability.availability[0].availableAt = addMs(lateAvailability.decisionAt, 1_000);
@@ -260,8 +349,27 @@ describe('in-memory Alpaca-to-G05 candidate bridge (synthetic transport only)', 
     const beforeReceipt = { ...fixture.normalizationInput, decisionAt: addMs(fixture.acquisition.receivedAt, -1) };
     expect(candidate(fixture, { normalizationInput: beforeReceipt })).toMatchObject({ status: 'blocked', reason: 'normalization_rejected' });
 
+    const unfinished = structuredClone(fixture.normalizationInput) as any;
+    unfinished.calendar.sessions[0].completed = false;
+    expect(candidate(fixture, { normalizationInput: unfinished })).toMatchObject({ status: 'blocked', reason: 'invalid_normalization_input' });
+
+    const renumbered = structuredClone(fixture.normalizationInput);
+    renumbered.calendar.sessions[1].sessionOrdinal += 2;
+    renumbered.calendar.sha256 = alpacaSessionCalendarDigest(renumbered.calendar);
+    expect(candidate(fixture, { normalizationInput: renumbered })).toMatchObject({ status: 'blocked', reason: 'normalization_rejected' });
+
+    const removedSession = structuredClone(fixture.normalizationInput);
+    removedSession.calendar.sessions.pop();
+    removedSession.calendar.sha256 = alpacaSessionCalendarDigest(removedSession.calendar);
+    expect(candidate(fixture, { normalizationInput: removedSession })).toMatchObject({ status: 'blocked', reason: 'normalization_rejected' });
+
     const expectedCalendarMismatch = { ...fixture.context, expectedCalendarSha256: hash('8') };
     expect(candidate(fixture, { context: expectedCalendarMismatch })).toMatchObject({ status: 'blocked', reason: 'calendar_mismatch' });
+    const expectedWindowMismatch = {
+      ...fixture.context,
+      expectedWindow: { ...fixture.context.expectedWindow, firstSessionOrdinal: fixture.context.expectedWindow.firstSessionOrdinal + 1 },
+    };
+    expect(candidate(fixture, { context: expectedWindowMismatch })).toMatchObject({ status: 'blocked', reason: 'window_mismatch' });
   });
 
   it('C05 allows short warm-up only, checks the separately frozen bounds, and rejects a 254th observation', async () => {
@@ -293,6 +401,8 @@ describe('in-memory Alpaca-to-G05 candidate bridge (synthetic transport only)', 
     expect(correctedCandidate.status).toBe('candidate');
     if (correctedCandidate.status === 'candidate') {
       expect(correctedCandidate.manifest.datasetSha256).not.toBe(firstCandidate.manifest.datasetSha256);
+      expect(correctedCandidate.manifest.dataBody.normalizedBarsSha256)
+        .not.toBe(firstCandidate.manifest.dataBody.normalizedBarsSha256);
       expect(correctedCandidate.receipt.decisionId).not.toBe(firstCandidate.receipt.decisionId);
     }
 
@@ -301,6 +411,18 @@ describe('in-memory Alpaca-to-G05 candidate bridge (synthetic transport only)', 
     expect(splitCandidate.status).toBe('candidate');
     if (splitCandidate.status === 'candidate') {
       expect(splitCandidate.manifest.datasetSha256).not.toBe(firstCandidate.manifest.datasetSha256);
+      expect(splitCandidate.manifest.dataBody.adjustment).toBe('split');
+      expect(splitCandidate.manifest.dataBody.request).toMatchObject({ adjustment: 'split' });
+    }
+
+    const calendarRevision = await capture({ count: 2, latestClose: '101.00', adjustment: 'raw', calendarMarker: 'b' });
+    const calendarCandidate = candidate(calendarRevision);
+    expect(calendarCandidate.status).toBe('candidate');
+    if (calendarCandidate.status === 'candidate') {
+      expect(calendarCandidate.manifest.dataBody.calendarSha256)
+        .not.toBe(firstCandidate.manifest.dataBody.calendarSha256);
+      expect(calendarCandidate.manifest.pointInTimeBody.calendar.sha256)
+        .not.toBe(firstCandidate.manifest.pointInTimeBody.calendar.sha256);
     }
 
     const availabilityRevision = structuredClone(first.normalizationInput);

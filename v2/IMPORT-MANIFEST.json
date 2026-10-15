@@ -3880,7 +3880,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-shadow-candidate.test.ts",
-      "sha256": "7f0f5e7aa3a21f6fc28ebed0f89b9d97214564b59a41ff9575289488d4a737fa",
+      "sha256": "d9a7277e9c876289cb774a4afce2871aa15693d063650d0e6ef4bd1444509c44",
       "reason": "Owner-approved synthetic-only Alpaca-to-G05 candidate bridge cases; no provider, admission, or execution authority."
     },
     {
@@ -3888,7 +3888,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-shadow-candidate.ts",
-      "sha256": "8797baa901bbec6e3619fafb7454e35fd7dd1b4241c9b43bb6b0e757a008aad4",
+      "sha256": "1bd1344f1738158b95857252dc8f327f229b1b2bad4f017f2a87062e1bbc705f",
       "reason": "Owner-approved in-memory unverified Alpaca-to-G05 candidate bridge; no acquisition, promotion, storage, or execution authority."
     }
   ]
