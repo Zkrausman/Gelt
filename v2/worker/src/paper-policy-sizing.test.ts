@@ -146,7 +146,9 @@ describe('isolated pure G06 constructed paper sizing', () => {
 
   it('abstains on overweight without trimming and preserves holdings when a full cash exit exceeds the fixed cap', () => {
     const overweight = paperFixture('base', 'target_long', '100');
-    setPosition(overweight, '1000.00000000', '100.000000000000000000');
+    const holdingValue = 100 * 100;
+    expect(holdingValue / (holdingValue + 100)).toBeGreaterThan(0.95);
+    setPosition(overweight, '100.00000000', '100.000000000000000000');
     const over = run(overweight);
     expect(over).toMatchObject({ outcome: 'abstain', reason: 'positive_target_overweight_unsupported', side: null, quantity: null });
 

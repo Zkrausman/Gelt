@@ -3816,7 +3816,7 @@
       "upstreamSha256": null,
       "path": "worker/src/paper-policy-sizing.test.ts",
       "status": "added",
-      "sha256": "70787babdf4298b08666f7dad5eaf4419c296d269dd20cbb7619c56e8901ebfb",
+      "sha256": "1ef97b94c7f8783de7c9ea454d545a71fb34d61737cba652e013a3cb630a8fdc",
       "reason": "G06 pure paper-policy sizing and exact replay over constructed fixtures only; no market/runtime/execution authority."
     },
     {
