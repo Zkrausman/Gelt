@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import { EventEmitter } from 'node:events';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { enterAlpacaKeyPairFromTty, provisionAlpacaKeyPair, readAlpacaKeyPair } from './alpaca-iex-credentials.js';
 
 const keyPair = { keyId: 'SYNTHETIC_KEY_ID_123456', secretKey: 'SYNTHETIC_SECRET_12345678901234567890' };
@@ -71,6 +71,29 @@ describe('standalone Alpaca keypair storage and hidden entry (synthetic only)', 
     expect(file.uid).toBe(process.getuid!());
     expect(readAlpacaKeyPair(paths.data)).toEqual(keyPair);
     expect(() => provisionAlpacaKeyPair(paths.data, paths.broker, keyPair)).toThrow('Alpaca credential storage unavailable');
+  });
+
+  it('closes a just-opened directory descriptor when identity inspection fails', () => {
+    const paths = directories(), opened: number[] = [];
+    const originalOpen = fs.openSync;
+    const originalFstat = fs.fstatSync;
+    const openSpy = vi.spyOn(fs, 'openSync').mockImplementation((...args: any[]) => {
+      const fd = (originalOpen as (...values: any[]) => number)(...args);
+      opened.push(fd);
+      return fd;
+    });
+    const fstatSpy = vi.spyOn(fs, 'fstatSync').mockImplementation(((...args: any[]) => {
+      if (opened.length > 0) throw new Error('synthetic identity inspection failure');
+      return (originalFstat as (...values: any[]) => fs.Stats)(...args);
+    }) as typeof fs.fstatSync);
+    try {
+      expect(() => provisionAlpacaKeyPair(paths.data, paths.broker, keyPair)).toThrow('Alpaca credential storage unavailable');
+    } finally {
+      fstatSpy.mockRestore();
+      openSpy.mockRestore();
+    }
+    expect(opened).toHaveLength(1);
+    expect(() => fs.fstatSync(opened[0])).toThrow();
   });
 
   it.each(['symlink-directory', 'symlink-file', 'hardlink-file', 'wrong-file-mode', 'wrong-directory-mode'] as const)(
@@ -151,6 +174,13 @@ describe('standalone Alpaca keypair storage and hidden entry (synthetic only)', 
     await expect(completion).rejects.toThrow('Alpaca credential entry unavailable');
     expect(io.input.isRaw).toBe(false);
     expect(io.input.modes).toEqual([true, false]);
+    expect(io.input.listenerCount('data')).toBe(0);
+    expect(io.signals.count('SIGINT')).toBe(0);
+    expect(io.signals.count('SIGTERM')).toBe(0);
+    expect(io.signals.terminated).toEqual(action === 'cancel' ? ['SIGINT'] : []);
+    if (action === 'cancel') {
+      expect(io.order.indexOf('terminate:SIGINT')).toBeGreaterThan(io.order.lastIndexOf('raw:false'));
+    }
     expect(fs.existsSync(paths.data)).toBe(false);
   });
 

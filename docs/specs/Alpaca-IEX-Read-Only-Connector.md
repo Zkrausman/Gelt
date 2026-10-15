@@ -80,7 +80,8 @@ temporary signal handlers before re-delivering SIGINT/SIGTERM termination
 semantics. Synthetic test cases were added for output and listener-registration
 failures, signal cleanup, copied and backdated acquisitions, opaque padded
 tokens, dangling terminal tokens, oversized declared and streamed bodies,
-request timeout and page-cap behavior. They have not been executed by this
+request timeout, page-cap behavior, descriptor cleanup after identity-check
+failure, and Ctrl-C signal restoration. They have not been executed by this
 source writer. No live terminal, real key, or provider action is part of the
 tests. The helper is not wired to an application route or automatically
 invoked. It is a Linux-only, path/identity-checked implementation, not a general cross-platform credential

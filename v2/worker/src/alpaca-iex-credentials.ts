@@ -28,28 +28,33 @@ function pinDirectoryChain(path: string): PinnedDirectory {
   const canonical = fs.realpathSync.native(path);
   if (canonical !== path) throw unavailable();
   const entries: PinnedDirectory['entries'] = [];
+  let pendingFd: number | undefined;
   try {
     let current = '/';
-    let fd = fs.openSync(current, flags);
-    let stat = identity(fs.fstatSync(fd));
+    pendingFd = fs.openSync(current, flags);
+    let stat = identity(fs.fstatSync(pendingFd));
     let named = identity(fs.lstatSync(current));
-    if (!fs.fstatSync(fd).isDirectory() || !sameIdentity(stat, named)) throw unavailable();
-    entries.push({ path: current, fd, stat });
+    if (!fs.fstatSync(pendingFd).isDirectory() || !sameIdentity(stat, named)) throw unavailable();
+    entries.push({ path: current, fd: pendingFd, stat });
+    pendingFd = undefined;
     for (const component of path.split('/').filter(Boolean)) {
       current = current === '/' ? `/${component}` : `${current}/${component}`;
-      fd = fs.openSync(fdPath(entries[entries.length - 1].fd, component), flags);
-      const opened = fs.fstatSync(fd), linked = fs.lstatSync(current);
+      pendingFd = fs.openSync(fdPath(entries[entries.length - 1].fd, component), flags);
+      const opened = fs.fstatSync(pendingFd), linked = fs.lstatSync(current);
       stat = identity(opened); named = identity(linked);
       if (!opened.isDirectory() || linked.isSymbolicLink() || !sameIdentity(stat, named)) {
-        fs.closeSync(fd); throw unavailable();
+        throw unavailable();
       }
-      entries.push({ path: current, fd, stat });
+      entries.push({ path: current, fd: pendingFd, stat });
+      pendingFd = undefined;
     }
     if (entries[entries.length - 1].path !== path) throw unavailable();
     return { path, canonical, entries };
   } catch (error) {
     for (const entry of entries.reverse()) { try { fs.closeSync(entry.fd); } catch { /* Close remaining pinned ancestors. */ } }
     throw error;
+  } finally {
+    if (pendingFd !== undefined) { try { fs.closeSync(pendingFd); } catch { /* Close any descriptor not yet pinned. */ } }
   }
 }
 function recheckDirectoryChain(pin: PinnedDirectory) {
@@ -233,7 +238,7 @@ async function readHiddenLine(prompt: string, terminal: HiddenTerminal): Promise
           if (settled) return;
           const data = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, 'utf8');
           for (const byte of data) {
-            if (byte === 3) { reject(); return; }
+            if (byte === 3) { reject(new TerminalSignalInterruption('SIGINT')); return; }
             if (byte === 10 || byte === 13) {
               const line = Buffer.from(bytes).toString('ascii');
               output.write('\n');
