@@ -195,29 +195,38 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
   });
 
   it('handles exact help independently of runtime and rejects malformed flags without loading the helper', async () => {
-    const paths = directories(), terminal = io(), loaded: unknown[] = [];
+    const paths = directories(), helpTerminal = io(), loaded: unknown[] = [];
     const helpCode = await runAlpacaKeyEntryCli({
-      argv: ['--help'], platform: 'win32', nodeVersion: '24.0.0', input: terminal.input,
-      output: terminal.output, errorOutput: terminal.errorOutput,
+      argv: ['--help'], platform: 'win32', nodeVersion: '24.0.0', input: helpTerminal.input,
+      output: helpTerminal.output, errorOutput: helpTerminal.errorOutput,
       loadHelper: async url => { loaded.push(url); return {}; },
     });
     expect(helpCode).toBe(0);
-    expect(terminal.output.written.join('')).toContain('Usage: node v2/scripts/alpaca-key-entry.mjs');
+    expect(helpTerminal.output.written.join('')).toContain('Usage: node v2/scripts/alpaca-key-entry.mjs');
     expect(loaded).toEqual([]);
 
-    const malformed = await runAlpacaKeyEntryCli({ ...invocation(paths, terminal), argv: ['--data-dir', paths.data, '--data-dir', paths.data] });
+    const malformedTerminal = io();
+    let malformedLoaderCalls = 0;
+    const malformed = await runAlpacaKeyEntryCli({
+      ...invocation(paths, malformedTerminal),
+      argv: ['--data-dir', paths.data, '--data-dir', paths.data],
+      loadHelper: async () => { malformedLoaderCalls++; return {}; },
+    });
     expect(malformed).toBe(2);
-    expect(terminal.output.written.join('')).not.toContain('Alpaca key ID');
-    expect(loaded).toEqual([]);
+    expect(outputText(malformedTerminal)).not.toContain('Alpaca key ID (hidden): ');
+    expect(malformedLoaderCalls).toBe(0);
 
+    const secretArgumentTerminal = io();
+    let secretArgumentLoaderCalls = 0;
     const secretArgument = await runAlpacaKeyEntryCli({
-      ...invocation(paths, terminal),
+      ...invocation(paths, secretArgumentTerminal),
       argv: [...argv(paths), '--key-id', syntheticPair.keyId],
-      loadHelper: async url => { loaded.push(url); return {}; },
+      loadHelper: async () => { secretArgumentLoaderCalls++; return {}; },
     });
     expect(secretArgument).toBe(2);
-    expect(outputText(terminal)).not.toContain(syntheticPair.keyId);
-    expect(loaded).toEqual([]);
+    expect(outputText(secretArgumentTerminal)).not.toContain(syntheticPair.keyId);
+    expect(outputText(secretArgumentTerminal)).not.toContain('Alpaca key ID (hidden): ');
+    expect(secretArgumentLoaderCalls).toBe(0);
   });
 
   it('keeps stdout error handling through a queued help-write error and fails closed', async () => {
@@ -381,16 +390,26 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
 
   it('does not enter when the pre-entry safety notice has an asynchronously failing stdout write', async () => {
     const paths = directories(), terminal = io();
-    let helperLoads = 0;
+    let helperLoaderCalls = 0, helperEntryCalls = 0;
     terminal.output.errorOnWrite = value => value.includes('If entry is interrupted');
     const code = await runAlpacaKeyEntryCli(invocation(paths, terminal, {
-      loadHelper: async () => { helperLoads++; return { enterAlpacaKeyPairFromTty }; },
+      loadHelper: async () => {
+        helperLoaderCalls++;
+        return {
+          enterAlpacaKeyPairFromTty: async (...args: Parameters<typeof enterAlpacaKeyPairFromTty>) => {
+            helperEntryCalls++;
+            return enterAlpacaKeyPairFromTty(...args);
+          },
+        };
+      },
     }));
     expect(code).toBe(4);
-    expect(helperLoads).toBe(0);
+    expect(helperLoaderCalls).toBe(1);
+    expect(helperEntryCalls).toBe(0);
     expect(terminal.output.errors).toEqual(['SYNTHETIC_DIAGNOSTIC_ERROR']);
     expect(terminal.input.modes).toEqual([]);
     expect(fs.existsSync(paths.data)).toBe(false);
+    expect(outputText(terminal)).not.toContain('Alpaca key ID (hidden): ');
     expect(outputText(terminal)).not.toContain('SYNTHETIC_DIAGNOSTIC_ERROR');
   });
 

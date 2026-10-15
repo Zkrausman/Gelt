@@ -11,8 +11,8 @@ changed_files:
   - v2/package.json
   - docs/specs/Alpaca-Key-Entry-CLI.md
   - v2/IMPORT-MANIFEST.json
-verification_scope: "Synthetic-only CLI/helper tests and parent-hosted source checks; no operator credential entry"
-verification_evidence: "Parent's deterministic local probes found queued microtask and setImmediate diagnostic-stream errors could outlive the v1 scoped listener guard; scoped and main-process regressions added and parent rerun pending. No Node 22 runtime or real operator TTY acceptance claimed"
+verification_scope: "Parent Node 24 safe CLI checks passed; Node 22 synthetic/full CI pending; no operator credential entry"
+verification_evidence: "Parent reports Node 24 syntax/help/strict-argument/runtime-rejection/inert-import/actual-main delayed-I/O/deadline checks passed. Independent review found two deterministic test assertions, corrected in this revision; Node 22 synthetic/full CI rerun pending. No Node 22 operator-TTY acceptance claimed"
 ---
 
 # Alpaca key-entry CLI
@@ -140,7 +140,12 @@ queued-write error lifecycle defect with deterministic synthetic probes,
 including a `setImmediate` error after the scoped listener closed. This revision
 adds callback settlement, a bounded callback timeout, a standalone-process
 error guard, and synthetic regressions for queued stderr/stdout errors and
-unsettled writes. The parent will rerun its approved checks and hosted
-tests/build/review. No actual
-credential, operator TTY, Node 22 execution, or provider/account verification
-is claimed here.
+unsettled writes. Parent-run Node 24 safe checks passed for syntax, help and
+argument handling, unsupported-runtime rejection, inert import, standalone
+late-I/O handling, and callback deadlines. Independent review also found two
+test assertion defects: the help and malformed-argument cases reused output,
+and the safety-notice case confused compiled-module loading with helper entry.
+These assertions now use fresh terminals, exact hidden-prompt checks, and
+separate loader/entry counts. Parent rerun of the synthetic suite and Node 22
+full CI remains pending. No actual credential, Node 22 operator-TTY entry, or
+provider/account verification is claimed here.
