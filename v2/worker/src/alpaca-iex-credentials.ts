@@ -1,4 +1,4 @@
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { basename, dirname, resolve } from 'node:path';
 import { alpacaCredentialPairSchema, type AlpacaCredentialPair } from './alpaca-iex-contract.js';
 import { privateDirectory, separateDirectories } from './private-files.js';

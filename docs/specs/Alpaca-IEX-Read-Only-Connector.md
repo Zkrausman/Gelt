@@ -101,7 +101,13 @@ regression in `research.test.ts`; inventory is updated in
 `v2/IMPORT-MANIFEST.json`. These are code-only synthetic/mock checks. They do
 not establish genuine-feed behavior, G05/G06/G07 acceptance, exchange/data
 rights, eligibility, or runtime admission. Focused tests, typecheck/build and
-the established hosted checks have not been run by this source writer. Fresh
-independent and adversarial full-diff reviews and parent-run hosted checks remain
+the established checks have not been run locally by this source writer. On the
+ordinary candidate CI revision `8e374b6`, Go check `116286446426` and science
+check `116286445592` passed; Linux check `116286445821` failed in the credential
+test because `vi.spyOn(fs, 'openSync')` could not redefine `openSync` on the
+sealed native ESM namespace. The helper and test now use the mutable default
+`node:fs` export; the descriptor-close assertion remains. The aggregate reported
+674 passed, 1 failed, and 28 skipped, with 18 server checks passed. Build and
+browser checks were not reached. Fresh full-diff reviews and hosted checks remain
 pending on the exact candidate. The source writer made no commit or publication;
 parent delivery evidence is recorded separately.
