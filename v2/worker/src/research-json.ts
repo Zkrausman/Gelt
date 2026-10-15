@@ -6,6 +6,15 @@ export function parseResearchJSON(bytes: Buffer): unknown {
   return parse(bytes);
 }
 
+// Strict JSON decoding with every original JSON number token keyed by its
+// structural path. Consumers that need lossless decimals must use these
+// tokens instead of converting decoded JavaScript numbers back to strings.
+export function parseResearchJSONNumberTokens(bytes: Buffer): { value: unknown; numberTokens: Map<string, string> } {
+  const numberTokens = new Map<string, string>();
+  const value = parse(bytes, (path, token) => numberTokens.set(JSON.stringify(path), token));
+  return { value, numberTokens };
+}
+
 // Capture only result-number tokens from the SAME strict parse as the decoded
 // value. Array indices and decoded keys bind tokens without relying on text search.
 export function parseResearchEvidenceJSON(bytes: Buffer): { value: unknown; numbers: ResearchResultNumbers[] } {
