@@ -112,8 +112,8 @@
       "upstreamSha256": "f1ef5a54ea2d8e887c6c0ebad56470329c5aba43e310c1ef3afd99cda40b875d",
       "status": "modified",
       "path": "package.json",
-      "sha256": "b3cc2af48efb222eb176d51781272d1ccfd118d4428b6baf279c81d65c6f37b1",
-      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+      "sha256": "5d9aa26cb07dc9421e88fb22df9f8e8e8b6df3abeb58855180b434dffc82ead6",
+      "reason": "Alpaca key-entry CLI: explicit separate worker build command; dependency lock unchanged."
     },
     {
       "upstreamPath": "server/Dockerfile",
@@ -3890,6 +3890,22 @@
       "path": "worker/src/alpaca-shadow-candidate.ts",
       "sha256": "1bd1344f1738158b95857252dc8f327f229b1b2bad4f017f2a87062e1bbc705f",
       "reason": "Owner-approved in-memory unverified Alpaca-to-G05 candidate bridge; no acquisition, promotion, storage, or execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/alpaca-key-entry.mjs",
+      "sha256": "9a989952c6eb865e21ab80079be20e3baa7dad805fb93fa89b7e89f500ea9120",
+      "reason": "Owner-authorized standalone local Alpaca key-entry CLI and synthetic-only tests; no provider/account activation."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-key-entry-cli.test.ts",
+      "sha256": "6bded5a30141b303fff5b427998ad1c1e3dc0d262bde2205dc9d6e9aaf0361d5",
+      "reason": "Owner-authorized standalone local Alpaca key-entry CLI and synthetic-only tests; no provider/account activation."
     }
   ]
 }
