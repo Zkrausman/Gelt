@@ -11,8 +11,8 @@ changed_files:
   - v2/package.json
   - docs/specs/Alpaca-Key-Entry-CLI.md
   - v2/IMPORT-MANIFEST.json
-verification_scope: "Current-candidate parent Node 24 safe checks and eight-case synthetic DI preflight passed; prior-candidate actual-main delayed-I/O/deadline checks passed; Node 22 synthetic/full CI and operator-TTY acceptance pending; no operator credential entry"
-verification_evidence: "Parent reports current-candidate Node 24 node --check, import verification (82 upstream and 482 candidate entries; MIT and lock unchanged), and git diff --check passed. The eight-case synthetic DI preflight suite passed: stub-loader success without store creation; microtask and setImmediate notice errors before helper entry; success-output error returns uncertain exit 6; missing build returns 5; non-TTY returns 4; unknown key flag returns 2; unsafe NODE_DEBUG returns 3. No case created a data target, and no actual helper, TTY, key, or store acceptance was performed. Prior-candidate actual-main delayed-I/O and deadline checks passed. Node 22 synthetic/full CI and operator-TTY acceptance remain pending."
+verification_scope: "Node 22 CI run 38706840370/check116328229926 failed 20 of 31 CLI tests; test-harness timing remediation is authored and awaits rerun. The run also reported 701 passed/28 skipped across worker/web and server 18 passed. Go run 38706840297/check116328228950 and science check116328229654 passed. No operator credential entry."
+verification_evidence: "Parent reports current-candidate Node 24 node --check, import verification (82 upstream and 482 candidate entries; MIT and lock unchanged), git diff --check, and eight synthetic DI preflight cases passed. No case created a data target, and no actual helper, TTY, key, or store acceptance was performed. Prior-candidate actual-main delayed-I/O and deadline checks passed. Node 22 CI run 38706840370/check116328229926 failed 20 of 31 CLI tests; the retained run reported 701 passed/28 skipped across worker/web and server 18 passed. Root causes were timeout-only tests faking setImmediate and one-turn assumptions before the hidden prompt. The test harness now selectively fakes timeout functions, restores timers after each test, and waits for the exact hidden-prompt/raw-mode/data-listener state; no rerun has been performed. Go run 38706840297/check116328228950 and science check116328229654 passed. Node 22 rerun and operator-TTY acceptance remain pending."
 ---
 
 # Alpaca key-entry CLI
@@ -151,6 +151,14 @@ review found two test assertion defects, now corrected with fresh terminals,
 exact hidden-prompt checks, and separate loader/entry counts. The parent reran
 this revision's Node 24 syntax, import, and diff checks and all eight synthetic
 DI preflight cases; they passed. The actual-main delayed-I/O and deadline
-checks apply to the prior candidate only. Node 22 synthetic/full CI remains
-pending. No actual credential, Node 22 operator-TTY entry, or provider/account
+checks apply to the prior candidate only. A later Node 22 CI run
+(38706840370/check116328229926) failed 20 of 31 CLI tests while reporting 701
+passed/28 skipped across worker/web and 18 passing server tests. The harness
+failures came from timeout tests faking `setImmediate` and from sending keys,
+errors, or signals after a single turn rather than after the exact hidden
+prompt was ready. The tests now fake only timeout functions, restore timers in
+`afterEach`, and wait for the expected prompt, raw mode, and input listener.
+This remediation has not been tested; a fresh Node 22 run remains pending. The
+Go run (38706840297/check116328228950) and science check (116328229654) passed.
+No actual credential, Node 22 operator-TTY entry, or provider/account
 verification is claimed here.

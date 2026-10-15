@@ -3904,7 +3904,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-key-entry-cli.test.ts",
-      "sha256": "2203909499eab9ce359ec695bd2441ab7b41910d2017b11ee5e3cf796c4e9279",
+      "sha256": "6bded5a30141b303fff5b427998ad1c1e3dc0d262bde2205dc9d6e9aaf0361d5",
       "reason": "Owner-authorized standalone local Alpaca key-entry CLI and synthetic-only tests; no provider/account activation."
     }
   ]

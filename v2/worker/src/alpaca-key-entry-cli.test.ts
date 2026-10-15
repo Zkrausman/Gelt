@@ -101,6 +101,7 @@ function runCopiedMainWithDelayedStreamError(
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true });
   vi.restoreAllMocks();
 });
@@ -178,7 +179,15 @@ function invocation(paths: { data: string; broker: string }, terminal: ReturnTyp
   };
 }
 
-const turn = () => new Promise<void>(resolve => setImmediate(resolve));
+const KEY_ID_PROMPT = 'Alpaca key ID (hidden): ';
+const SECRET_KEY_PROMPT = 'Alpaca secret key (hidden): ';
+async function waitForHiddenPrompt(terminal: ReturnType<typeof io>, prompt: string) {
+  await vi.waitFor(() => {
+    expect(terminal.output.written).toContain(prompt);
+    expect(terminal.input.isRaw).toBe(true);
+    expect(terminal.input.listenerCount('data')).toBe(1);
+  }, { timeout: 2_000, interval: 10 });
+}
 const outputText = (terminal: ReturnType<typeof io>) => terminal.output.written.join('') + terminal.errorOutput.written.join('');
 
 describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
@@ -261,7 +270,7 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
   it('bounds a diagnostic write whose callback never settles', async () => {
     const terminal = io();
     terminal.output.omitCallbackOnWrite = value => value.includes('Usage: node');
-    vi.useFakeTimers();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
       const completion = runAlpacaKeyEntryCli({ argv: ['--help'], output: terminal.output, errorOutput: terminal.errorOutput });
       await vi.advanceTimersByTimeAsync(5_000);
@@ -366,11 +375,11 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
         return { enterAlpacaKeyPairFromTty };
       },
     }));
-    await turn();
+    await waitForHiddenPrompt(terminal, KEY_ID_PROMPT);
     expect(terminal.output.written[0]).toContain('treat storage as uncertain');
-    expect(terminal.output.written[1]).toBe('Alpaca key ID (hidden): ');
+    expect(terminal.output.written[1]).toBe(KEY_ID_PROMPT);
     terminal.input.send(`${syntheticPair.keyId}\r`);
-    await turn();
+    await waitForHiddenPrompt(terminal, SECRET_KEY_PROMPT);
     terminal.input.send(`${syntheticPair.secretKey}\r`);
     expect(await completion).toBe(0);
 
@@ -451,9 +460,9 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
     const completion = runAlpacaKeyEntryCli(invocation(paths, terminal, {
       loadHelper: async () => ({ enterAlpacaKeyPairFromTty }),
     }));
-    await turn();
+    await waitForHiddenPrompt(terminal, KEY_ID_PROMPT);
     terminal.input.send(`${syntheticPair.keyId}\r`);
-    await turn();
+    await waitForHiddenPrompt(terminal, SECRET_KEY_PROMPT);
     terminal.input.send(`${syntheticPair.secretKey}\r`);
     expect(await completion).toBe(6);
     expect(terminal.output.errors).toEqual(['SYNTHETIC_DIAGNOSTIC_ERROR']);
@@ -467,13 +476,12 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
   it('aborts active entry and restores raw mode when a helper prompt write never settles', async () => {
     const paths = directories(), terminal = io();
     terminal.output.omitCallbackOnWrite = value => value.includes('Alpaca key ID (hidden): ');
-    vi.useFakeTimers();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
       const completion = runAlpacaKeyEntryCli(invocation(paths, terminal, {
         loadHelper: async () => ({ enterAlpacaKeyPairFromTty }),
       }));
-      await vi.advanceTimersByTimeAsync(0);
-      expect(terminal.output.written).toContain('Alpaca key ID (hidden): ');
+      await waitForHiddenPrompt(terminal, KEY_ID_PROMPT);
       await vi.advanceTimersByTimeAsync(5_000);
       expect(await completion).toBe(6);
       expect(terminal.input.isRaw).toBe(false);
@@ -500,11 +508,11 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
       loadHelper: async () => ({ enterAlpacaKeyPairFromTty: helper }),
     }));
     try {
-      await turn();
+      await waitForHiddenPrompt(terminal, KEY_ID_PROMPT);
       const message = outputText(terminal);
-      expect(message.indexOf('treat storage as uncertain')).toBeLessThan(message.indexOf('Alpaca key ID (hidden): '));
+      expect(message.indexOf('treat storage as uncertain')).toBeLessThan(message.indexOf(KEY_ID_PROMPT));
       terminal.input.send(`${syntheticPair.keyId}\r`);
-      await turn();
+      await waitForHiddenPrompt(terminal, SECRET_KEY_PROMPT);
       terminal.input.send(`${syntheticPair.secretKey}\r`);
       expect(await completion).toBe(6);
     } finally {
@@ -530,7 +538,7 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
     const completion = runAlpacaKeyEntryCli(invocation(paths, terminal, {
       loadHelper: async () => ({ enterAlpacaKeyPairFromTty }),
     }));
-    await turn();
+    await waitForHiddenPrompt(terminal, KEY_ID_PROMPT);
     terminal.output.emit('error', new Error(syntheticPair.secretKey));
     expect(await completion).toBe(6);
     expect(terminal.input.isRaw).toBe(false);
@@ -546,7 +554,7 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
     const completion = runAlpacaKeyEntryCli(invocation(paths, terminal, {
       loadHelper: async () => ({ enterAlpacaKeyPairFromTty }),
     }));
-    await turn();
+    await waitForHiddenPrompt(terminal, KEY_ID_PROMPT);
     terminal.signals.emit('SIGTERM');
     expect(await completion).toBe(6);
     expect(terminal.input.isRaw).toBe(false);
