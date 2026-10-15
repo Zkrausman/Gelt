@@ -188,6 +188,7 @@ export type HiddenTerminal = Readonly<{
   input: {
     isTTY: boolean;
     isRaw?: boolean;
+    listenerCount(event: 'data' | 'readable'): number;
     setRawMode(mode: boolean): unknown;
     on(event: string, listener: (...args: any[]) => void): unknown;
     off(event: string, listener: (...args: any[]) => void): unknown;
@@ -204,14 +205,22 @@ const processSignals: AlpacaTerminalSignals = {
   terminate: signal => { process.kill(process.pid, signal); },
 };
 const defaultTerminal = (): HiddenTerminal => ({ input: process.stdin, output: process.stdout, signals: processSignals }) as HiddenTerminal;
+const activeCredentialInputs = new WeakSet<object>();
 
 class TerminalSignalInterruption extends Error {
   constructor(readonly signal: AlpacaTerminalSignal) { super('terminal interrupted'); }
 }
 
+function requireUnsharedInput(input: HiddenTerminal['input']) {
+  try {
+    if (input.listenerCount('data') !== 0 || input.listenerCount('readable') !== 0) throw unavailable();
+  } catch { throw unavailable(); }
+}
+
 async function readHiddenLine(prompt: string, terminal: HiddenTerminal): Promise<string> {
   const { input, output } = terminal;
   if (!input.isTTY || !output.isTTY || typeof input.setRawMode !== 'function') throw unavailable();
+  requireUnsharedInput(input);
   const wasRaw = input.isRaw === true;
   const bytes: number[] = [];
   let listener: ((chunk: Buffer | string) => void) | undefined;
@@ -286,6 +295,11 @@ async function readHiddenLine(prompt: string, terminal: HiddenTerminal): Promise
 // function is not wired to any app/startup path and must only be invoked after
 // a separate owner approval for actual local credential provisioning.
 export async function enterAlpacaKeyPairFromTty(dataDirectory: string, brokerVaultDirectory: string, terminal = defaultTerminal()): Promise<void> {
+  const input = terminal.input;
+  if (activeCredentialInputs.has(input)) throw new Error('Alpaca credential entry unavailable');
+  try { requireUnsharedInput(input); }
+  catch { throw new Error('Alpaca credential entry unavailable'); }
+  activeCredentialInputs.add(input);
   let keyId = '', secretKey = '';
   try {
     keyId = await readHiddenLine('Alpaca key ID (hidden): ', terminal);
@@ -298,5 +312,8 @@ export async function enterAlpacaKeyPairFromTty(dataDirectory: string, brokerVau
     }
     throw new Error('Alpaca credential entry unavailable');
   }
-  finally { keyId = ''; secretKey = ''; }
+  finally {
+    activeCredentialInputs.delete(input);
+    keyId = ''; secretKey = '';
+  }
 }

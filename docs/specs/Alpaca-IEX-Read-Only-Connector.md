@@ -75,9 +75,13 @@ opened as pinned canonical directory chains; symlink aliases are rejected, the
 broker path and ancestors are identity-checked before and after the write, and
 broker directory contents are not read or modified. Hidden key entry requires
 a TTY, enables raw/noecho mode before prompting or attaching data listeners,
-bounds input, restores terminal mode on success/error/cancel/close, and removes
-temporary signal handlers before re-delivering SIGINT/SIGTERM termination
-semantics. Synthetic test cases were added for output and listener-registration
+refuses a stream with existing `data` or `readable` consumers, and serializes
+entry on the same stream through credential storage. It bounds input, restores
+terminal mode on success/error/cancel/close, and removes temporary signal
+handlers before re-delivering SIGINT/SIGTERM termination semantics. This guard
+cannot prevent unrelated in-process code from adding a consumer after the
+check; it is not a process-wide secrecy boundary. Synthetic test cases were
+added for output and listener-registration
 failures, signal cleanup, copied and backdated acquisitions, opaque padded
 tokens, dangling terminal tokens, oversized declared and streamed bodies,
 request timeout, page-cap behavior, descriptor cleanup after identity-check

@@ -133,6 +133,54 @@ describe('standalone Alpaca keypair storage and hidden entry (synthetic only)', 
     expect(readAlpacaKeyPair(paths.data)).toEqual(keyPair);
   });
 
+  it.each(['data', 'readable'] as const)('refuses a TTY with an existing %s consumer before changing its state', async event => {
+    const paths = directories(), io = terminal(), observed: unknown[] = [];
+    const existingListener = (...args: unknown[]) => observed.push(...args);
+    io.input.on(event, existingListener);
+    await expect(enterAlpacaKeyPairFromTty(paths.data, paths.broker, io.terminal))
+      .rejects.toThrow('Alpaca credential entry unavailable');
+    expect(io.output.written).toEqual([]);
+    expect(io.input.modes).toEqual([]);
+    expect(io.input.isRaw).toBe(false);
+    expect(io.input.listenerCount(event)).toBe(1);
+    expect(io.input.listenerCount('data')).toBe(event === 'data' ? 1 : 0);
+    expect(io.input.listenerCount('readable')).toBe(event === 'readable' ? 1 : 0);
+    expect(io.signals.count('SIGINT')).toBe(0);
+    expect(io.signals.count('SIGTERM')).toBe(0);
+    expect(observed).toEqual([]);
+    expect(fs.existsSync(paths.data)).toBe(false);
+    io.input.off(event, existingListener);
+  });
+
+  it('refuses concurrent entry on the same TTY without disturbing the active entry', async () => {
+    const paths = directories(), io = terminal();
+    const listenerCount = vi.spyOn(io.input, 'listenerCount');
+    const first = enterAlpacaKeyPairFromTty(paths.data, paths.broker, io.terminal);
+    await nextTurn();
+    expect(io.output.written).toEqual(['Alpaca key ID (hidden): ']);
+    expect(io.input.isRaw).toBe(true);
+    const checksBeforeSecond = listenerCount.mock.calls.length;
+
+    await expect(enterAlpacaKeyPairFromTty(paths.data, paths.broker, io.terminal))
+      .rejects.toThrow('Alpaca credential entry unavailable');
+    expect(listenerCount.mock.calls).toHaveLength(checksBeforeSecond);
+    expect(io.output.written).toEqual(['Alpaca key ID (hidden): ']);
+    expect(io.input.modes).toEqual([true]);
+    expect(io.input.isRaw).toBe(true);
+    expect(io.input.listenerCount('data')).toBe(1);
+    expect(fs.existsSync(paths.data)).toBe(false);
+
+    io.input.send(`${keyPair.keyId}\r`);
+    await nextTurn();
+    expect(io.output.written).toEqual(['Alpaca key ID (hidden): ', '\n', 'Alpaca secret key (hidden): ']);
+    io.input.send(`${keyPair.secretKey}\r`);
+    await first;
+    expect(io.input.listenerCount('data')).toBe(0);
+    expect(io.input.isRaw).toBe(false);
+    expect(fs.readdirSync(paths.data)).toEqual(['alpaca-keypair.json']);
+    expect(readAlpacaKeyPair(paths.data)).toEqual(keyPair);
+  });
+
   it('restores raw mode and settles when newline output throws', async () => {
     const paths = directories(), io = terminal(new SyntheticInput(), true);
     const completion = enterAlpacaKeyPairFromTty(paths.data, paths.broker, io.terminal);

@@ -3856,7 +3856,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-iex-credentials.ts",
-      "sha256": "b7c95d7c40591561d193cadf8325791ebb423e072d459de381e4cf54e48cc6f5",
+      "sha256": "1cd40f72a485762cb9d8bec3cb362db2d009839355b91927798031fe6f2cfbd6",
       "reason": "Owner-approved standalone read-only Alpaca IEX historical bars, strict exact-token parsing, private key-pair support, and synthetic offline tests; no provider call or application activation."
     },
     {
@@ -3872,7 +3872,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-iex-credentials.test.ts",
-      "sha256": "5ae7ab48e17b35b597ffd0c7cf2ca22381cd458297630da0b124d32e972c96f9",
+      "sha256": "538ca6136c4be553f1b783ebe54ce980153627de63777cd5201ad481dc3ac665",
       "reason": "Owner-approved standalone read-only Alpaca IEX historical bars, strict exact-token parsing, private key-pair support, and synthetic offline tests; no provider call or application activation."
     }
   ]
