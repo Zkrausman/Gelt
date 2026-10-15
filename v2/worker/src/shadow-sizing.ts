@@ -256,14 +256,14 @@ function sizePaper(v: PaperSizingInput): PaperAction {
   };
   if (cash === 0n && q === 0n) return paperHold('zero_equity');
   if (v.ruleReceipt.decision === 'target_cash' && q === 0n) return paperHold('already_cash');
-  const current = ceiling(cash, q);
-  if (v.ruleReceipt.decision === 'target_long' && current === 0) return paperHold('already_at_ceiling');
-  if (v.ruleReceipt.decision === 'target_long' && current > 0) return paperAbstain('positive_target_overweight_unsupported');
-
   const side = v.ruleReceipt.decision === 'target_cash' ? 'sell' : 'buy';
   if (q % quantum !== 0n) return side === 'sell'
     ? paperAbstain('cash_exit_not_on_grid', 'holdings_retained_incomplete')
     : paperAbstain('current_position_not_on_grid');
+  const current = ceiling(cash, q);
+  if (v.ruleReceipt.decision === 'target_long' && current === 0) return paperHold('already_at_ceiling');
+  if (v.ruleReceipt.decision === 'target_long' && current > 0) return paperAbstain('positive_target_overweight_unsupported');
+
   const limit = side === 'buy' ? v.buyLimitPrice : v.sellLimitPrice;
   let model: Decimal;
   const retained = side === 'sell' ? 'holdings_retained_incomplete' : null;

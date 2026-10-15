@@ -165,6 +165,10 @@ describe('isolated pure G06 constructed paper sizing', () => {
     const fractional = paperFixture('base', 'target_long');
     setPosition(fractional, '9999.00000000', '0.500000000000000000');
     expect(run(fractional)).toMatchObject({ outcome: 'abstain', reason: 'current_position_not_on_grid', quantity: null });
+
+    const fractionalAtCeiling = paperFixture('base', 'target_long', '100');
+    setPosition(fractionalAtCeiling, '5.00000000', '0.950000000000000000');
+    expect(run(fractionalAtCeiling)).toMatchObject({ outcome: 'abstain', reason: 'current_position_not_on_grid', quantity: null });
   });
 
   it('preserves the original G05 SPY receipt and rejects identity, history, receipt, and cap-field substitutions', () => {

@@ -3800,7 +3800,7 @@
       "upstreamSha256": null,
       "path": "worker/src/shadow-sizing.ts",
       "status": "added",
-      "sha256": "43b8ba45581b66deb6e05e5674f919e6ab2c9ad6714a92563fb933530b5b0eab",
+      "sha256": "58a13f106f467e63a563c88a53d61c24d1e3fa2c274cdd0855c52dfc7e8a0603",
       "reason": "Owner-approved standalone pure sizing proposal with bounded constructed snapshots; no provider/execution changes."
     },
     {
@@ -3816,7 +3816,7 @@
       "upstreamSha256": null,
       "path": "worker/src/paper-policy-sizing.test.ts",
       "status": "added",
-      "sha256": "736dd83679ccf79edac40c1713deccb311caff243437e1a3ac96db432b26f8fd",
+      "sha256": "70787babdf4298b08666f7dad5eaf4419c296d269dd20cbb7619c56e8901ebfb",
       "reason": "G06 pure paper-policy sizing and exact replay over constructed fixtures only; no market/runtime/execution authority."
     },
     {
