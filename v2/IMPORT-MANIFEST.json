@@ -3874,6 +3874,22 @@
       "path": "worker/src/alpaca-iex-credentials.test.ts",
       "sha256": "4e04a8872225447fbc6f1ac817d9a9bdfcfd6708fd1cca39c21205429f265ed0",
       "reason": "Owner-approved standalone read-only Alpaca IEX historical bars, strict exact-token parsing, private key-pair support, and synthetic offline tests; no provider call or application activation."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-shadow-candidate.test.ts",
+      "sha256": "5d7a512f740fdec9587584b7173e5938acdd1ba9d53c394e2e8c31cffa2a06f5",
+      "reason": "Owner-approved synthetic-only Alpaca-to-G05 candidate bridge cases; no provider, admission, or execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-shadow-candidate.ts",
+      "sha256": "1bd1344f1738158b95857252dc8f327f229b1b2bad4f017f2a87062e1bbc705f",
+      "reason": "Owner-approved in-memory unverified Alpaca-to-G05 candidate bridge; no acquisition, promotion, storage, or execution authority."
     }
   ]
 }
