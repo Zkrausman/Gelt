@@ -44,7 +44,7 @@ function copiedCliFixture(paths: ReturnType<typeof directories>, compiledSource?
   if (compiledSource !== undefined) {
     fs.writeFileSync(join(dist, 'alpaca-iex-credentials.js'), compiledSource, { mode: 0o600 });
   }
-  return { moduleUrl: pathToFileURL(copiedCli).href, away };
+  return { copiedCli, moduleUrl: pathToFileURL(copiedCli).href, away };
 }
 
 function runCopiedCliFromAway(fixture: ReturnType<typeof copiedCliFixture>, paths: ReturnType<typeof directories>) {
@@ -60,7 +60,7 @@ function runCopiedCliFromAway(fixture: ReturnType<typeof copiedCliFixture>, path
     }
     class Output extends EventEmitter {
       isTTY = true;
-      write(text) { process.stdout.write(text); return true; }
+      write(text, callback) { process.stdout.write(text, callback); return true; }
     }
     const code = await runAlpacaKeyEntryCli({
       argv: ${JSON.stringify(argv(paths))}, env: {}, platform: 'linux', nodeVersion: '22.12.0', execArgv: [],
@@ -70,6 +70,30 @@ function runCopiedCliFromAway(fixture: ReturnType<typeof copiedCliFixture>, path
   `;
   fs.writeFileSync(driver, source, { mode: 0o600 });
   return spawnSync(process.execPath, [driver], {
+    cwd: fixture.away,
+    encoding: 'utf8',
+    env: { PATH: process.env.PATH ?? '/usr/bin:/bin' },
+  });
+}
+
+function runCopiedMainWithDelayedStreamError(
+  fixture: ReturnType<typeof copiedCliFixture>, streamName: 'stdout' | 'stderr', args: string[],
+) {
+  const preload = join(fixture.away, `delayed-${streamName}-error.mjs`);
+  fs.writeFileSync(preload, `
+    const stream = process.${streamName};
+    const originalWrite = stream.write.bind(stream);
+    let scheduled = false;
+    stream.write = function (...args) {
+      const result = originalWrite(...args);
+      if (!scheduled) {
+        scheduled = true;
+        setImmediate(() => stream.emit('error', new Error('SYNTHETIC_DIAGNOSTIC_ERROR')));
+      }
+      return result;
+    };
+  `, { mode: 0o600 });
+  return spawnSync(process.execPath, ['--import', preload, fixture.copiedCli, ...args], {
     cwd: fixture.away,
     encoding: 'utf8',
     env: { PATH: process.env.PATH ?? '/usr/bin:/bin' },
@@ -94,7 +118,20 @@ class SyntheticInput extends EventEmitter {
 class SyntheticOutput extends EventEmitter {
   isTTY = true;
   readonly written: string[] = [];
-  write(value: string) { this.written.push(value); return true; }
+  readonly errors: string[] = [];
+  errorOnWrite?: (value: string) => boolean;
+  omitCallbackOnWrite?: (value: string) => boolean;
+  write(value: string, callback?: (error?: Error | null) => void) {
+    this.written.push(value);
+    if (this.errorOnWrite?.(value)) {
+      queueMicrotask(() => {
+        this.errors.push('SYNTHETIC_DIAGNOSTIC_ERROR');
+        this.emit('error', new Error('SYNTHETIC_DIAGNOSTIC_ERROR'));
+      });
+    }
+    if (!this.omitCallbackOnWrite?.(value)) callback?.();
+    return true;
+  }
 }
 
 class SyntheticSignals {
@@ -183,6 +220,41 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
     expect(loaded).toEqual([]);
   });
 
+  it('keeps stdout error handling through a queued help-write error and fails closed', async () => {
+    const terminal = io();
+    terminal.output.errorOnWrite = value => value.includes('Usage: node');
+    const code = await runAlpacaKeyEntryCli({
+      argv: ['--help'], platform: 'win32', nodeVersion: '24.0.0', input: terminal.input,
+      output: terminal.output, errorOutput: terminal.errorOutput,
+    });
+    expect(code).toBe(4);
+    expect(terminal.output.errors).toEqual(['SYNTHETIC_DIAGNOSTIC_ERROR']);
+    expect(outputText(terminal)).not.toContain('SYNTHETIC_DIAGNOSTIC_ERROR');
+  });
+
+  it('settles a queued stderr error before returning the usage status without exposing its stack', async () => {
+    const terminal = io();
+    terminal.errorOutput.errorOnWrite = value => value.includes('Invalid arguments.');
+    const code = await runAlpacaKeyEntryCli({ argv: [], output: terminal.output, errorOutput: terminal.errorOutput });
+    expect(code).toBe(2);
+    expect(terminal.errorOutput.errors).toEqual(['SYNTHETIC_DIAGNOSTIC_ERROR']);
+    expect(outputText(terminal)).toContain('Invalid arguments.');
+    expect(outputText(terminal)).not.toContain('SYNTHETIC_DIAGNOSTIC_ERROR');
+  });
+
+  it('bounds a diagnostic write whose callback never settles', async () => {
+    const terminal = io();
+    terminal.output.omitCallbackOnWrite = value => value.includes('Usage: node');
+    vi.useFakeTimers();
+    try {
+      const completion = runAlpacaKeyEntryCli({ argv: ['--help'], output: terminal.output, errorOutput: terminal.errorOutput });
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(await completion).toBe(4);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it.each([
     ['unsupported runtime', { platform: 'darwin' }],
     ['unsupported Node major', { nodeVersion: '24.0.0' }],
@@ -233,6 +305,22 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
     expect(result.stderr).toContain('Worker build unavailable.');
     expect(result.stderr).not.toContain(paths.root);
     expect(result.stderr).not.toContain(syntheticPair.secretKey);
+    expect(fs.existsSync(paths.data)).toBe(false);
+  });
+
+  it.each([
+    ['help stdout', 'stdout', ['--help']],
+    ['invalid-argument stderr', 'stderr', ['--unknown']],
+  ] as const)('keeps a main-process error guard for delayed %s events', (_name, streamName, args) => {
+    const paths = directories();
+    const fixture = copiedCliFixture(paths);
+    const result = runCopiedMainWithDelayedStreamError(fixture, streamName, [...args]);
+    expect(result.error).toBeUndefined();
+    expect(result.status).not.toBe(0);
+    expect(result.status).not.toBe(1);
+    expect(result.stdout + result.stderr).not.toContain('SYNTHETIC_DIAGNOSTIC_ERROR');
+    if (args[0] === '--help') expect(result.stdout).toContain('Usage: node v2/scripts/alpaca-key-entry.mjs');
+    else expect(result.stderr).toContain('Invalid arguments.');
     expect(fs.existsSync(paths.data)).toBe(false);
   });
 
@@ -289,6 +377,62 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
     expect(file.nlink).toBe(1);
     expect(file.uid).toBe(process.getuid!());
     expect(fs.readFileSync(sentinel, 'utf8')).toBe('synthetic broker vault sentinel');
+  });
+
+  it('does not enter when the pre-entry safety notice has an asynchronously failing stdout write', async () => {
+    const paths = directories(), terminal = io();
+    let helperLoads = 0;
+    terminal.output.errorOnWrite = value => value.includes('If entry is interrupted');
+    const code = await runAlpacaKeyEntryCli(invocation(paths, terminal, {
+      loadHelper: async () => { helperLoads++; return { enterAlpacaKeyPairFromTty }; },
+    }));
+    expect(code).toBe(4);
+    expect(helperLoads).toBe(0);
+    expect(terminal.output.errors).toEqual(['SYNTHETIC_DIAGNOSTIC_ERROR']);
+    expect(terminal.input.modes).toEqual([]);
+    expect(fs.existsSync(paths.data)).toBe(false);
+    expect(outputText(terminal)).not.toContain('SYNTHETIC_DIAGNOSTIC_ERROR');
+  });
+
+  it('reports uncertainty when the success diagnostic emits a queued stdout error', async () => {
+    const paths = directories(), terminal = io();
+    terminal.output.errorOnWrite = value => value.includes('Credentials stored locally.');
+    const completion = runAlpacaKeyEntryCli(invocation(paths, terminal, {
+      loadHelper: async () => ({ enterAlpacaKeyPairFromTty }),
+    }));
+    await turn();
+    terminal.input.send(`${syntheticPair.keyId}\r`);
+    await turn();
+    terminal.input.send(`${syntheticPair.secretKey}\r`);
+    expect(await completion).toBe(6);
+    expect(terminal.output.errors).toEqual(['SYNTHETIC_DIAGNOSTIC_ERROR']);
+    expect(terminal.input.isRaw).toBe(false);
+    expect(terminal.input.listenerCount('data')).toBe(0);
+    expect(outputText(terminal)).not.toContain('SYNTHETIC_DIAGNOSTIC_ERROR');
+    expect(outputText(terminal)).not.toContain(syntheticPair.secretKey);
+    expect(fs.lstatSync(join(paths.data, 'alpaca-keypair.json')).isFile()).toBe(true);
+  });
+
+  it('aborts active entry and restores raw mode when a helper prompt write never settles', async () => {
+    const paths = directories(), terminal = io();
+    terminal.output.omitCallbackOnWrite = value => value.includes('Alpaca key ID (hidden): ');
+    vi.useFakeTimers();
+    try {
+      const completion = runAlpacaKeyEntryCli(invocation(paths, terminal, {
+        loadHelper: async () => ({ enterAlpacaKeyPairFromTty }),
+      }));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(terminal.output.written).toContain('Alpaca key ID (hidden): ');
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(await completion).toBe(6);
+      expect(terminal.input.isRaw).toBe(false);
+      expect(terminal.input.listenerCount('data')).toBe(0);
+      expect(terminal.input.modes).toEqual([true, false]);
+      expect(fs.existsSync(paths.data)).toBe(false);
+      expect(outputText(terminal)).not.toContain('SYNTHETIC_DIAGNOSTIC_ERROR');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('prints uncertainty before entry and preserves partial evidence after a single helper failure', async () => {

@@ -14,28 +14,113 @@ const START_NOTICE = [
   'Stop. Do not retry, delete, chmod, revoke, or clean up. Follow the read-only metadata reconciliation procedure in docs/specs/Alpaca-Key-Entry-CLI.md.',
 ].join('\n');
 const UNCERTAIN_NOTICE = 'Entry outcome is uncertain. Stop. Do not retry, delete, chmod, revoke, or clean up. Follow the read-only metadata reconciliation procedure in docs/specs/Alpaca-Key-Entry-CLI.md.';
+const WRITE_CALLBACK_TIMEOUT_MS = 5_000;
 
 class UsageFailure extends Error {}
 class PreflightFailure extends Error {}
 
-function writeLine(output, value) {
-  try {
-    output.write(`${value}\n`);
-    return true;
-  } catch {
-    return false;
+function outputLifecycle(streams) {
+  let failed = false;
+  let pending = 0;
+  const listeners = [];
+  const failureHandlers = new Set();
+  const drainWaiters = [];
+
+  const fail = () => {
+    if (failed) return;
+    failed = true;
+    for (const handler of [...failureHandlers]) {
+      try { handler(); } catch { /* Keep the output boundary sanitized. */ }
+    }
+  };
+  const completeOne = () => {
+    pending--;
+    if (pending === 0) for (const resolveWaiter of drainWaiters.splice(0)) resolveWaiter();
+  };
+
+  for (const stream of new Set(streams)) {
+    if (typeof stream?.on !== 'function' || typeof stream?.off !== 'function') {
+      fail();
+      continue;
+    }
+    const listener = () => fail();
+    try {
+      stream.on('error', listener);
+      listeners.push({ stream, listener });
+    } catch { fail(); }
   }
+
+  return {
+    get failed() { return failed; },
+    onFailure(handler) {
+      if (failed) {
+        try { handler(); } catch { /* Keep the output boundary sanitized. */ }
+        return () => {};
+      }
+      failureHandlers.add(handler);
+      return () => failureHandlers.delete(handler);
+    },
+    write(stream, value) {
+      if (typeof stream?.write !== 'function') {
+        fail();
+        return false;
+      }
+      pending++;
+      let completed = false;
+      let timer;
+      const complete = error => {
+        if (error) fail();
+        if (completed) return;
+        completed = true;
+        if (timer) clearTimeout(timer);
+        completeOne();
+      };
+      timer = setTimeout(() => {
+        fail();
+        complete();
+      }, WRITE_CALLBACK_TIMEOUT_MS);
+      try {
+        stream.write(value, complete);
+        return !failed;
+      } catch {
+        fail();
+        complete();
+        return false;
+      }
+    },
+    async drain() {
+      for (;;) {
+        if (pending > 0) await new Promise(resolveWaiter => drainWaiters.push(resolveWaiter));
+        // A Writable callback may run before a queued error event from that same write.
+        await Promise.resolve();
+        if (pending === 0) return;
+      }
+    },
+    close() {
+      failureHandlers.clear();
+      for (const { stream, listener } of listeners.splice(0)) {
+        try { stream.off('error', listener); } catch { /* Do not leak raw stream errors. */ }
+      }
+    },
+  };
 }
 
-function suppressDiagnosticStreamErrors(output) {
-  if (typeof output?.on !== 'function' || typeof output?.off !== 'function') return () => {};
-  const listener = () => {};
-  try {
-    output.on('error', listener);
-    return () => { try { output.off('error', listener); } catch { /* Keep diagnostics redacted. */ } };
-  } catch {
-    return () => {};
+function writeLine(output, value, lifecycle) {
+  return lifecycle.write(output, `${value}\n`);
+}
+
+function installMainOutputErrorGuard() {
+  let failed = false;
+  const swallow = () => {
+    failed = true;
+    try {
+      if (process.exitCode == null || process.exitCode === EXIT.ok) process.exitCode = EXIT.uncertain;
+    } catch { /* Never print or replace an output-stream error. */ }
+  };
+  for (const stream of new Set([process.stdout, process.stderr])) {
+    try { stream.on('error', swallow); } catch { failed = true; }
   }
+  return { get failed() { return failed; } };
 }
 
 function parseArguments(argv) {
@@ -121,14 +206,14 @@ function validateTerminal(input, output) {
   }
 }
 
-function entryTerminal(input, output, signals) {
+function entryTerminal(input, output, signals, lifecycle) {
   let outputFailed = false;
   let inputErrorListener;
   const onOutputError = () => {
     outputFailed = true;
     try { inputErrorListener?.(); } catch { /* The entry helper owns sanitized cleanup. */ }
   };
-  output.on('error', onOutputError);
+  const removeFailureHandler = lifecycle.onFailure(onOutputError);
   const wrappedInput = {
     get isTTY() { return input.isTTY; },
     get isRaw() { return input.isRaw; },
@@ -150,11 +235,15 @@ function entryTerminal(input, output, signals) {
     pause() { return input.pause(); },
   };
   return {
-    terminal: { input: wrappedInput, output, signals },
+    terminal: {
+      input: wrappedInput,
+      output: { get isTTY() { return output.isTTY; }, write(value) { return lifecycle.write(output, value); } },
+      signals,
+    },
     get outputFailed() { return outputFailed; },
     close() {
       inputErrorListener = undefined;
-      try { output.off('error', onOutputError); } catch { /* Do not replace the sanitized entry result. */ }
+      removeFailureHandler();
     },
   };
 }
@@ -176,23 +265,25 @@ export async function runAlpacaKeyEntryCli(overrides = {}) {
   const input = overrides.input ?? process.stdin;
   const output = overrides.output ?? process.stdout;
   const errorOutput = overrides.errorOutput ?? process.stderr;
-  const releaseDiagnosticErrorGuard = suppressDiagnosticStreamErrors(errorOutput);
-  try {
+  const lifecycle = outputLifecycle([output, errorOutput]);
+  let entryStarted = false;
+  let result = EXIT.preflight;
+  const execute = async () => {
     let args;
     try { args = parseArguments(argv); } catch {
-      writeLine(errorOutput, 'Invalid arguments.');
-      writeLine(errorOutput, USAGE);
+      writeLine(errorOutput, 'Invalid arguments.', lifecycle);
+      writeLine(errorOutput, USAGE, lifecycle);
       return EXIT.usage;
     }
-    if (args.help) return writeLine(output, USAGE) ? EXIT.ok : EXIT.preflight;
+    if (args.help) return writeLine(output, USAGE, lifecycle) ? EXIT.ok : EXIT.preflight;
 
     try { validateRuntime(platform, nodeVersion, env, execArgv); }
     catch (error) {
       if (error.message === 'runtime') {
-        writeLine(errorOutput, 'Unsupported runtime. Use trusted Node.js 22 on Linux.');
+        writeLine(errorOutput, 'Unsupported runtime. Use trusted Node.js 22 on Linux.', lifecycle);
         return EXIT.runtime;
       }
-      writeLine(errorOutput, 'Unsafe Node launch settings. Unset NODE_OPTIONS, NODE_DEBUG, NODE_DEBUG_NATIVE, NODE_V8_COVERAGE, and NODE_REDIRECT_WARNINGS; launch Node without extra runtime flags.');
+      writeLine(errorOutput, 'Unsafe Node launch settings. Unset NODE_OPTIONS, NODE_DEBUG, NODE_DEBUG_NATIVE, NODE_V8_COVERAGE, and NODE_REDIRECT_WARNINGS; launch Node without extra runtime flags.', lifecycle);
       return EXIT.runtime;
     }
 
@@ -200,7 +291,7 @@ export async function runAlpacaKeyEntryCli(overrides = {}) {
       validatePaths(args.dataDirectory, args.brokerVaultDirectory, process.getuid());
       validateTerminal(input, output);
     } catch {
-      writeLine(errorOutput, 'Preflight failed. No credentials were requested. Check the path and dedicated-TTY requirements in docs/specs/Alpaca-Key-Entry-CLI.md.');
+      writeLine(errorOutput, 'Preflight failed. No credentials were requested. Check the path and dedicated-TTY requirements in docs/specs/Alpaca-Key-Entry-CLI.md.', lifecycle);
       return EXIT.preflight;
     }
 
@@ -209,42 +300,65 @@ export async function runAlpacaKeyEntryCli(overrides = {}) {
       helper = overrides.loadHelper ? await overrides.loadHelper(helperUrl) : await loadBuiltHelper(helperUrl);
       if (typeof helper?.enterAlpacaKeyPairFromTty !== 'function') throw new Error('build');
     } catch {
-      writeLine(errorOutput, 'Worker build unavailable. Run `npm run build:worker` in v2; the CLI never builds or installs automatically.');
+      writeLine(errorOutput, 'Worker build unavailable. Run `npm run build:worker` in v2; the CLI never builds or installs automatically.', lifecycle);
       return EXIT.build;
     }
 
-    const bridge = entryTerminal(input, output, overrides.signals);
-    if (!writeLine(output, START_NOTICE) || bridge.outputFailed) {
+    const bridge = entryTerminal(input, output, overrides.signals, lifecycle);
+    if (!writeLine(output, START_NOTICE, lifecycle)) {
       bridge.close();
-      writeLine(errorOutput, 'Unable to display the safety notice. No credentials were requested.');
+      writeLine(errorOutput, 'Unable to display the safety notice. No credentials were requested.', lifecycle);
+      return EXIT.preflight;
+    }
+    await lifecycle.drain();
+    if (lifecycle.failed || bridge.outputFailed) {
+      bridge.close();
+      writeLine(errorOutput, 'Unable to display the safety notice. No credentials were requested.', lifecycle);
       return EXIT.preflight;
     }
     try {
+      entryStarted = true;
       await helper.enterAlpacaKeyPairFromTty(args.dataDirectory, args.brokerVaultDirectory, bridge.terminal);
-      if (bridge.outputFailed || !writeLine(output, 'Credentials stored locally. No provider, account, rights, admission, or activation check was performed.')) {
-        writeLine(errorOutput, UNCERTAIN_NOTICE);
+      if (bridge.outputFailed || lifecycle.failed) {
+        writeLine(errorOutput, UNCERTAIN_NOTICE, lifecycle);
         return EXIT.uncertain;
       }
+      writeLine(output, 'Credentials stored locally. No provider, account, rights, admission, or activation check was performed.', lifecycle);
       return EXIT.ok;
     } catch {
-      writeLine(errorOutput, UNCERTAIN_NOTICE);
+      writeLine(errorOutput, UNCERTAIN_NOTICE, lifecycle);
       return EXIT.uncertain;
     } finally {
       bridge.close();
     }
+  };
+
+  try {
+    result = await execute();
   } catch {
-    writeLine(errorOutput, 'CLI unavailable. No error details or credential values are displayed.');
-    return EXIT.preflight;
-  } finally {
-    releaseDiagnosticErrorGuard();
+    writeLine(errorOutput, 'CLI unavailable. No error details or credential values are displayed.', lifecycle);
+    result = entryStarted ? EXIT.uncertain : EXIT.preflight;
   }
+  try { await lifecycle.drain(); } catch { /* A failed flush is handled below without exposing stream errors. */ }
+  const outputFailed = lifecycle.failed;
+  lifecycle.close();
+  if (outputFailed) {
+    if (entryStarted) return EXIT.uncertain;
+    if (result === EXIT.ok) return EXIT.preflight;
+  }
+  return result;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  // The runner drains tracked writes, but a Writable may still emit a later error.
+  // Keep this guard only for the real standalone process, never on module import.
+  const mainOutputGuard = installMainOutputErrorGuard();
   void runAlpacaKeyEntryCli().then(code => {
-    process.exitCode = code;
+    process.exitCode = mainOutputGuard.failed && code === EXIT.ok ? EXIT.uncertain : code;
   }, () => {
-    writeLine(process.stderr, 'CLI unavailable. No error details or credential values are displayed.');
-    process.exitCode = EXIT.preflight;
+    const lifecycle = outputLifecycle([process.stdout, process.stderr]);
+    writeLine(process.stderr, 'CLI unavailable. No error details or credential values are displayed.', lifecycle);
+    void lifecycle.drain().finally(() => lifecycle.close());
+    process.exitCode = mainOutputGuard.failed ? EXIT.uncertain : EXIT.preflight;
   });
 }

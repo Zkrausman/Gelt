@@ -12,7 +12,7 @@ changed_files:
   - docs/specs/Alpaca-Key-Entry-CLI.md
   - v2/IMPORT-MANIFEST.json
 verification_scope: "Synthetic-only CLI/helper tests and parent-hosted source checks; no operator credential entry"
-verification_evidence: "Pending parent validation and fresh independent/adversarial review; no Node 22 runtime or real operator TTY acceptance claimed"
+verification_evidence: "Parent's deterministic local probes found queued microtask and setImmediate diagnostic-stream errors could outlive the v1 scoped listener guard; scoped and main-process regressions added and parent rerun pending. No Node 22 runtime or real operator TTY acceptance claimed"
 ---
 
 # Alpaca key-entry CLI
@@ -76,8 +76,17 @@ The command uses the existing `enterAlpacaKeyPairFromTty` helper without
 changing its contract. It requires an interactive TTY for input and output,
 available raw-mode controls, and no existing `data` or `readable` input
 consumers. Both fields are hidden. The wrapper does not print key values, paths,
-raw errors, or stack traces. Ordinary output-stream errors are routed through
-the helper's existing failure path so its terminal cleanup can run.
+raw errors, or stack traces. It keeps stdout and stderr error guards installed
+until tracked write callbacks settle and the queued error-event checkpoint has
+completed. A write callback that does not settle within five seconds fails
+closed; during entry, that failure is routed through the helper's existing
+input-error path so terminal cleanup can run. The warning is drained before
+the helper is invoked, and output failures after helper invocation are treated
+as uncertain storage outcomes. In standalone mode only, process-lifetime stdout
+and stderr listeners also swallow errors emitted after the scoped runner has
+settled and force a nonzero exit code without terminating the process early.
+Importing the module installs no listeners. The scoped runner itself only owns
+errors through its tracked callback settlement and queued-event checkpoint.
 
 Before entry, the CLI warns that interruption or an entry error may leave absent,
 partial, or complete storage and instructs the operator to stop without retrying,
@@ -126,7 +135,12 @@ call a provider, enable trading, or modify the broker vault.
 The implementation changes the five paths listed in the frontmatter. The V2
 import manifest is refreshed only for the package metadata and new in-scope V2
 source/test additions; dependency lockfiles and existing credential helper,
-contract, and private-file code remain unchanged. Validation is still pending:
-the parent will run the approved local syntax/help/preflight checks and hosted
-tests/build/review. No actual credential, operator TTY, Node 22 execution, or
-provider/account verification is claimed here.
+contract, and private-file code remain unchanged. The parent found the v1
+queued-write error lifecycle defect with deterministic synthetic probes,
+including a `setImmediate` error after the scoped listener closed. This revision
+adds callback settlement, a bounded callback timeout, a standalone-process
+error guard, and synthetic regressions for queued stderr/stdout errors and
+unsettled writes. The parent will rerun its approved checks and hosted
+tests/build/review. No actual
+credential, operator TTY, Node 22 execution, or provider/account verification
+is claimed here.

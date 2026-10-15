@@ -3896,7 +3896,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/alpaca-key-entry.mjs",
-      "sha256": "2432558fce4065bd68edf0f6dfc1791d81b4755d111926429978e552c965728a",
+      "sha256": "422293c3293153d278c564b5d617ae4f99094ee2974b0e503e8b4bd8cb4ae2b0",
       "reason": "Owner-authorized standalone local Alpaca key-entry CLI and synthetic-only tests; no provider/account activation."
     },
     {
@@ -3904,7 +3904,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-key-entry-cli.test.ts",
-      "sha256": "454d6ccf949f6752112182ac14c6cca7af38cf1daca10d05de2089eb81edfcb0",
+      "sha256": "d877f896f8bcb79c084a0126179063b6b4a1612698c22852b46cfbaa383335a3",
       "reason": "Owner-authorized standalone local Alpaca key-entry CLI and synthetic-only tests; no provider/account activation."
     }
   ]
