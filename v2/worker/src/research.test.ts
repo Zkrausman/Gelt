@@ -6,7 +6,7 @@ import { storageFixture } from './storage-fixture.js';
 import * as privateFiles from './private-files.js';
 import { researchFixture } from './research-fixture.js';
 import { MAX_RESEARCH_BYTES, researchEvidenceSchema } from './research-contract.js';
-import { parseResearchJSON } from './research-json.js';
+import { parseResearchJSON, parseResearchJSONNumberTokens } from './research-json.js';
 import { importResearchFile, listResearch, provisionResearch, readResearch, readResearchInput } from './research-store.js';
 
 const roots: string[] = [];
@@ -56,6 +56,12 @@ describe('research schema and bounded strict JSON', () => {
     }
     expect(() => parseResearchJSON(Buffer.from([0x22, 0xff, 0x22]))).toThrow();
     expect(parseResearchJSON(Buffer.from('{"a":[1,true,null,"hi\\\"there"],"b":{}}'))).toEqual({ a: [1, true, null, 'hi"there'], b: {} });
+  });
+  it('preserves exact original JSON number tokens by structural path', () => {
+    const parsed = parseResearchJSONNumberTokens(Buffer.from('{"bars":{"AAPL":[{"c":9007199254740992.0000000000000001,"v":1e+8}]}}'));
+    expect(parsed.numberTokens.get(JSON.stringify(['bars', 'AAPL', 0, 'c']))).toBe('9007199254740992.0000000000000001');
+    expect(parsed.numberTokens.get(JSON.stringify(['bars', 'AAPL', 0, 'v']))).toBe('1e+8');
+    expect(parsed.value).toEqual({ bars: { AAPL: [{ c: 9007199254740992, v: 100000000 }] } });
   });
 });
 
