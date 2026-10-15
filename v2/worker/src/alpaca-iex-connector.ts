@@ -13,7 +13,16 @@ const unavailable = () => new Error('Alpaca market data unavailable');
 const sha256 = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 const pathKey = (path: (string | number)[]) => JSON.stringify(path);
 const pageBodyLimit = alpacaIexMaxPageBytes;
-const tokenPattern = /^[A-Za-z0-9._~-]+$/;
+// The provider documents page tokens as opaque strings. Keep a printable
+// bounded alphabet without assuming URL-safe/base64 encoding details.
+const tokenPattern = /^[\x21-\x7e]+$/;
+const issuedAcquisitions = new WeakMap<object, string>();
+
+export function isConnectorIssuedAlpacaAcquisition(input: unknown): boolean {
+  if (!input || typeof input !== 'object') return false;
+  const issuedAt = issuedAcquisitions.get(input);
+  return typeof issuedAt === 'string' && (input as { receivedAt?: unknown }).receivedAt === issuedAt;
+}
 
 function providerTimestamp(value: unknown): string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?Z$/.test(value)) throw unavailable();
@@ -191,6 +200,7 @@ export async function acquireAlpacaIexDailyBars(input: unknown, credentialInput:
       page++;
       rawPages.push(Object.freeze({ page, byteLength: bytes.length, sha256: sha256(bytes), bodyBase64: bytes.toString('base64') }));
       if (parsed.nextPageToken !== null && seenTokens.has(parsed.nextPageToken)) throw unavailable();
+      if (observations.length === request.calendar.sessions.length && parsed.nextPageToken !== null) throw unavailable();
       if (observations.length < request.calendar.sessions.length) {
         if (!parsed.nextPageToken) throw unavailable();
         token = parsed.nextPageToken;
@@ -203,7 +213,7 @@ export async function acquireAlpacaIexDailyBars(input: unknown, credentialInput:
     receivedAt = new Date().toISOString();
     if (new Date(receivedAt).toISOString() !== receivedAt) throw new Error();
   } catch { throw unavailable(); }
-  return Object.freeze({
+  const acquisition: AlpacaIexAcquisition = Object.freeze({
     schema: 'gelt.alpaca-iex-acquisition.v1', source: 'alpaca-data-v2', feed: 'iex',
     symbol: request.symbol, adjustment: request.adjustment, asof: request.asof,
     receivedAt, calendarSha256: request.calendar.sha256,
@@ -214,6 +224,8 @@ export async function acquireAlpacaIexDailyBars(input: unknown, credentialInput:
       providerTimestamp: o.providerTimestamp, close: Object.freeze({ ...o.close }),
     }))),
   });
+  issuedAcquisitions.set(acquisition, receivedAt);
+  return acquisition;
 }
 
 // Re-decode the exact retained response bytes and bind every close token,
@@ -252,7 +264,7 @@ export function verifyAlpacaIexAcquisition(input: unknown): boolean {
       expectedToken = parsed.nextPageToken;
       if (offset < acquisition.observations.length) {
         if (!expectedToken) return false;
-      }
+      } else if (expectedToken !== null) return false;
     }
     return offset === acquisition.observations.length;
   } catch { return false; }

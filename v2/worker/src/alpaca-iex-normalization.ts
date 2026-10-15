@@ -7,7 +7,7 @@ import {
   type AlpacaAvailability, type AlpacaIexAcquisition, type AlpacaIexNormalizedBars,
   type AlpacaSessionCalendar,
 } from './alpaca-iex-contract.js';
-import { verifyAlpacaIexAcquisition } from './alpaca-iex-connector.js';
+import { isConnectorIssuedAlpacaAcquisition, verifyAlpacaIexAcquisition } from './alpaca-iex-connector.js';
 
 const rejected = () => new Error('Alpaca bars cannot be normalized');
 const hash = (value: Uint8Array | string) => createHash('sha256').update(value).digest('hex');
@@ -33,6 +33,10 @@ export type AlpacaIexNormalizationInput = Readonly<{
 // remains unverified market input and cannot establish admission or promotion.
 export function normalizeAlpacaIexBars(acquisitionInput: unknown, input: AlpacaIexNormalizationInput): AlpacaIexNormalizedBars {
   try {
+    // This identity check must precede Zod parsing, which returns a deep clone.
+    // The in-memory receipt proof is intentionally non-persistent and is not
+    // evidence of provider authenticity, entitlement, or market eligibility.
+    if (!isConnectorIssuedAlpacaAcquisition(acquisitionInput)) throw rejected();
     const acquisition = alpacaIexAcquisitionSchema.parse(acquisitionInput) as AlpacaIexAcquisition;
     const symbol = alpacaSymbolSchema.parse(input.symbol);
     const adjustment = alpacaAdjustmentSchema.parse(input.adjustment);

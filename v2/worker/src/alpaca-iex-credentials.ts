@@ -20,6 +20,51 @@ function absoluteDirectory(path: string) {
   if (typeof path !== 'string' || path !== resolve(path) || basename(path) === '.' || basename(path) === '/') throw unavailable();
   return path;
 }
+type PinnedDirectory = { path: string; canonical: string; entries: Array<{ path: string; fd: number; stat: Identity }> };
+function pinDirectoryChain(path: string): PinnedDirectory {
+  requireLinux();
+  path = absoluteDirectory(path);
+  privateDirectory(path);
+  const canonical = fs.realpathSync.native(path);
+  if (canonical !== path) throw unavailable();
+  const entries: PinnedDirectory['entries'] = [];
+  try {
+    let current = '/';
+    let fd = fs.openSync(current, flags);
+    let stat = identity(fs.fstatSync(fd));
+    let named = identity(fs.lstatSync(current));
+    if (!fs.fstatSync(fd).isDirectory() || !sameIdentity(stat, named)) throw unavailable();
+    entries.push({ path: current, fd, stat });
+    for (const component of path.split('/').filter(Boolean)) {
+      current = current === '/' ? `/${component}` : `${current}/${component}`;
+      fd = fs.openSync(fdPath(entries[entries.length - 1].fd, component), flags);
+      const opened = fs.fstatSync(fd), linked = fs.lstatSync(current);
+      stat = identity(opened); named = identity(linked);
+      if (!opened.isDirectory() || linked.isSymbolicLink() || !sameIdentity(stat, named)) {
+        fs.closeSync(fd); throw unavailable();
+      }
+      entries.push({ path: current, fd, stat });
+    }
+    if (entries[entries.length - 1].path !== path) throw unavailable();
+    return { path, canonical, entries };
+  } catch (error) {
+    for (const entry of entries.reverse()) { try { fs.closeSync(entry.fd); } catch { /* Close remaining pinned ancestors. */ } }
+    throw error;
+  }
+}
+function recheckDirectoryChain(pin: PinnedDirectory) {
+  privateDirectory(pin.path);
+  if (fs.realpathSync.native(pin.path) !== pin.canonical) throw unavailable();
+  for (const entry of pin.entries) {
+    const opened = fs.fstatSync(entry.fd), linked = fs.lstatSync(entry.path);
+    if (!opened.isDirectory() || linked.isSymbolicLink()
+      || !sameIdentity(identity(opened), entry.stat) || !sameIdentity(identity(linked), entry.stat)) throw unavailable();
+  }
+}
+function closeDirectoryChain(pin: PinnedDirectory | undefined) {
+  if (!pin) return;
+  for (const entry of [...pin.entries].reverse()) { try { fs.closeSync(entry.fd); } catch { /* Continue closing pinned ancestors. */ } }
+}
 function openPrivateDirectory(path: string): { fd: number; stat: Identity } {
   requireLinux();
   path = absoluteDirectory(path);
@@ -70,21 +115,29 @@ function readPinnedFile(directory: string, dirFd: number, expectedDirectory: Ide
 // an open directory descriptor. The existing broker-vault directory is never
 // read or modified. Path and file identities are checked before and after.
 export function provisionAlpacaKeyPair(dataDirectory: string, brokerVaultDirectory: string, value: unknown): string {
-  let parentFd: number | undefined, dataFd: number | undefined, fileFd: number | undefined;
+  let parentPin: PinnedDirectory | undefined, brokerPin: PinnedDirectory | undefined,
+    dataPin: PinnedDirectory | undefined, fileFd: number | undefined;
   try {
     requireLinux();
     const dataPath = absoluteDirectory(dataDirectory), brokerPath = absoluteDirectory(brokerVaultDirectory);
     if (!separateDirectories(dataPath, brokerPath)) throw unavailable();
     const pair = alpacaCredentialPairSchema.parse(value);
     const parent = dirname(dataPath), childName = basename(dataPath);
-    const parentHandle = openPrivateDirectory(parent); parentFd = parentHandle.fd;
+    parentPin = pinDirectoryChain(parent);
+    brokerPin = pinDirectoryChain(brokerPath);
+    const brokerIdentity = brokerPin.entries[brokerPin.entries.length - 1].stat;
+    if (parentPin.entries.some(entry => sameIdentity(entry.stat, brokerIdentity))) throw unavailable();
+    recheckDirectoryChain(parentPin); recheckDirectoryChain(brokerPin);
+    const parentFd = parentPin.entries[parentPin.entries.length - 1].fd;
     const anchoredChild = fdPath(parentFd, childName);
     fs.mkdirSync(anchoredChild, { mode: 0o700 });
-    const dataHandle = openPrivateDirectory(dataPath); dataFd = dataHandle.fd;
+    dataPin = pinDirectoryChain(dataPath);
+    const dataHandle = dataPin.entries[dataPin.entries.length - 1];
     if (dataHandle.stat.uid !== process.getuid!() || dataHandle.stat.mode !== 0o700) throw unavailable();
     const bytes = Buffer.from(JSON.stringify({ schema: credentialSchema, ...pair }));
     if (bytes.length > maxCredentialBytes) throw unavailable();
-    const filePath = fdPath(dataFd, credentialFile);
+    recheckDirectoryChain(parentPin); recheckDirectoryChain(brokerPin); recheckDirectoryChain(dataPin);
+    const filePath = fdPath(dataHandle.fd, credentialFile);
     fileFd = fs.openSync(filePath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW, 0o600);
     fs.writeFileSync(fileFd, bytes);
     fs.fsyncSync(fileFd);
@@ -92,17 +145,18 @@ export function provisionAlpacaKeyPair(dataDirectory: string, brokerVaultDirecto
     if (!fileStat.isFile() || fileNamed.isSymbolicLink() || fileStat.nlink !== 1
       || fileStat.uid !== process.getuid!() || (fileStat.mode & 0o777) !== 0o600
       || fileStat.size !== bytes.length || !sameIdentity(identity(fileStat), identity(fileNamed))) throw unavailable();
-    fs.fsyncSync(dataFd);
-    recheckDirectory(dataPath, dataFd, dataHandle.stat);
-    recheckDirectory(parent, parentFd, parentHandle.stat);
-    const readback = readPinnedFile(dataPath, dataFd, dataHandle.stat);
+    fs.fsyncSync(dataHandle.fd);
+    recheckDirectoryChain(dataPin); recheckDirectoryChain(parentPin); recheckDirectoryChain(brokerPin);
+    const readback = readPinnedFile(dataPath, dataHandle.fd, dataHandle.stat);
     if (!readback.equals(bytes)) throw unavailable();
+    recheckDirectoryChain(dataPin); recheckDirectoryChain(parentPin); recheckDirectoryChain(brokerPin);
     return 'stored';
   } catch { throw unavailable(); }
   finally {
     if (fileFd !== undefined) fs.closeSync(fileFd);
-    if (dataFd !== undefined) fs.closeSync(dataFd);
-    if (parentFd !== undefined) fs.closeSync(parentFd);
+    closeDirectoryChain(dataPin);
+    closeDirectoryChain(brokerPin);
+    closeDirectoryChain(parentPin);
   }
 }
 
@@ -119,6 +173,12 @@ export function readAlpacaKeyPair(dataDirectory: string): AlpacaCredentialPair {
   finally { if (fd !== undefined) fs.closeSync(fd); }
 }
 
+export type AlpacaTerminalSignal = 'SIGINT' | 'SIGTERM';
+export type AlpacaTerminalSignals = {
+  on(signal: AlpacaTerminalSignal, listener: () => void): unknown;
+  off(signal: AlpacaTerminalSignal, listener: () => void): unknown;
+  terminate(signal: AlpacaTerminalSignal): void;
+};
 export type HiddenTerminal = Readonly<{
   input: {
     isTTY: boolean;
@@ -130,26 +190,43 @@ export type HiddenTerminal = Readonly<{
     pause(): unknown;
   };
   output: { isTTY: boolean; write(text: string): unknown };
+  signals?: AlpacaTerminalSignals;
 }>;
 
-const defaultTerminal = (): HiddenTerminal => ({ input: process.stdin, output: process.stdout }) as HiddenTerminal;
+const processSignals: AlpacaTerminalSignals = {
+  on: (signal, listener) => process.on(signal, listener),
+  off: (signal, listener) => process.off(signal, listener),
+  terminate: signal => { process.kill(process.pid, signal); },
+};
+const defaultTerminal = (): HiddenTerminal => ({ input: process.stdin, output: process.stdout, signals: processSignals }) as HiddenTerminal;
+
+class TerminalSignalInterruption extends Error {
+  constructor(readonly signal: AlpacaTerminalSignal) { super('terminal interrupted'); }
+}
 
 async function readHiddenLine(prompt: string, terminal: HiddenTerminal): Promise<string> {
   const { input, output } = terminal;
   if (!input.isTTY || !output.isTTY || typeof input.setRawMode !== 'function') throw unavailable();
-  output.write(prompt);
   const wasRaw = input.isRaw === true;
   const bytes: number[] = [];
   let listener: ((chunk: Buffer | string) => void) | undefined;
-  let endListener: (() => void) | undefined;
+  let endListener: (() => void) | undefined, closeListener: (() => void) | undefined;
   let errorListener: (() => void) | undefined;
-  let signalListener: (() => void) | undefined;
+  let interruptListener: (() => void) | undefined, terminateListener: (() => void) | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let rawModeAttempted = false;
+  let dataRegistrationAttempted = false, endRegistrationAttempted = false;
+  let closeRegistrationAttempted = false, errorRegistrationAttempted = false;
+  let interruptRegistrationAttempted = false, terminateRegistrationAttempted = false;
+  const signals = terminal.signals ?? processSignals;
   try {
+    input.pause();
+    rawModeAttempted = true;
+    input.setRawMode(true);
     return await new Promise<string>((resolveLine, rejectLine) => {
       let settled = false;
-      const reject = () => { if (!settled) { settled = true; rejectLine(unavailable()); } };
-      timer = setTimeout(() => rejectLine(unavailable()), 120_000);
+      const reject = (error: Error = unavailable()) => { if (!settled) { settled = true; rejectLine(error); } };
+      timer = setTimeout(() => reject(), 120_000);
       timer.unref?.();
       listener = chunk => {
         try {
@@ -158,7 +235,9 @@ async function readHiddenLine(prompt: string, terminal: HiddenTerminal): Promise
           for (const byte of data) {
             if (byte === 3) { reject(); return; }
             if (byte === 10 || byte === 13) {
-              settled = true; output.write('\n'); resolveLine(Buffer.from(bytes).toString('ascii')); return;
+              const line = Buffer.from(bytes).toString('ascii');
+              output.write('\n');
+              settled = true; resolveLine(line); return;
             }
             if (byte === 8 || byte === 127) { bytes.pop(); continue; }
             if (byte < 0x20 || byte > 0x7e || bytes.length >= 128) { reject(); return; }
@@ -166,22 +245,33 @@ async function readHiddenLine(prompt: string, terminal: HiddenTerminal): Promise
           }
         } catch { reject(); }
       };
-      endListener = () => reject(); errorListener = () => reject(); signalListener = () => reject();
-      input.on('data', listener);
-      input.on('end', endListener); input.on('close', endListener); input.on('error', errorListener);
-      process.once('SIGINT', signalListener); process.once('SIGTERM', signalListener);
-      input.setRawMode(true);
+      endListener = () => reject(); closeListener = () => reject(); errorListener = () => reject();
+      interruptListener = () => reject(new TerminalSignalInterruption('SIGINT'));
+      terminateListener = () => reject(new TerminalSignalInterruption('SIGTERM'));
+      interruptRegistrationAttempted = true; signals.on('SIGINT', interruptListener);
+      terminateRegistrationAttempted = true; signals.on('SIGTERM', terminateListener);
+      if (settled) return;
+      output.write(prompt);
+      dataRegistrationAttempted = true; input.on('data', listener);
+      endRegistrationAttempted = true; input.on('end', endListener);
+      closeRegistrationAttempted = true; input.on('close', closeListener);
+      errorRegistrationAttempted = true; input.on('error', errorListener);
       input.resume();
     });
-  } catch { throw unavailable(); }
+  } catch (error) {
+    if (error instanceof TerminalSignalInterruption) throw error;
+    throw unavailable();
+  }
   finally {
     if (timer) clearTimeout(timer);
-    try { if (listener) input.off('data', listener); } catch { /* Restore terminal mode below. */ }
-    try { if (endListener) { input.off('end', endListener); input.off('close', endListener); } } catch { /* Restore terminal mode below. */ }
-    try { if (errorListener) input.off('error', errorListener); } catch { /* Restore terminal mode below. */ }
-    if (signalListener) { process.off('SIGINT', signalListener); process.off('SIGTERM', signalListener); }
+    try { if (dataRegistrationAttempted && listener) input.off('data', listener); } catch { /* Restore terminal mode below. */ }
+    try { if (endRegistrationAttempted && endListener) input.off('end', endListener); } catch { /* Restore terminal mode below. */ }
+    try { if (closeRegistrationAttempted && closeListener) input.off('close', closeListener); } catch { /* Restore terminal mode below. */ }
+    try { if (errorRegistrationAttempted && errorListener) input.off('error', errorListener); } catch { /* Restore terminal mode below. */ }
+    try { if (interruptRegistrationAttempted && interruptListener) signals.off('SIGINT', interruptListener); } catch { /* Restore terminal mode below. */ }
+    try { if (terminateRegistrationAttempted && terminateListener) signals.off('SIGTERM', terminateListener); } catch { /* Restore terminal mode below. */ }
     try { input.pause(); } catch { /* Restore terminal mode below. */ }
-    try { input.setRawMode(wasRaw); } catch { bytes.fill(0); throw unavailable(); }
+    try { if (rawModeAttempted) input.setRawMode(wasRaw); } catch { bytes.fill(0); throw unavailable(); }
     bytes.fill(0);
   }
 }
@@ -197,6 +287,11 @@ export async function enterAlpacaKeyPairFromTty(dataDirectory: string, brokerVau
     secretKey = await readHiddenLine('Alpaca secret key (hidden): ', terminal);
     const pair = alpacaCredentialPairSchema.parse({ keyId, secretKey });
     provisionAlpacaKeyPair(dataDirectory, brokerVaultDirectory, pair);
-  } catch { throw new Error('Alpaca credential entry unavailable'); }
+  } catch (error) {
+    if (error instanceof TerminalSignalInterruption) {
+      try { (terminal.signals ?? processSignals).terminate(error.signal); } catch { /* Preserve the sanitized caller boundary. */ }
+    }
+    throw new Error('Alpaca credential entry unavailable');
+  }
   finally { keyId = ''; secretKey = ''; }
 }

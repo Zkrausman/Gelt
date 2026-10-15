@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
+import { describe, expect, it, vi } from 'vitest';
 import { acquireAlpacaIexDailyBars, verifyAlpacaIexAcquisition } from './alpaca-iex-connector.js';
 import { normalizeAlpacaIexBars } from './alpaca-iex-normalization.js';
-import { alpacaSessionCalendarDigest, type AlpacaIexRequest } from './alpaca-iex-contract.js';
+import { alpacaIexMaxPageBytes, alpacaIexRequestTimeoutMs, alpacaSessionCalendarDigest, type AlpacaIexRequest } from './alpaca-iex-contract.js';
 
 const keyPair = { keyId: 'SYNTHETIC_KEY_ID_123456', secretKey: 'SYNTHETIC_SECRET_12345678901234567890' };
 const hash = (n: string) => n.repeat(64);
@@ -30,6 +31,7 @@ function bar(timestamp: string, close: string) {
 function body(symbol: string, bars: string[], nextPageToken: string | null) {
   return Buffer.from(`{"bars":{"${symbol}":[${bars.join(',')}]},"next_page_token":${JSON.stringify(nextPageToken)}}`);
 }
+const sha256 = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 function response(bytes: Buffer, status = 200): Response {
   return new Response(bytes, { status, headers: { 'content-type': 'application/json' } });
 }
@@ -73,22 +75,24 @@ describe('standalone Alpaca IEX daily data boundary (synthetic transport only)',
   it('paginates within exact observation, page, token, and body caps', async () => {
     const request = fixture(101), ordered = [...request.calendar.sessions].reverse();
     const urls: URL[] = [];
+    const opaqueToken = 'next+/=';
     const acquisition = await acquireAlpacaIexDailyBars(request, keyPair, {
       fetcher: async input => {
         const url = new URL(String(input)); urls.push(url);
-        const offset = url.searchParams.get('page_token') === 'next-page' ? 100 : 0;
+        const offset = url.searchParams.get('page_token') === opaqueToken ? 100 : 0;
         const limit = Number(url.searchParams.get('limit'));
-        return response(body('AAPL', ordered.slice(offset, offset + limit).map(s => bar(s.providerTimestamp, '100.25')), offset ? null : 'next-page'));
+        return response(body('AAPL', ordered.slice(offset, offset + limit).map(s => bar(s.providerTimestamp, '100.25')), offset ? null : opaqueToken));
       },
     });
     expect(urls.map(u => u.searchParams.get('limit'))).toEqual(['100', '1']);
+    expect(urls[1].searchParams.get('page_token')).toBe(opaqueToken);
     expect(acquisition.pages).toHaveLength(2);
     expect(acquisition.observations).toHaveLength(101);
     expect(verifyAlpacaIexAcquisition(acquisition)).toBe(true);
     expect(normalize(request, acquisition).bars).toHaveLength(101);
   });
 
-  it.each(['redirect', 'bad-json', 'duplicate-key', 'extra-symbol', 'numeric-exponent', 'reused-token', 'provider-error'] as const)(
+  it.each(['redirect', 'bad-json', 'duplicate-key', 'extra-symbol', 'numeric-exponent', 'reused-token', 'dangling-token', 'provider-error'] as const)(
     'fails closed on %s without retry or secret leakage', async kind => {
       const request = fixture(kind === 'reused-token' ? 201 : 2);
       let calls = 0;
@@ -105,6 +109,7 @@ describe('standalone Alpaca IEX daily data boundary (synthetic transport only)',
         const rows = [...request.calendar.sessions].reverse();
         const offset = url.searchParams.get('page_token') === 'same-token' ? 100 : 0;
         const limit = Number(url.searchParams.get('limit'));
+        if (kind === 'dangling-token') return response(body('AAPL', rows.map(s => bar(s.providerTimestamp, '1')), 'dangling+/='));
         return response(body('AAPL', rows.slice(offset, offset + limit).map(s => bar(s.providerTimestamp, '1')), 'same-token'));
       };
       let thrown: unknown;
@@ -117,6 +122,43 @@ describe('standalone Alpaca IEX daily data boundary (synthetic transport only)',
       expect(calls).toBe(kind === 'reused-token' ? 2 : 1);
     },
   );
+
+  it('keeps raw verification integrity-only while normalization requires the issued capture object', async () => {
+    const request = fixture(2), rows = [...request.calendar.sessions].reverse().map(s => bar(s.providerTimestamp, '12.50'));
+    const acquisition = await acquireAlpacaIexDailyBars(request, keyPair, {
+      fetcher: async () => response(body('AAPL', rows, null)),
+    });
+    const copied = structuredClone(acquisition) as any;
+    expect(verifyAlpacaIexAcquisition(copied)).toBe(true);
+    expect(() => normalizeAlpacaIexBars(copied, {
+      source: 'alpaca-data-v2', feed: 'iex', symbol: request.symbol, adjustment: request.adjustment,
+      asof: request.asof, calendar: request.calendar,
+      availability: availability(request, copied.receivedAt), receivedAt: copied.receivedAt,
+      decisionAt: after(copied.receivedAt, 60_000),
+    })).toThrow('Alpaca bars cannot be normalized');
+
+    const backdated = structuredClone(acquisition) as any;
+    backdated.receivedAt = '2026-01-03T00:00:00.000Z';
+    expect(verifyAlpacaIexAcquisition(backdated)).toBe(true);
+    expect(() => normalizeAlpacaIexBars(backdated, {
+      source: 'alpaca-data-v2', feed: 'iex', symbol: request.symbol, adjustment: request.adjustment,
+      asof: request.asof, calendar: request.calendar,
+      availability: availability(request, backdated.receivedAt), receivedAt: backdated.receivedAt,
+      decisionAt: after(backdated.receivedAt, 60_000),
+    })).toThrow('Alpaca bars cannot be normalized');
+    expect(normalize(request, acquisition).eligibility).toBe('unverified');
+  });
+
+  it('rejects a dangling terminal continuation token in the raw evidence verifier', async () => {
+    const request = fixture(2), rows = [...request.calendar.sessions].reverse().map(s => bar(s.providerTimestamp, '12.50'));
+    const acquisition = await acquireAlpacaIexDailyBars(request, keyPair, {
+      fetcher: async () => response(body('AAPL', rows, null)),
+    });
+    const tampered = structuredClone(acquisition) as any;
+    const bytes = body('AAPL', rows, 'dangling+/=');
+    tampered.pages[0] = { ...tampered.pages[0], bodyBase64: bytes.toString('base64'), byteLength: bytes.length, sha256: sha256(bytes) };
+    expect(verifyAlpacaIexAcquisition(tampered)).toBe(false);
+  });
 
   it.each(['lateCapture', 'beforeReceipt', 'missing', 'reordered', 'wrongAdjustment', 'wrongSymbol', 'wrongFeed', 'decisionBeforeReceipt', 'calendarTampered'] as const)(
     'rejects conflicting %s normalization evidence', async fault => {
@@ -160,5 +202,48 @@ describe('standalone Alpaca IEX daily data boundary (synthetic transport only)',
       asof: request.asof, calendar: request.calendar, availability: availability(request, acquisition.receivedAt),
       receivedAt: acquisition.receivedAt, decisionAt: after(acquisition.receivedAt, 60_000),
     })).toThrow('Alpaca bars cannot be normalized');
+  });
+
+  it('rejects oversized declared and streamed response bodies before JSON parsing', async () => {
+    const request = fixture(1), oversized = Buffer.alloc(alpacaIexMaxPageBytes + 1);
+    for (const makeResponse of [
+      () => new Response(Buffer.from('x'), { headers: { 'content-type': 'application/json', 'content-length': String(alpacaIexMaxPageBytes + 1) } }),
+      () => new Response(new ReadableStream<Uint8Array>({
+        start(controller) { controller.enqueue(oversized.subarray(0, alpacaIexMaxPageBytes)); controller.enqueue(Uint8Array.of(1)); controller.close(); },
+      }), { headers: { 'content-type': 'application/json' } }),
+    ]) {
+      await expect(acquireAlpacaIexDailyBars(request, keyPair, { fetcher: async () => makeResponse() }))
+        .rejects.toThrow('Alpaca market data unavailable');
+    }
+  });
+
+  it('aborts a stalled synthetic fetch at the fixed request timeout', async () => {
+    vi.useFakeTimers();
+    try {
+      const request = fixture(1);
+      let signal: AbortSignal | undefined;
+      const result = acquireAlpacaIexDailyBars(request, keyPair, {
+        fetcher: async (_input, init) => {
+          signal = init?.signal as AbortSignal;
+          return await new Promise<Response>(() => {});
+        },
+      });
+      const rejected = expect(result).rejects.toThrow('Alpaca market data unavailable');
+      await vi.advanceTimersByTimeAsync(alpacaIexRequestTimeoutMs);
+      await rejected;
+      expect(signal?.aborted).toBe(true);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it('does not exceed the three-page acquisition cap', async () => {
+    const request = fixture(253), ordered = [...request.calendar.sessions].reverse();
+    let calls = 0;
+    await expect(acquireAlpacaIexDailyBars(request, keyPair, {
+      fetcher: async () => {
+        const session = ordered[calls++];
+        return response(body('AAPL', [bar(session.providerTimestamp, '1')], `page-${calls}`));
+      },
+    })).rejects.toThrow('Alpaca market data unavailable');
+    expect(calls).toBe(3);
   });
 });

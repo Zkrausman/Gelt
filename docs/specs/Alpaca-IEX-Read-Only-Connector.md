@@ -23,7 +23,8 @@ selected.
 
 The transport uses GET only, a fixed origin/path, redirects disabled, a bounded
 timeout and response body, at most three pages and 253 observations, exact
-single-symbol response validation, and no retries or provider fallback. It is
+single-symbol response validation, opaque-but-bounded continuation tokens, and
+no retries or provider fallback. It is
 not imported by an application startup, worker launcher, UI, account connector,
 stream, or order path. Calls require `enabled: true` and an explicit key pair.
 The acquisition seam accepts an injected fetch implementation so source tests
@@ -32,8 +33,13 @@ used for this candidate.
 
 The connector captures its own receipt timestamp after the final bounded page;
 the public options expose an injectable fetch function only, not an injectable
-clock. Each response body is retained losslessly as bounded base64 in the
-returned in-memory evidence alongside its SHA-256 digest and exact request metadata. The
+clock. Normalization requires the exact in-memory acquisition object issued by
+this connector, tracked in a module-private weak map before schema parsing
+clones it. A copied or caller-reconstructed acquisition remains eligible for
+raw integrity verification but cannot be normalized. This receipt proof is
+process-local only and is not durable admission or provider authenticity. Each
+response body is retained losslessly as bounded base64 in the returned
+in-memory evidence alongside its SHA-256 digest and exact request metadata. The
 strict JSON parser exposes source numeric tokens by structural path; close
 values are derived from those tokens without converting a rounded JavaScript
 number back into decimal text. Exponents, unsupported precision, duplicate JSON
@@ -55,7 +61,7 @@ unseen revision was available before its capture. The output retains
 `effectAuthority=none`, and `promotionAllowed=false`. Caller-provided calendar
 and availability declarations are not independently authenticated; computed
 content hashes bind their supplied values to the output but do not prove their truth, data rights, freshness policy,
-costs, or admission. Missing, partial, ambiguous, or inconsistent evidence is
+cost accounting, or admission. Missing, partial, ambiguous, or inconsistent evidence is
 rejected. No scheduling, costs, retention policy, or G05/G06/G07 acceptance rule
 is introduced.
 
@@ -64,11 +70,20 @@ action. On Linux it creates a new owner-only `0700` directory and exclusive
 owner-only `0600` file, requires the requested path to be separate from the
 existing broker-vault path, pins opened directory/file identity, rejects
 symlinks, hard links, owner/mode changes and oversized reads, and emits only
-constant sanitized errors. Hidden key entry requires a TTY, disables echo,
-bounds input, restores terminal mode on success/error/cancel/close/signal, and
-does not take secrets from argv, environment variables, or chat. The helper is
-not wired to an application route or automatically invoked. This is a Linux-only
-path/identity checked implementation, not a general cross-platform credential
+constant sanitized errors. The provisioning parent and broker-vault path are
+opened as pinned canonical directory chains; symlink aliases are rejected, the
+broker path and ancestors are identity-checked before and after the write, and
+broker directory contents are not read or modified. Hidden key entry requires
+a TTY, enables raw/noecho mode before prompting or attaching data listeners,
+bounds input, restores terminal mode on success/error/cancel/close, and removes
+temporary signal handlers before re-delivering SIGINT/SIGTERM termination
+semantics. Synthetic test cases were added for output and listener-registration
+failures, signal cleanup, copied and backdated acquisitions, opaque padded
+tokens, dangling terminal tokens, oversized declared and streamed bodies,
+request timeout and page-cap behavior. They have not been executed by this
+source writer. No live terminal, real key, or provider action is part of the
+tests. The helper is not wired to an application route or automatically
+invoked. It is a Linux-only, path/identity-checked implementation, not a general cross-platform credential
 manager or a claim of eliminating every filesystem race. JavaScript strings
 cannot be reliably zeroed after use. No provisioning action or real terminal
 entry was performed.
