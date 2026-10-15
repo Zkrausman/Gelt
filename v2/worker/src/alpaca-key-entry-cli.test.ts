@@ -120,11 +120,18 @@ class SyntheticOutput extends EventEmitter {
   readonly written: string[] = [];
   readonly errors: string[] = [];
   errorOnWrite?: (value: string) => boolean;
+  errorOnImmediateWrite?: (value: string) => boolean;
   omitCallbackOnWrite?: (value: string) => boolean;
   write(value: string, callback?: (error?: Error | null) => void) {
     this.written.push(value);
     if (this.errorOnWrite?.(value)) {
       queueMicrotask(() => {
+        this.errors.push('SYNTHETIC_DIAGNOSTIC_ERROR');
+        this.emit('error', new Error('SYNTHETIC_DIAGNOSTIC_ERROR'));
+      });
+    }
+    if (this.errorOnImmediateWrite?.(value)) {
+      setImmediate(() => {
         this.errors.push('SYNTHETIC_DIAGNOSTIC_ERROR');
         this.emit('error', new Error('SYNTHETIC_DIAGNOSTIC_ERROR'));
       });
@@ -392,6 +399,31 @@ describe('standalone Alpaca key-entry CLI (synthetic only)', () => {
     const paths = directories(), terminal = io();
     let helperLoaderCalls = 0, helperEntryCalls = 0;
     terminal.output.errorOnWrite = value => value.includes('If entry is interrupted');
+    const code = await runAlpacaKeyEntryCli(invocation(paths, terminal, {
+      loadHelper: async () => {
+        helperLoaderCalls++;
+        return {
+          enterAlpacaKeyPairFromTty: async (...args: Parameters<typeof enterAlpacaKeyPairFromTty>) => {
+            helperEntryCalls++;
+            return enterAlpacaKeyPairFromTty(...args);
+          },
+        };
+      },
+    }));
+    expect(code).toBe(4);
+    expect(helperLoaderCalls).toBe(1);
+    expect(helperEntryCalls).toBe(0);
+    expect(terminal.output.errors).toEqual(['SYNTHETIC_DIAGNOSTIC_ERROR']);
+    expect(terminal.input.modes).toEqual([]);
+    expect(fs.existsSync(paths.data)).toBe(false);
+    expect(outputText(terminal)).not.toContain('Alpaca key ID (hidden): ');
+    expect(outputText(terminal)).not.toContain('SYNTHETIC_DIAGNOSTIC_ERROR');
+  });
+
+  it('checks a later event-loop turn before hidden entry begins', async () => {
+    const paths = directories(), terminal = io();
+    let helperLoaderCalls = 0, helperEntryCalls = 0;
+    terminal.output.errorOnImmediateWrite = value => value.includes('If entry is interrupted');
     const code = await runAlpacaKeyEntryCli(invocation(paths, terminal, {
       loadHelper: async () => {
         helperLoaderCalls++;

@@ -11,8 +11,8 @@ changed_files:
   - v2/package.json
   - docs/specs/Alpaca-Key-Entry-CLI.md
   - v2/IMPORT-MANIFEST.json
-verification_scope: "Parent Node 24 safe CLI checks passed; Node 22 synthetic/full CI pending; no operator credential entry"
-verification_evidence: "Parent reports Node 24 syntax/help/strict-argument/runtime-rejection/inert-import/actual-main delayed-I/O/deadline checks passed. Independent review found two deterministic test assertions, corrected in this revision; Node 22 synthetic/full CI rerun pending. No Node 22 operator-TTY acceptance claimed"
+verification_scope: "Current-candidate parent Node 24 safe checks and eight-case synthetic DI preflight passed; prior-candidate actual-main delayed-I/O/deadline checks passed; Node 22 synthetic/full CI and operator-TTY acceptance pending; no operator credential entry"
+verification_evidence: "Parent reports current-candidate Node 24 node --check, import verification (82 upstream and 482 candidate entries; MIT and lock unchanged), and git diff --check passed. The eight-case synthetic DI preflight suite passed: stub-loader success without store creation; microtask and setImmediate notice errors before helper entry; success-output error returns uncertain exit 6; missing build returns 5; non-TTY returns 4; unknown key flag returns 2; unsafe NODE_DEBUG returns 3. No case created a data target, and no actual helper, TTY, key, or store acceptance was performed. Prior-candidate actual-main delayed-I/O and deadline checks passed. Node 22 synthetic/full CI and operator-TTY acceptance remain pending."
 ---
 
 # Alpaca key-entry CLI
@@ -77,16 +77,19 @@ changing its contract. It requires an interactive TTY for input and output,
 available raw-mode controls, and no existing `data` or `readable` input
 consumers. Both fields are hidden. The wrapper does not print key values, paths,
 raw errors, or stack traces. It keeps stdout and stderr error guards installed
-until tracked write callbacks settle and the queued error-event checkpoint has
-completed. A write callback that does not settle within five seconds fails
-closed; during entry, that failure is routed through the helper's existing
-input-error path so terminal cleanup can run. The warning is drained before
-the helper is invoked, and output failures after helper invocation are treated
-as uncertain storage outcomes. In standalone mode only, process-lifetime stdout
-and stderr listeners also swallow errors emitted after the scoped runner has
-settled and force a nonzero exit code without terminating the process early.
-Importing the module installs no listeners. The scoped runner itself only owns
-errors through its tracked callback settlement and queued-event checkpoint.
+until tracked write callbacks settle and a bounded later-turn checkpoint has
+completed. Before hidden entry, the CLI drains the safety notice, waits one
+`setImmediate` event-loop turn, then drains again while retaining both guards.
+A write callback that does not settle within five seconds fails closed; during
+entry, that failure is routed through the helper's existing input-error path so
+terminal cleanup can run. This checkpoint catches errors already queued for
+the callback or checked turn; no finite wait establishes that output can never
+fail in a later turn. In standalone mode only, process-lifetime stdout and
+stderr listeners also swallow later errors and force a nonzero exit code
+without terminating the process early. Importing the module installs no
+listeners. If a later error occurs after hidden entry has begun, the guard
+preserves redaction and nonzero process status but cannot prevent entry; treat
+the storage outcome as uncertain.
 
 Before entry, the CLI warns that interruption or an entry error may leave absent,
 partial, or complete storage and instructs the operator to stop without retrying,
@@ -137,15 +140,17 @@ import manifest is refreshed only for the package metadata and new in-scope V2
 source/test additions; dependency lockfiles and existing credential helper,
 contract, and private-file code remain unchanged. The parent found the v1
 queued-write error lifecycle defect with deterministic synthetic probes,
-including a `setImmediate` error after the scoped listener closed. This revision
-adds callback settlement, a bounded callback timeout, a standalone-process
-error guard, and synthetic regressions for queued stderr/stdout errors and
-unsettled writes. Parent-run Node 24 safe checks passed for syntax, help and
-argument handling, unsupported-runtime rejection, inert import, standalone
-late-I/O handling, and callback deadlines. Independent review also found two
-test assertion defects: the help and malformed-argument cases reused output,
-and the safety-notice case confused compiled-module loading with helper entry.
-These assertions now use fresh terminals, exact hidden-prompt checks, and
-separate loader/entry counts. Parent rerun of the synthetic suite and Node 22
-full CI remains pending. No actual credential, Node 22 operator-TTY entry, or
-provider/account verification is claimed here.
+including a `setImmediate` error after the scoped listener closed. The latest
+revision adds a bounded later-turn checkpoint before helper entry, alongside
+callback settlement, a bounded callback timeout, a standalone-process error
+guard, and synthetic regressions for delayed stderr/stdout errors and
+unsettled writes. Parent-run Node 24 safe checks passed on the prior candidate
+for syntax, help and argument handling, unsupported-runtime rejection, inert
+import, standalone late-I/O handling, and callback deadlines. Independent
+review found two test assertion defects, now corrected with fresh terminals,
+exact hidden-prompt checks, and separate loader/entry counts. The parent reran
+this revision's Node 24 syntax, import, and diff checks and all eight synthetic
+DI preflight cases; they passed. The actual-main delayed-I/O and deadline
+checks apply to the prior candidate only. Node 22 synthetic/full CI remains
+pending. No actual credential, Node 22 operator-TTY entry, or provider/account
+verification is claimed here.

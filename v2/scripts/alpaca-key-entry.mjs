@@ -96,6 +96,11 @@ function outputLifecycle(streams) {
         if (pending === 0) return;
       }
     },
+    async checkpointNextTurn() {
+      await this.drain();
+      await new Promise(resolveTurn => setImmediate(resolveTurn));
+      await this.drain();
+    },
     close() {
       failureHandlers.clear();
       for (const { stream, listener } of listeners.splice(0)) {
@@ -310,7 +315,7 @@ export async function runAlpacaKeyEntryCli(overrides = {}) {
       writeLine(errorOutput, 'Unable to display the safety notice. No credentials were requested.', lifecycle);
       return EXIT.preflight;
     }
-    await lifecycle.drain();
+    await lifecycle.checkpointNextTurn();
     if (lifecycle.failed || bridge.outputFailed) {
       bridge.close();
       writeLine(errorOutput, 'Unable to display the safety notice. No credentials were requested.', lifecycle);
@@ -339,7 +344,7 @@ export async function runAlpacaKeyEntryCli(overrides = {}) {
     writeLine(errorOutput, 'CLI unavailable. No error details or credential values are displayed.', lifecycle);
     result = entryStarted ? EXIT.uncertain : EXIT.preflight;
   }
-  try { await lifecycle.drain(); } catch { /* A failed flush is handled below without exposing stream errors. */ }
+  try { await lifecycle.checkpointNextTurn(); } catch { /* A failed flush is handled below without exposing stream errors. */ }
   const outputFailed = lifecycle.failed;
   lifecycle.close();
   if (outputFailed) {
