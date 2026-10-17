@@ -3914,6 +3914,22 @@
       "path": "worker/src/alpaca-key-entry-cli.test.ts",
       "sha256": "6bded5a30141b303fff5b427998ad1c1e3dc0d262bde2205dc9d6e9aaf0361d5",
       "reason": "Owner-authorized standalone local Alpaca key-entry CLI and synthetic-only tests; no provider/account activation."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/configured-simulation-result-view.ts",
+      "sha256": "d75d7057bad1fa25d98af87240f145345762e2b2f4f3684e3306c155689c460e",
+      "reason": "G08 pure constructed-only caller-reported result projection; no durable truth, runtime, production consumer or effect authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/configured-simulation-result-view.test.ts",
+      "sha256": "b3c351cb3a7dd97e9b3c7cc57ec8ee295ff287e014af716b0c36c312766b79f6",
+      "reason": "G08 pure constructed-only caller-reported result projection; no durable truth, runtime, production consumer or effect authority"
     }
   ]
 }
