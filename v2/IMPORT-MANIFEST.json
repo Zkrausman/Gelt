@@ -3930,6 +3930,48 @@
       "path": "worker/src/configured-simulation-result-view.test.ts",
       "sha256": "b3c351cb3a7dd97e9b3c7cc57ec8ee295ff287e014af716b0c36c312766b79f6",
       "reason": "G08 pure constructed-only caller-reported result projection; no durable truth, runtime, production consumer or effect authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/paper-observation-selection.ts",
+      "sha256": "f87bf45a9ed1b40d6a847adcd692eeb732fd0d8d762e75f622587f4aa33ce611"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/paper-observation-selection.test.ts",
+      "sha256": "3f8a4d499db66b69a8d4c866d7bc3490f950af0cb03a9384d547f6d2651575fc"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/paper-calendar-binding.ts",
+      "sha256": "7e0703defbd53ded8dff5608c4c6de03855e1cfe8169b0f27f5f73e072c0e18a"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/paper-calendar-binding.test.ts",
+      "sha256": "a43d8cbf1171c1db093d3049457fd2109569f4e82bde700512a52c3c14716777"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/paper-selection-sizing.ts",
+      "sha256": "5ebd984aa34b9a84321446eddfa03a49e06fa4eee50c1d301c5671dc60c5ddae"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/paper-selection-sizing.test.ts",
+      "sha256": "936309ef241501ec8d3283570827c0963486a68a8d50f383a155bafab919f90f"
     }
   ]
 }
