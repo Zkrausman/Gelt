@@ -3972,6 +3972,22 @@
       "status": "added",
       "path": "worker/src/paper-selection-sizing.test.ts",
       "sha256": "936309ef241501ec8d3283570827c0963486a68a8d50f383a155bafab919f90f"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/alpaca-iex-acquire-once.mjs",
+      "sha256": "d081db9b0820be3a015a3e3e1a07a4879f4f74a7bba858b3e2b3160d94fab92d",
+      "reason": "Owner-approved fixed one-shot SPY/IEX acquisition command; synthetic-only delivery, no activation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-iex-acquire-once.test.ts",
+      "sha256": "88a92501b9ca998db8367551d7b78ba2ae486af97a0bc7343884cb232ed32fb8",
+      "reason": "Owner-approved fixed one-shot SPY/IEX acquisition command; synthetic-only delivery, no activation"
     }
   ]
 }
