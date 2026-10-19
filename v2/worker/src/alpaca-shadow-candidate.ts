@@ -42,7 +42,7 @@ export const alpacaShadowCandidateConnectorPin = Object.freeze({
   sourceTree: '4d70dab852fd35db2f4fe406e6c4c0395cec640b',
 } as const);
 
-const contextSchema = z.object({
+export const alpacaShadowCandidateContextSchema = z.object({
   runId: z.string().uuid(),
   sourceCommit,
   expectedCalendarSha256: hash,
@@ -70,7 +70,7 @@ const normalizationInputSchema = z.object({
   decisionAt: timestamp,
 }).strict();
 
-export type AlpacaShadowCandidateContext = z.infer<typeof contextSchema>;
+export type AlpacaShadowCandidateContext = z.infer<typeof alpacaShadowCandidateContextSchema>;
 
 export const alpacaShadowCandidateUnresolvedGates = Object.freeze({
   A1_source_rights: 'not_established',
@@ -300,8 +300,8 @@ export function buildAlpacaShadowCandidate(
   catch { return block('invalid_context'); }
 
   let context: AlpacaShadowCandidateContext;
-  let parsedContext: ReturnType<typeof contextSchema.safeParse>;
-  try { parsedContext = contextSchema.safeParse(ownedContextInput); }
+  let parsedContext: ReturnType<typeof alpacaShadowCandidateContextSchema.safeParse>;
+  try { parsedContext = alpacaShadowCandidateContextSchema.safeParse(ownedContextInput); }
   catch { return block('invalid_context'); }
   if (!parsedContext.success) {
     const missing = missingContextFields(parsedContext.error.issues);
