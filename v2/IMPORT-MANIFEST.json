@@ -3896,8 +3896,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-shadow-candidate.ts",
-      "sha256": "1bd1344f1738158b95857252dc8f327f229b1b2bad4f017f2a87062e1bbc705f",
-      "reason": "Owner-approved in-memory unverified Alpaca-to-G05 candidate bridge; no acquisition, promotion, storage, or execution authority."
+      "sha256": "c7702967fb7c1fa80f8c9303f95b84a84875c07ec4e67eda98064d0483ad72f8",
+      "reason": "Separate original-process unverified candidate mode; synthetic-only source delivery, no activation or admission"
     },
     {
       "upstreamPath": null,
@@ -3988,6 +3988,30 @@
       "path": "worker/src/alpaca-iex-acquire-once.test.ts",
       "sha256": "14b2771cc7a224c592981f5b592bedc466f20528a81d8b8321bfc66705c621f7",
       "reason": "Owner-approved fixed one-shot SPY/IEX acquisition command; synthetic-only delivery, no activation"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/alpaca-iex-candidate-once.mjs",
+      "sha256": "c8f67c8517f79de915f31917ec7bcd0ed59ab4211c05ff743e9f2c92a9a9c8b6",
+      "reason": "Separate original-process unverified candidate mode; synthetic-only source delivery, no activation or admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-iex-candidate-mode.ts",
+      "sha256": "c4fc80e5c3a99299d07d2dadc4f69cf8c340b5366209f25d69fd060b51d421a4",
+      "reason": "Separate original-process unverified candidate mode; synthetic-only source delivery, no activation or admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-iex-candidate-mode.test.ts",
+      "sha256": "5753a672f0244a01d4060c51f32efa8346059ab4dc33d9223e30e6bf89326886",
+      "reason": "Separate original-process unverified candidate mode; synthetic-only source delivery, no activation or admission"
     }
   ]
 }
