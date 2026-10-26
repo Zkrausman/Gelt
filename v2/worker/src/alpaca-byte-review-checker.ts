@@ -1350,6 +1350,7 @@ function inspectPrivateCollection(
 
 export const privateByteReviewInspection = Object.freeze({
   seal: sealGraph, same, vector, outcome, collection: inspectPrivateCollection,
+  failureRank: (reason: ConstructedAcceptanceFailure): number => failurePriority.indexOf(reason),
   constructionDefect: (error: unknown): boolean => error instanceof ConstructionDefect,
   allocateInspectionLane(): number {
     assert(allocatedFixtureLanes < constructedByteReviewProfile.maximumLaneAllocations);

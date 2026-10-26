@@ -88,6 +88,11 @@ profile does not create another 256 slots.
 Observed local time must not move backwards and completion must precede the
 60,000 ms deadline measured from receipt. This is not a qualified clock guarantee.
 Unknown, cancellation, provenance failure and duplicate completion are latched.
+Each closed adverse kind is retained once, independently of the selected reason.
+Retained seals and observed time continue to be checked after invalidation; the
+adapter imports every observed kind and uses existing outcome precedence. A final
+boundary check and fact import precede the local-reference-drop receipt. That
+drop does not erase prior facts or create release/settlement evidence.
 The sole emission is immutable E; subsequent receipts are additive R and current
 state is C. Known queued adverse events are folded before commit. Own valid ack
 evidence is retained unless its own evidence is contradicted. No retry or second
@@ -112,7 +117,7 @@ credentials, evidence sidecars and exception text.
 
 Preparation used distinct source-author and independent fixture contexts. The
 45-case fixture catalog is a proposed acceptance oracle, not 45 executed tests.
-The implemented checks comprise 21 authored profile tests and 10 independent
+The implemented checks comprise 21 authored profile tests and 20 independent
 regressions, alongside 346 prior focused tests. Existing lifecycle/contract tests
 cover shared ticket, receipt, capacity and state-transition invariants; this does
 not claim every catalog permutation was executed or actual provider behavior seen.
@@ -130,8 +135,22 @@ compatibility, Go race tests, Go vet/build, full V2 build, import verification
 (82 upstream/512 candidate paths) and diff whitespace. These are working-candidate
 results, not exact-final-head hosted CI or runtime qualification.
 
-Fresh independent and distinct adversarial review of the complete source, full
-inventory and this closeout is pending. Exact final-head post-review checks,
+The first fresh complete review pair requested changes: an adversarial HIGH
+overlapped an independent MEDIUM on first-failure suppression of later adverse
+evidence; a second independent MEDIUM covered losing the final boundary before
+reference drop. Root accepted both defects and grouped their correction. Ten new
+regressions failed against that candidate and pass after correction: cancellation
+then mutation/deadline/clock uncertainty plus mutation, and mutation/deadline then
+reference drop, both before emission and after emission/own acknowledgement.
+They verify immutable E, additive R, retained own acknowledgement and precedence.
+The original review findings and failed tests are preserved; no reviewer executed
+tests or certified an operating runtime.
+
+Post-remediation working-candidate verification passed all nine checks, including
+387 focused tests across 13 suites, legacy API compatibility and the unchanged
+82-upstream/512-candidate inventory. A fresh complete review pair must assess the
+resulting source and this closeout; closure is not inferred from test success.
+Exact final-head post-review checks,
 Linux CI/scientific/applicable protected-browser gates, ordinary PR/merge and
 remote verification remain required. Source review is bounded static review;
 actual exposure/copies/cancellation/settlement, account rights and provider input

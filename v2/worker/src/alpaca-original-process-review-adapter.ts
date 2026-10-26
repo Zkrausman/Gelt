@@ -227,19 +227,27 @@ function createOriginalProcessAdapter(
       || has('execution_unknown');
   }
 
-  function current(): ReviewSettlementV2 {
-    if (scope === 'SPY253_INSPECTION_ONLY' && has('verdict') && !referencesDropped) {
-      const checked = lane.current();
-      if (!checked.accepted) {
-        stop(checked.reason === 'provenance_mismatch' ? 'provenance_mismatch'
-          : checked.reason === 'late' ? 'timed_out'
-          : checked.reason === 'cancelled' ? 'cancelled'
-          : checked.reason === 'authenticity_failed' ? 'authenticity_failed'
-          : checked.reason === 'duplicate_completion' ? 'duplicate_completion'
-          : checked.reason === 'acceptance_failed' ? 'verdict_invalid'
-          : 'order_unavailable');
-      }
+  function observeInspectionFailures(): void {
+    if (scope !== 'SPY253_INSPECTION_ONLY' || referencesDropped
+      || !('observedFailures' in lane)) return;
+    // current() observes retained seals/time even after another invalidation.
+    // Fold every finite independent fact, not only the selected lane reason.
+    lane.current();
+    for (const reason of lane.observedFailures()) {
+      // Intentional local reference drop is not adverse settlement evidence.
+      if (reason === 'closed' || reason === 'not_completed') continue;
+      stop(reason === 'provenance_mismatch' ? 'provenance_mismatch'
+        : reason === 'late' ? 'timed_out'
+        : reason === 'cancelled' ? 'cancelled'
+        : reason === 'authenticity_failed' ? 'authenticity_failed'
+        : reason === 'duplicate_completion' ? 'duplicate_completion'
+        : reason === 'acceptance_failed' ? 'verdict_invalid'
+        : 'order_unavailable');
     }
+  }
+
+  function current(): ReviewSettlementV2 {
+    observeInspectionFailures();
     const invoked = has('invocation_reserved');
     const verdict = receipts.find(receipt => receipt.kind === 'verdict')?.verdict;
     const invalidated = receipts.some(receipt => invalidatingKinds.has(receipt.kind));
@@ -512,9 +520,13 @@ function createOriginalProcessAdapter(
 
     dropLocalCheckerReferences(): boolean {
       if (!reviewAttempted || referencesDropped) return false;
-      referencesDropped = true;
       try {
+        observeInspectionFailures();
         lane.discardPayloadReferences();
+        // The lane also checks synchronously at its actual discard boundary.
+        // Import those facts before disabling further retained-evidence checks.
+        observeInspectionFailures();
+        referencesDropped = true;
         completion = null;
         append('local_checker_references_dropped', workOrigin());
         if (!has('verdict')) stop('order_unavailable');

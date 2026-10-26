@@ -169,7 +169,14 @@ export function createSpy253ByteReviewLane() {
     } | undefined;
     let ticket: object | undefined, producedVerdict: ReviewVerdictV1 | undefined, acceptedVerdict: ReviewVerdictV1 | undefined;
     let reserved = false, produced = false, consumed = false, failure: ConstructedAcceptanceFailure | undefined, lastClock = -Infinity;
-    const invalidate = (reason: ConstructedAcceptanceFailure): void => { failure ??= reason; acceptedVerdict = undefined; };
+    // Each closed failure kind is retained once. Priority chooses a projection,
+    // never erases a previously observed independent adverse fact.
+    const failures = new Set<ConstructedAcceptanceFailure>();
+    const invalidate = (reason: ConstructedAcceptanceFailure): void => {
+        failures.add(reason);
+        if (!failure || h.failureRank(reason) < h.failureRank(failure)) failure = reason;
+        acceptedVerdict = undefined;
+    };
     const boundary = (): boolean => { try {
         if (!payload || !payload.seals.every(seal => seal.matches()) || !isConnectorIssuedAlpacaAcquisition(payload.original))
             invalidate('provenance_mismatch');
@@ -183,7 +190,7 @@ export function createSpy253ByteReviewLane() {
     catch {
         invalidate('timing_unknown');
     } return failure === undefined; };
-    const current = (): Spy253ReviewAcceptance => { if (acceptedVerdict)
+    const current = (): Spy253ReviewAcceptance => { if (payload)
         boundary(); return Object.freeze({ scope: 'source_inspection_only', accepted: acceptedVerdict !== undefined && failure === undefined, reason: failure ?? (acceptedVerdict ? 'none' : 'not_completed'), uncertainty: failure || acceptedVerdict ? 'latched' : 'none', verdict: failure ? null : acceptedVerdict ?? null }); };
     return Object.freeze({
         scope: 'source_inspection_only' as const, attemptId, invocationId,
@@ -234,7 +241,15 @@ export function createSpy253ByteReviewLane() {
         catch {
             invalidate('acceptance_failed');
         } return current(); },
-        current, markCancelled(): void { invalidate('cancelled'); }, markPriorUncertainty(): void { invalidate('prior_uncertainty'); },
-        advanceFixtureElapsedTo(_milliseconds: number): void { unavailable(); }, markFixtureClockUnavailable(): void { invalidate('timing_unknown'); }, discardPayloadReferences(): void { payload = undefined; producedVerdict = undefined; ticket = undefined; invalidate('closed'); },
+        current,
+        observedFailures(): readonly ConstructedAcceptanceFailure[] { return Object.freeze([...failures]); },
+        markCancelled(): void { invalidate('cancelled'); }, markPriorUncertainty(): void { invalidate('prior_uncertainty'); },
+        advanceFixtureElapsedTo(_milliseconds: number): void { unavailable(); }, markFixtureClockUnavailable(): void { invalidate('timing_unknown'); },
+        discardPayloadReferences(): void {
+            // Last applicable seal/time observation happens before discarding
+            // the only retained evidence. Facts remain available to the adapter.
+            if (payload) boundary();
+            payload = undefined; producedVerdict = undefined; ticket = undefined; invalidate('closed');
+        },
     });
 }

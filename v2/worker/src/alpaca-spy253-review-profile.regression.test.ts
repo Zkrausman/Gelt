@@ -201,6 +201,66 @@ describe('independent SPY253 source regression oracles', () => {
     expect(state(inspectSpy253Review(f.original, binding), 'C12_AUTHORITY_FENCES').result).toBe('fail');
   });
 
+  it.each([
+    [false, 'mutation'], [true, 'mutation'], [false, 'deadline'], [true, 'deadline'],
+    [false, 'clock-then-mutation'], [true, 'clock-then-mutation'],
+  ] as const)('retains later adverse facts after cancellation (ack=%s, %s)', async (acked, adverse) => {
+    const adapter = createSpy253OriginalProcessReviewAdapter();
+    const f = await originalAndBinding(adapter.attemptId);
+    const handle = adapter.reserve(f.original, f.binding)!;
+    expect(adapter.acceptCompletion(handle, adapter.completeReview(handle)).accepted).toBe(true);
+    const emitted = acked ? adapter.emitSummary()! : null;
+    if (acked) expect(adapter.acknowledge(adapter.recipientComplete())).not.toBeNull();
+    adapter.queueCancellation();
+    const before = adapter.snapshot();
+    expect(before.current.outcome).toBe('cancelled');
+    if (adverse === 'deadline') vi.setSystemTime(new Date(Date.parse(decisionAt) + 60000));
+    else {
+      if (adverse === 'clock-then-mutation') adapter.markClockUnavailable();
+      f.binding.evidence.completion = 'contradicted';
+    }
+    const after = adapter.snapshot();
+    const expected = adverse === 'deadline' ? 'timed_out' : 'provenance_mismatch';
+    expect(after.current).toMatchObject({ outcome: expected, review: 'unknown',
+      summaryDelivery: acked ? 'acknowledged' : 'not_attempted',
+      execution: 'unknown', disposal: 'not_established' });
+    expect(after.receipts.slice(0, before.receipts.length)).toEqual(before.receipts);
+    expect(after.receipts.some(r => r.kind === 'cancelled')).toBe(true);
+    expect(after.receipts.some(r => r.kind === expected)).toBe(true);
+    if (adverse === 'clock-then-mutation') expect(after.receipts.some(r => r.kind === 'order_unavailable')).toBe(true);
+    expect(after.emitted).toBe(emitted);
+    expect(adapter.snapshot().receipts).toEqual(after.receipts);
+    if (acked) expect(adapter.emitSummary()).toBeNull();
+    else expect(adapter.emitSummary()!.status.outcome).toBe(expected);
+  });
+
+  it.each([[false, 'mutation'], [true, 'mutation'], [false, 'deadline'], [true, 'deadline']] as const)(
+    'records final adverse facts before dropping references (ack=%s, %s)', async (acked, adverse) => {
+      const adapter = createSpy253OriginalProcessReviewAdapter();
+      const f = await originalAndBinding(adapter.attemptId);
+      const handle = adapter.reserve(f.original, f.binding)!;
+      expect(adapter.acceptCompletion(handle, adapter.completeReview(handle)).accepted).toBe(true);
+      const emitted = acked ? adapter.emitSummary()! : null;
+      if (acked) expect(adapter.acknowledge(adapter.recipientComplete())).not.toBeNull();
+      const before = adapter.snapshot();
+      if (adverse === 'mutation') f.binding.evidence.completion = 'contradicted';
+      else vi.setSystemTime(new Date(Date.parse(decisionAt) + 60000));
+      expect(adapter.dropLocalCheckerReferences()).toBe(true);
+      const after = adapter.snapshot();
+      const expected = adverse === 'mutation' ? 'provenance_mismatch' : 'timed_out';
+      expect(after.current).toMatchObject({ outcome: expected, review: 'unknown',
+        summaryDelivery: acked ? 'acknowledged' : 'not_attempted',
+        execution: 'unknown', disposal: 'not_established' });
+      expect(after.receipts.slice(0, before.receipts.length)).toEqual(before.receipts);
+      const adverseIndex = after.receipts.findIndex(r => r.kind === expected);
+      expect(adverseIndex).toBeGreaterThanOrEqual(0);
+      expect(adverseIndex).toBeLessThan(after.receipts.findIndex(r => r.kind === 'local_checker_references_dropped'));
+      expect(after.emitted).toBe(emitted);
+      expect(adapter.dropLocalCheckerReferences()).toBe(false);
+      if (acked) expect(adapter.emitSummary()).toBeNull();
+      else expect(adapter.emitSummary()!.status.outcome).toBe(expected);
+    });
+
   it('shares the existing source-inspection allocation ceiling across both profiles', async () => {
     vi.resetModules();
     const legacy = await import('./alpaca-byte-review-checker.js');
