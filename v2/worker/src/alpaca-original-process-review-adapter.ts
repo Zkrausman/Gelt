@@ -14,6 +14,7 @@ import {
   createConstructedByteReviewLane,
   type ConstructedAcceptance,
   type ConstructedAcceptanceFailure,
+  type ConstructedByteReviewLane,
 } from './alpaca-byte-review-checker.js';
 import {
   productionByteReviewPreflight,
@@ -22,6 +23,14 @@ import {
   type ImmutableReviewEmission,
 } from './alpaca-byte-review-coordinator.js';
 import { isConnectorIssuedAlpacaAcquisition } from './alpaca-iex-connector.js';
+import { createSpy253ByteReviewLane } from './alpaca-spy253-review-profile.js';
+
+type AdapterScope = 'CONSTRUCTED_ONLY' | 'SPY253_INSPECTION_ONLY';
+type AdapterReceipt = Omit<EvidenceReceipt, 'scope'> & Readonly<{ scope: AdapterScope }>;
+type AdapterSnapshot = Omit<CoordinatorSnapshot, 'scope' | 'receipts'>
+  & Readonly<{ scope: AdapterScope; receipts: readonly AdapterReceipt[] }>;
+type ReviewLane = ConstructedByteReviewLane | ReturnType<typeof createSpy253ByteReviewLane>;
+type AdapterAcceptance = ReturnType<ReviewLane['accept']>;
 
 /**
  * Source-only integration.
@@ -92,7 +101,7 @@ const invalidatingKinds: ReadonlySet<EvidenceReceipt['kind']> = new Set([
   'order_unavailable',
 ]);
 
-function receiptOutcome(receipt: EvidenceReceipt): SettlementOutcome | null {
+function receiptOutcome(receipt: AdapterReceipt): SettlementOutcome | null {
   switch (receipt.kind) {
     case 'verdict': return receipt.verdict!.outcome;
     case 'reviewer_error': return 'incomplete';
@@ -126,9 +135,22 @@ function receiptOutcome(receipt: EvidenceReceipt): SettlementOutcome | null {
  */
 export function createConstructedOriginalProcessReviewAdapter() {
   if (arguments.length !== 0) unavailable();
+  const adapter = createOriginalProcessAdapter(createConstructedByteReviewLane(), 'CONSTRUCTED_ONLY');
+  // The shared implementation has a union scope, but this zero-argument
+  // facade can only construct the legacy lane. Preserve its public TS API
+  // as well as its runtime values instead of widening existing consumers.
+  return adapter as Readonly<Omit<typeof adapter, 'scope' | 'snapshot' | 'acceptCompletion'> & {
+    scope: 'CONSTRUCTED_ONLY';
+    snapshot: () => CoordinatorSnapshot;
+    acceptCompletion: (handle: unknown, ticket: unknown) => ConstructedAcceptance;
+  }>;
+}
 
-  const lane = createConstructedByteReviewLane();
-  const receipts: EvidenceReceipt[] = [];
+function createOriginalProcessAdapter(
+  lane: ReviewLane,
+  scope: AdapterScope,
+) {
+  const receipts: AdapterReceipt[] = [];
   const seen = new Set<Kind>();
   let reserveAttempted = false;
   let reviewAttempted = false;
@@ -154,7 +176,7 @@ export function createConstructedOriginalProcessReviewAdapter() {
     if (seen.has(kind)) return;
     seen.add(kind);
     receipts.push(Object.freeze({
-      scope: 'CONSTRUCTED_ONLY',
+      scope,
       sequence: receipts.length + 1,
       kind,
       origin,
@@ -206,6 +228,18 @@ export function createConstructedOriginalProcessReviewAdapter() {
   }
 
   function current(): ReviewSettlementV2 {
+    if (scope === 'SPY253_INSPECTION_ONLY' && has('verdict') && !referencesDropped) {
+      const checked = lane.current();
+      if (!checked.accepted) {
+        stop(checked.reason === 'provenance_mismatch' ? 'provenance_mismatch'
+          : checked.reason === 'late' ? 'timed_out'
+          : checked.reason === 'cancelled' ? 'cancelled'
+          : checked.reason === 'authenticity_failed' ? 'authenticity_failed'
+          : checked.reason === 'duplicate_completion' ? 'duplicate_completion'
+          : checked.reason === 'acceptance_failed' ? 'verdict_invalid'
+          : 'order_unavailable');
+      }
+    }
     const invoked = has('invocation_reserved');
     const verdict = receipts.find(receipt => receipt.kind === 'verdict')?.verdict;
     const invalidated = receipts.some(receipt => invalidatingKinds.has(receipt.kind));
@@ -269,9 +303,9 @@ export function createConstructedOriginalProcessReviewAdapter() {
     });
   }
 
-  function failed(reason: ConstructedAcceptanceFailure): ConstructedAcceptance {
+  function failed(reason: ConstructedAcceptanceFailure): AdapterAcceptance {
     return Object.freeze({
-      scope: 'constructed_only',
+      scope: lane.scope,
       accepted: false,
       reason,
       uncertainty: 'latched',
@@ -279,10 +313,10 @@ export function createConstructedOriginalProcessReviewAdapter() {
     });
   }
 
-  function snapshot(): CoordinatorSnapshot {
+  function snapshot(): AdapterSnapshot {
     const settlement = current();
     return Object.freeze({
-      scope: 'CONSTRUCTED_ONLY',
+      scope,
       current: settlement,
       emitted,
       receipts: Object.freeze([...receipts]),
@@ -298,7 +332,7 @@ export function createConstructedOriginalProcessReviewAdapter() {
   }
 
   return Object.freeze({
-    scope: 'CONSTRUCTED_ONLY' as const,
+    scope,
     attemptId: lane.attemptId,
 
     beginCapture(): boolean {
@@ -381,7 +415,7 @@ export function createConstructedOriginalProcessReviewAdapter() {
       }
     },
 
-    acceptCompletion(handle: unknown, ticket: unknown): ConstructedAcceptance {
+    acceptCompletion(handle: unknown, ticket: unknown): AdapterAcceptance {
       if (reservation === null || handle !== reservation) {
         stop('authenticity_failed');
         return failed('authenticity_failed');
@@ -437,7 +471,7 @@ export function createConstructedOriginalProcessReviewAdapter() {
         append('verdict', 'verdict', verdict);
         append('execution_unknown', 'verdict');
         return Object.freeze({
-          scope: 'constructed_only',
+          scope: lane.scope,
           accepted: true,
           reason: 'none',
           uncertainty: 'latched',
@@ -568,5 +602,29 @@ export function createConstructedOriginalProcessReviewAdapter() {
     },
 
     snapshot,
+  });
+}
+
+/**
+ * Inspect an already supplied original. This entry exposes no acquisition,
+ * operating dispatch, enable switch, producer callback or simulated clock.
+ */
+export function createSpy253OriginalProcessReviewAdapter() {
+  if (arguments.length !== 0) unavailable();
+  const adapter = createOriginalProcessAdapter(
+    createSpy253ByteReviewLane(), 'SPY253_INSPECTION_ONLY',
+  );
+  const {
+    beginCapture, reserve, advanceFixtureElapsedTo,
+    markFixtureClockUnavailable, ...inspection
+  } = adapter;
+  void advanceFixtureElapsedTo;
+  return Object.freeze({
+    ...inspection,
+    reserve(original: unknown, binding: unknown): object | null {
+      if (!beginCapture()) return null;
+      return reserve(original, binding, null);
+    },
+    markClockUnavailable: markFixtureClockUnavailable,
   });
 }

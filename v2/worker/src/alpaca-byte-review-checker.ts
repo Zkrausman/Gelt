@@ -1293,3 +1293,71 @@ export function createConstructedByteReviewLane(): ConstructedByteReviewLane {
     },
   });
 }
+
+/**
+ * Private source-inspection primitives. No admission or completion is supplied
+ * by these functions. Collection inspection returns no decoded payload/cursor.
+ */
+function inspectPrivateCollection(
+  original: AlpacaIexAcquisition,
+  references: readonly Readonly<{ page: number; byteLength: number; sha256: string }>[],
+  requiredCount: number,
+): readonly ReviewCheckV1[] {
+  let bytes = original.pages.length === references.length;
+  let request = original.pages.length === original.request.pageRequests.length;
+  let rows = true;
+  let observations = true;
+  let cursor: string | null = null;
+  let offset = 0;
+  let previous = Infinity;
+  const seen = new Set<string>();
+  for (let i = 0; i < original.pages.length; i++) {
+    const page = original.pages[i];
+    const reference = references[i];
+    const entry = original.request.pageRequests[i];
+    bytes &&= page.page === i + 1 && reference?.page === i + 1
+      && page.byteLength === reference.byteLength && page.sha256 === reference.sha256;
+    request &&= entry?.page === i + 1
+      && entry.limit === Math.min(100, requiredCount - offset)
+      && entry.pageTokenSha256 === (cursor === null ? null : sha(cursor));
+    if (cursor !== null) {
+      if (seen.has(cursor)) request = false;
+      seen.add(cursor);
+    }
+    const inspected = inspectPage(
+      page, original.symbol, entry?.limit ?? 0,
+      original.observations, offset, previous,
+    );
+    bytes &&= inspected.bytes;
+    rows &&= inspected.rows;
+    observations &&= inspected.observations;
+    request &&= inspected.cursor;
+    offset += inspected.count;
+    previous = inspected.lastTimestamp;
+    cursor = inspected.next;
+    if (cursor !== null && seen.has(cursor)) request = false;
+    if (i + 1 < original.pages.length && cursor === null) request = false;
+  }
+  request &&= cursor === null;
+  observations &&= offset === requiredCount && offset === original.observations.length;
+  return Object.freeze([
+    check('C02_PAGE_BYTES', bytes ? 'pass' : 'fail'),
+    check('C03_REQUEST_CURSOR', request ? 'pass' : 'fail'),
+    check('C04_ROWS_DECIMALS', rows ? 'pass' : 'fail'),
+    check('C05_OBSERVATIONS', observations ? 'pass' : 'fail'),
+  ]);
+}
+
+export const privateByteReviewInspection = Object.freeze({
+  seal: sealGraph, same, vector, outcome, collection: inspectPrivateCollection,
+  constructionDefect: (error: unknown): boolean => error instanceof ConstructionDefect,
+  allocateInspectionLane(): number {
+    assert(allocatedFixtureLanes < constructedByteReviewProfile.maximumLaneAllocations);
+    return ++allocatedFixtureLanes;
+  },
+  reserveOriginal(original: object): boolean {
+    if (reservedOriginals.has(original)) return false;
+    reservedOriginals.add(original);
+    return true;
+  },
+});

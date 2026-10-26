@@ -4026,7 +4026,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-byte-review-checker.ts",
-      "sha256": "2bac1b1c8e247e40406c9c6d0ba8438b332aeb2ec0e9c8f06681ae3a92f02d24",
+      "sha256": "eaf114b095e4b3df26e10100b815b631b0c0a7d6738282decad492d2c2003f1a",
       "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
     },
     {
@@ -4106,7 +4106,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-original-process-review-adapter.ts",
-      "sha256": "418890dc8bd1c16416c7e23da11b21124eb769ca3f679621645617222a774df3",
+      "sha256": "5c8852ec1a4fd4df5c88ddbc564513f97143a62cbfdb086183b2696125ae0177",
       "reason": "Original-process review adapter source and synthetic conformance tests; production closed, operational admission deferred"
     },
     {
@@ -4116,6 +4116,30 @@
       "path": "worker/src/alpaca-original-process-review-adapter.test.ts",
       "sha256": "89856478f30e34f81d2350237a4e47a78f29126eaf14aa83dabdd262e4fde883",
       "reason": "Original-process review adapter source and synthetic conformance tests; production closed, operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-spy253-review-profile.regression.test.ts",
+      "sha256": "2421af67ffea39579a996d21e1a0ca7d5a5ec27d9e07d8899fbfcf220ea45ced",
+      "reason": "Gelt bounded unadmitted SPY253 original-byte review profile and synthetic conformance; production closed"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-spy253-review-profile.test.ts",
+      "sha256": "3a3171abb505f8b3877b240543ef22abef4ad917caa5d8646c8890666d6cde07",
+      "reason": "Gelt bounded unadmitted SPY253 original-byte review profile and synthetic conformance; production closed"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-spy253-review-profile.ts",
+      "sha256": "4f1661bd6cd156336c2238fe5d98bb5c6acf945dcfac02083396e38b4f4e99d1",
+      "reason": "Gelt bounded unadmitted SPY253 original-byte review profile and synthetic conformance; production closed"
     }
   ]
 }
