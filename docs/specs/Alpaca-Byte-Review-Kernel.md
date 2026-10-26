@@ -134,8 +134,9 @@ validators reject incompatible tuples. Receipt precedence never fabricates a
 missing acknowledgement, execution or release fact.
 
 Limits remain **64 ordinary receipts, 40 protected receipts and two recipient
-completions**, with at most 256 constructed checker lanes and 4,096 coordinator
-allocations per module instance. Overflow preserves adverse effects and prevents
+completions**. Constructed coordinators share the separate 256-lane checker
+allocation limit; simulated and production coordinators share a 4,096-allocation
+limit per module instance. The combined coordinator upper bound is 4,352. Overflow preserves adverse effects and prevents
 new favorable proof admission. Each attempt has one capture, reviewer invocation
 and emission allowance, with no resend or retry. Dropping local checker references
 supplies no whole-job settlement or complete-release evidence.
