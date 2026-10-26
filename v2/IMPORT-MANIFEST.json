@@ -4100,6 +4100,22 @@
       "path": "worker/test-fixtures/alpaca-byte-review.ts",
       "sha256": "2395fbd1bfd410e991e7c25edf57877711fe5eafd21d5642b1a012619fc3275b",
       "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-original-process-review-adapter.ts",
+      "sha256": "418890dc8bd1c16416c7e23da11b21124eb769ca3f679621645617222a774df3",
+      "reason": "Original-process review adapter source and synthetic conformance tests; production closed, operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-original-process-review-adapter.test.ts",
+      "sha256": "89856478f30e34f81d2350237a4e47a78f29126eaf14aa83dabdd262e4fde883",
+      "reason": "Original-process review adapter source and synthetic conformance tests; production closed, operational admission deferred"
     }
   ]
 }
