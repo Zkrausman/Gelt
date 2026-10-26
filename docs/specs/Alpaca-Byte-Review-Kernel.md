@@ -159,6 +159,8 @@ All worker paths below are relative to `v2/worker/`:
   exercising 992 fresh model instances.
 - `src/alpaca-byte-review-fixtures.test.ts` and
   `test-fixtures/alpaca-byte-review.ts`: explicitly constructed connector fixtures.
+- `v2/IMPORT-MANIFEST.json` (repository-relative): inventory entries and exact hashes
+  for all eleven added V2 source/test/fixture files.
 - `docs/specs/Alpaca-Byte-Review-Kernel.md` (repository-relative): this report.
 
 ## Verification and review evidence
@@ -187,3 +189,10 @@ review and repeated verification before delivery. Normal Go/V2, scientific and
 applicable protected-browser CI gates remain required on the exact PR head.
 The PR records final reviewed head/base and actual CI results. Production
 admission, actual handling and market acquisition remain **DEFER**.
+
+The first exact-head remote CI attempt passed Go and scientific verification,
+and all 1,336 active worker tests plus 46 script tests passed. Import completeness
+then rejected the eleven unlisted kernel files. The inventory amendment records
+those existing files and hashes without changing verifier rules, upstream pins,
+source behavior, dependencies or operational authority. Browser/build/smoke
+steps in that failed job were not reached; they remain delivery gates.
