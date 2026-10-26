@@ -4012,6 +4012,94 @@
       "path": "worker/src/alpaca-iex-candidate-mode.test.ts",
       "sha256": "5753a672f0244a01d4060c51f32efa8346059ab4dc33d9223e30e6bf89326886",
       "reason": "Separate original-process unverified candidate mode; synthetic-only source delivery, no activation or admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-checker.test.ts",
+      "sha256": "c3fc8ddbc740992edc84960b36a7e97ddd8852dfb9495425cd9e81082aa998a1",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-checker.ts",
+      "sha256": "2bac1b1c8e247e40406c9c6d0ba8438b332aeb2ec0e9c8f06681ae3a92f02d24",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-contract.test.ts",
+      "sha256": "0e5278880aa893127ba93240864b5d4d2fe7e67339de4fc5b20bdfe9c4a484ec",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-contract.ts",
+      "sha256": "248d310495b6095c44a5417d8007384791c5b9f620fbd5b042026077e43e382d",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-coordinator.regression.test.ts",
+      "sha256": "c92ca88a5e46be986888db26010c6a8c6e7901db69e3af2465cd73b27a51c966",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-coordinator.test.ts",
+      "sha256": "5c62a1e28591c22de1cdee4bc76fe23ad2580ec3cd3d91b3ff213d672dc7c6e4",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-coordinator.ts",
+      "sha256": "244e0f79acb1d247b129c7d56a1bd46069aa0560a491f6e1c312a35e4b7da882",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-fixtures.test.ts",
+      "sha256": "b7aabdce8a5407378b734cb145a9b277642d7c89b4c50a8c0133105fc09ec199",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-release.regression.test.ts",
+      "sha256": "f8d4c0d0c5e263bd5480d29213fd84ed67dddadf88b8cd6fea0d6c0394c51703",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/alpaca-byte-review-state-matrix.test.ts",
+      "sha256": "d50951f864dda5ee7416ddb6a371659b2db0e03032ed68ad06f464a7471bf6c3",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/test-fixtures/alpaca-byte-review.ts",
+      "sha256": "2395fbd1bfd410e991e7c25edf57877711fe5eafd21d5642b1a012619fc3275b",
+      "reason": "Bounded same-process byte-review kernel and constructed fixtures; source-only delivery, production closed and operational admission deferred"
     }
   ]
 }
