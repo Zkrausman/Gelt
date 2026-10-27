@@ -63,6 +63,90 @@ coverage, an elapsed schedule, a performance benefit or a trading-readiness clai
 This roadmap maintenance releases no acquisition, qualification, simulator/paper/live
 run, account/credential/security change, held retry or new product implementation.
 
+### EOY outcome and primary next capability
+
+**Target: December 31, 2026 — Paper2Agent conversion → shadow trading → gated
+live-promotion readiness. Assessment: AT RISK.** Shipped source is useful, but no
+accepted automatic trading-paper conversion → actual shadow → promotion-evidence
+chain is established. [G04's selected covariance reference](specs/G04-Runnable-Paper-Package.md)
+and [G05's sign-return rule](specs/G05-Shadow-First-Rules-Core.md) are separate
+components, not verified conversion lineage. The [selected-paper milestone](specs/ZAR-209-Research-to-Shadow.md)
+ends at recommendation/rejection; the [automatic lifecycle goal](specs/Automatic-Strategy-Lifecycle-Goal-Clarification.md)
+previously left implementation unplanned. The deadline adds a planning target,
+not implementation, operating or financial authority.
+
+**Next implementation-sized deliverable, requiring a new bounded approval:** one
+versioned candidate → finite shadow lifecycle → durable evidence/reopen, or a
+truthful admission rejection. Reuse G05/G06 and one existing protected read surface;
+no second engine or new default production route. Treat this as one coherent
+source/synthetic integration delivery, not more independent validators or a ticket
+for every missing fact.
+
+Acceptance for that proposed source slice:
+
+- A typed, versioned candidate/artifact contract binds source/reference, parameters
+  and fidelity evidence. The existing G05 rule can be a clearly labelled baseline;
+  it must not be presented as automatically converted from G04. A future
+  Paper2Agent-produced candidate must supply its own verified lineage.
+- One grouped admission record binds input/window, runtime, source/reviewer,
+  handling/copies, completion/revisions, costs/risk and settlement evidence. Name
+  suppliers only where established; missing evidence rejects or remains unknown.
+- The existing explicitly constructed/SIMULATED_ONLY path demonstrates candidate,
+  decision, simulated fill/cash/position and durable run/readback identity, including
+  reopen, cancellation, stale/missing inputs, duplicate/UNKNOWN and forged lineage.
+  The real SPY253 unknown gates must stop before acquisition/effects; synthetic
+  success is not an actual shadow campaign or conversion success.
+- Complete independent and distinct adversarial source/privacy review, synthetic
+  integration/browser acceptance, ordinary CI/merge and remote verification.
+  Prepare the single concrete operating-release decision inside the same delivery;
+  do not ask the owner to assemble code, keys or technical paperwork.
+
+Tentative engineering judgement for this **source/synthetic slice only: 5–10
+human-equivalent engineering days**, including contract confirmation, implementation,
+regression/fault tests, review/remediation, CI and integration. This assumes reuse
+of existing G05/G06 store/lifecycle/read interfaces and one baseline candidate;
+interface mismatch requires re-estimation inside that delivery. It excludes the
+converter, external capabilities, actual qualification/acquisition, prospective
+observation and live-promotion work. It is not elapsed agent time or a full EOY
+estimate. Full remaining project effort and required observation duration remain
+unknown; old conditional subtask estimates overlap and must not be summed.
+
+The new approval would cover source implementation and synthetic verification
+only. Actual qualification, provider calls/acquisition, existing-secret access/use,
+simulator/paper/shadow campaigns, live orders, security/access/retention changes and
+held retries remain excluded unless separately bounded and explicitly released.
+
+**Critical path:** choose the bounded trading reference and conversion/artifact
+contract; join verified conversion/fidelity with accepted data/runtime/handling;
+prove the finite shadow consumer and durable outcome; accrue the predefined
+strategy evidence; then qualify promotion/recovery controls and release acceptance.
+A technical promotion mechanism, sufficient evidence to promote a strategy and
+permission to transact are three separate gates. A correct mechanism may promote
+nothing; no profitability or performance is promised.
+
+**Parallel work:** current authority permits this docs delivery and retained-source
+contract/protocol/evidence/fixture preparation. After specific source approval,
+candidate/artifact integration and runner/readback can use separate file-owner
+lanes against one frozen contract, with independent adversarial fixture/privacy
+work. Conversion-fidelity and promotion-policy preparation can proceed alongside;
+their new code or execution still needs its scope. Prospective observation cannot
+be replaced by parallel coding or counted as ready while admission is held.
+
+| Proposed checkpoint (America/New_York) | Required outcome; not a promised date or automatic release |
+| --- | --- |
+| **November 3 — decisive checkpoint** | Bound the one-case EOY acceptance scope, artifact/runner interfaces, suppliers and evaluation/observation protocol; prepare concrete source/qualification approval scopes and re-estimate full remaining effort. Retain or explicitly amend ZAR-209's MVP sequencing gate before new integration code. If these cannot be established, the operational EOY outcome is not currently supportable and must be re-scoped. |
+| **November 10 — earliest useful integrated demo to aim for** | Subject to the bounded implementation approval and prior checkpoint: candidate/artifact → evaluation → finite shadow lifecycle/evidence/reopen, initially labelled constructed if actual data admission is unavailable. Prove interfaces and failure handling; do not claim general paper understanding, actual market shadow or conversion fidelity from a baseline. This is a target, not an ETA. |
+| **November 17 — actual-shadow start readiness** | Separately approved actual input and qualified runtime/consumer bindings support the first finite observation. Verify that the chosen protocol can still obtain enough evidence; do not shorten its standard to fit December. |
+| **December 1 — durable integration** | Inspect actual candidate/run lineage, observations, restart/reopen and duplicate/UNKNOWN/adverse behavior. Keep simulated fills separate from broker facts; stop/re-scope missing evidence. |
+| **December 15 — control mechanism** | Independently reviewed promotion/demotion/halt/risk/authority mechanism and bounded recovery evidence under approved procedures; no automatic eligibility from mechanism success. |
+| **December 22 — release-candidate decision** | Freeze candidate/control/policy versions, finish required reviews and checks, and classify strategy evidence as eligible, rejected or insufficient. Remaining time is not a guaranteed correction buffer. |
+| **December 31 — gated readiness** | Accept only the technical readiness supported by passed gates. Strategy-specific evidence and a separate user-controlled initial live-activation/transaction handoff remain necessary. The deadline adds no routine per-strategy manual-click policy or permission to trade. |
+
+October 27 to December 31 is 65 calendar days, not 65 days of ready work or proof
+of an adequate shadow sample. The next decisive action is to approve or revise the
+single bounded source slice and resolve the November 3 scope/evidence checkpoint;
+no completion probability, observation adequacy or profitable outcome is asserted.
+
 ### Historical snapshots retained below
 
 Read each older status and backlog at its stated checkpoint. Unfinished historical

@@ -1,11 +1,11 @@
 ---
 type: Documentation completion report
-title: Current roadmap source-status reconciliation
+title: Current roadmap source-status and EOY reconciliation
 date: 2026-10-26
 status: Documentation candidate; final review and delivery gates pending
 ---
 
-# Current roadmap source-status reconciliation
+# Current roadmap source-status and EOY reconciliation
 
 This is the change receipt for [the canonical roadmap](../ROADMAP.md), not a
 second implementation plan. The roadmap's leading October 6 snapshot omitted the
@@ -21,16 +21,28 @@ subsequent kernel, original-process adapter and SPY253 inspection deliveries.
 - Separate independently ready source-only preparation from proposed qualification
   and held input, simulator/paper/live work. Existing dependency labels are not new
   external issues, implementation releases or assignments.
-- Preserve production CLOSED, C07/C13/C14 UNKNOWN and operations DEFER. No new
-  provider finality guarantee, trust profile, account-paperwork requirement,
-  schedule, engineering estimate or operating authority is created.
+- Preserve production CLOSED, C07/C13/C14 UNKNOWN and operations DEFER. No provider
+  finality guarantee, trust profile, account-paperwork requirement or operating
+  authority is created.
+- Carry the owner's EOY target as AT RISK with one proposed candidate-to-shadow
+  source/synthetic delivery, explicit approval boundary, conditional engineering
+  judgement and proposed decision checkpoints. Distinguish technical mechanism,
+  strategy evidence and transaction permission. The full project estimate and
+  observation requirement remain unknown; dates and ranges grant no execution.
 
 ## Changed files
 
 Only `docs/ROADMAP.md` and this documentation receipt change. Product source,
 tests, dependencies, workflows, access/security and import inventory are unchanged.
 
-## Verification and delivery
+## Grouped scope and verification
+
+The first current-status packet was frozen but remained known unsubmitted. The
+courier reconciled zero native invocations/admissions and held that old release
+before this follow-on was grouped into the same two-file documentation change.
+The exact old packet is preserved; no active reviewer was interrupted or replaced.
+This avoids a duplicate plan/PR and does not authorize the proposed source slice.
+
 
 The documentation check validates frontmatter, added relative links/anchors,
 privacy-sensitive path exclusions, the exact two-file scope and byte-for-byte
