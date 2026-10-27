@@ -3232,7 +3232,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "9f611822356128417390ae5f01f422bccd8914dfe4053e07521ea264d2e9d0d3",
+      "sha256": "0a8397c4643c8a00b941abfcb9623c73ccd2a8bf103959d372b2b57d2f295cdd",
       "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -3592,7 +3592,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-contract.ts",
-      "sha256": "5d2f5a86ebe1547ba332b88e4cd5f123b8c04d6d50a2bde117c170a479c22c6d",
+      "sha256": "09c6856a47d215b31beef009956ce8a8e3f13bcd5d4f83ab3837afbe86bbfa2c",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -3616,7 +3616,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "c1f9e9d065140009c3f3afb6ae1408975598dc8066af0d34d9c883377163b704",
+      "sha256": "909646a03b5a371621b977863b0143b993611ff5a8b397421faa554690cc4bf4",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -3824,7 +3824,7 @@
       "upstreamSha256": null,
       "path": "worker/src/synthetic-sizing-binding-evidence.ts",
       "status": "added",
-      "sha256": "f7216eda0f5dfc09d4fe4f47d4ee06b70e1f7c8fbcf79d580c72fd5f5c327103",
+      "sha256": "697ea0535ad043bb578393939f6adbe31aa0effe40eb15016f8d776ba7eb9727",
       "reason": "Owner-approved constructed offline G06 sizing binding/evidence/tests; no genuine-run or provider authority."
     },
     {
@@ -4140,6 +4140,30 @@
       "path": "worker/src/alpaca-spy253-review-profile.ts",
       "sha256": "01b74f0f51c5f2158271b19979bfebebe267c3ea19a5b677305daa2b4e3e5769",
       "reason": "Gelt bounded unadmitted SPY253 original-byte review profile and synthetic conformance; production closed"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/candidate-shadow-adapter.ts",
+      "sha256": "332ebcbeace954c05a16000419ad0aee2c2361eeb8b544f04be9936b3b4f8305",
+      "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/candidate-shadow-contract.ts",
+      "sha256": "0f2054976681821240f68e69d3fe132fad55f7e794fd5bb07533aef4bbcb7852",
+      "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/candidate-shadow-integration.test.ts",
+      "sha256": "6d21c424ad3837a4988d7c3e7e7450b47f142e1c31ab4342659bfa691b55072d",
+      "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
     }
   ]
 }

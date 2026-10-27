@@ -4,6 +4,7 @@ import { constants, openSync, closeSync, fstatSync, lstatSync, readSync, writeFi
 import { dirname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { canonical, digest } from './ledger-canonical.js';
+import { assertCandidateShadowBinding, candidateShadowId } from './candidate-shadow-contract.js';
 import { parseResearchJSON } from './research-json.js';
 import { shadowSizingInputSchema, shadowSizingProposalSchema, type ShadowSizingInput, type ShadowSizingProposal } from './shadow-sizing-contract.js';
 import { matchesShadowSizingProposal } from './shadow-sizing.js';
@@ -115,6 +116,10 @@ export class SyntheticSizingEvidence {
       || canonical(input.buyLimitPrice) !== canonical(this.policy.buyLimitPrice)
       || canonical(input.sellLimitPrice) !== canonical(this.policy.sellLimitPrice)
       || Buffer.byteLength(text) > inputLimit || Buffer.byteLength(canonical(proposal)) > smallLimit) throw new SizingEvidenceRejected();
+    if (this.policy.candidate) {
+      try { assertCandidateShadowBinding(this.policy.candidate, input.ruleInput, input.config); }
+      catch { throw new SizingEvidenceRejected(); }
+    }
     return { input, proposal, text };
   }
   prepare(bytes: Buffer, raw: unknown): SizingEvidence {
@@ -125,10 +130,12 @@ export class SyntheticSizingEvidence {
       configSha256: proposal.configSha256, portfolioSnapshotSha256: proposal.portfolioSnapshotSha256,
       decisionId: proposal.ruleDecisionId, policyId: this.policy.sizingPolicyId, policySha256: this.policySha256,
       proposalId: proposal.proposalId, inputSha256: digest(text), proposalSha256: digest(proposalText),
-      inputBytes: Buffer.byteLength(text), proposalBytes: Buffer.byteLength(proposalText) });
+      inputBytes: Buffer.byteLength(text), proposalBytes: Buffer.byteLength(proposalText),
+      ...(this.policy.candidate ? { candidateId: candidateShadowId(this.policy.candidate) } : {}) });
     const manifestText = canonical(manifest), key = digest(manifestText);
     const link = sizingEvidenceSchema.parse({ version: 1, policyId: manifest.policyId, policySha256: manifest.policySha256,
-      proposalId: manifest.proposalId, sizingInputSha256: manifest.inputSha256, proposalSha256: manifest.proposalSha256, evidenceManifestSha256: key });
+      proposalId: manifest.proposalId, sizingInputSha256: manifest.inputSha256, proposalSha256: manifest.proposalSha256, evidenceManifestSha256: key,
+      ...(manifest.candidateId ? { candidateId: manifest.candidateId } : {}) });
     const target = join(this.root, key);
     if (existsSync(target)) { this.read(link); return link; }
     const inventory = this.inventory();
@@ -146,6 +153,9 @@ export class SyntheticSizingEvidence {
     if (names(path, 3).sort().join(',') !== 'input.json,manifest.json,proposal.json') throw new Error('sizing evidence unavailable');
     const manifestBytes = boundedFile(join(path, 'manifest.json'), smallLimit);
     const manifest = sizingReplayManifestSchema.parse(parseResearchJSON(manifestBytes));
+    const expectedCandidateId = this.policy.candidate ? candidateShadowId(this.policy.candidate) : undefined;
+    if (manifest.candidateId !== expectedCandidateId || link.candidateId !== expectedCandidateId) throw new Error('sizing evidence unavailable');
+    // Candidate identity is separate from every pre-existing digest role.
     if (canonical(manifest) !== manifestBytes.toString('utf8') || digest(canonical(manifest)) !== link.evidenceManifestSha256) throw new Error('sizing evidence unavailable');
     const bytes = boundedFile(join(path, 'input.json'), inputLimit), proposalBytes = boundedFile(join(path, 'proposal.json'), smallLimit);
     if (bytes.length !== manifest.inputBytes || proposalBytes.length !== manifest.proposalBytes || digest(bytes.toString('utf8')) !== manifest.inputSha256
