@@ -4164,6 +4164,38 @@
       "path": "worker/src/candidate-shadow-integration.test.ts",
       "sha256": "e085dcf964bd7209dece3f7469722bb52a3aad78d9a4eeae7dce38c5ddecf25b",
       "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-reference-artifact.test.ts",
+      "sha256": "1bfb3080c3128f615b79111c35503cdf06d31c1d5c5770be4208bec91fabeff8",
+      "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-reference-artifact.ts",
+      "sha256": "721f440988848e1c55ee296cda57483f345b614e4e8535beeb183822a51aea26",
+      "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/paper-conversion-contract.test.ts",
+      "sha256": "b9bce1be04eb55037800d8479666ecbf9120b565545402804a03f297c83acfaf",
+      "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/paper-conversion-contract.ts",
+      "sha256": "470ba619606aaa3859b276f2f9d4ab53a79de2bfbf5c4c550d9527b4d00f6870",
+      "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
     }
   ]
 }
