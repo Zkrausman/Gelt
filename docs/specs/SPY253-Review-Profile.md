@@ -117,7 +117,7 @@ credentials, evidence sidecars and exception text.
 
 Preparation used distinct source-author and independent fixture contexts. The
 45-case fixture catalog is a proposed acceptance oracle, not 45 executed tests.
-The implemented checks comprise 21 authored profile tests and 20 independent
+The implemented checks comprise 21 authored profile tests and 24 independent
 regressions, alongside 346 prior focused tests. Existing lifecycle/contract tests
 cover shared ticket, receipt, capacity and state-transition invariants; this does
 not claim every catalog permutation was executed or actual provider behavior seen.
@@ -148,8 +148,26 @@ tests or certified an operating runtime.
 
 Post-remediation working-candidate verification passed all nine checks, including
 387 focused tests across 13 suites, legacy API compatibility and the unchanged
-82-upstream/512-candidate inventory. A fresh complete review pair must assess the
-resulting source and this closeout; closure is not inferred from test success.
+82-upstream/512-candidate inventory. The next complete review pair confirmed the
+earlier fixes but found two MEDIUM classification defects: deliberate deadline
+rejection could also invent a higher-priority acceptance failure, and unreserved
+forged acceptance could invent provenance mismatch without a retained original.
+Both were accepted and corrected together. Reservation preserves an already known
+boundary reason through its sanitized error; production and acceptance return
+their established boundary failure directly. Provenance comparison runs only
+where a retained payload exists, while the acceptance attempt remains consumed.
+
+Four additional regressions cover all three deadline boundaries and unreserved
+forgery. The first three failed against the reviewed source; the related
+reservation case separately failed before correction. They also preserve timeout
+classification through emission/own ack and subsequent cancellation/mutation.
+The adversarial review's initial five-read capacity stop is preserved; the same
+recorded context subsequently completed all remaining original parts without
+replaying reads. Neither review was replaced or treated as clean while incomplete.
+The resulting working candidate passed all nine checks, including 391 focused
+tests across 13 suites and the unchanged import inventory.
+A fresh complete pair must assess the resulting source and this closeout;
+closure is not inferred from passing tests.
 Exact final-head post-review checks,
 Linux CI/scientific/applicable protected-browser gates, ordinary PR/merge and
 remote verification remain required. Source review is bounded static review;

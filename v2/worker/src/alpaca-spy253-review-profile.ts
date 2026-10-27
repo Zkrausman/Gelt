@@ -178,7 +178,9 @@ export function createSpy253ByteReviewLane() {
         acceptedVerdict = undefined;
     };
     const boundary = (): boolean => { try {
-        if (!payload || !payload.seals.every(seal => seal.matches()) || !isConnectorIssuedAlpacaAcquisition(payload.original))
+        // No retained original means no provenance comparison is established.
+        // Ordering/authenticity failures are tracked by their actual caller.
+        if (payload && (!payload.seals.every(seal => seal.matches()) || !isConnectorIssuedAlpacaAcquisition(payload.original)))
             invalidate('provenance_mismatch');
         const now = Date.now();
         if (!Number.isSafeInteger(now) || now < lastClock || (payload && now < Date.parse(payload.original.receivedAt)))
@@ -209,7 +211,9 @@ export function createSpy253ByteReviewLane() {
             return parseInvocationStructure({ schema: 'gelt.byte-review-invocation.v1', attemptId, invocationId, authorityId: 'spy253.inspection.no-market-authority.v1', revisions: binding.revisions, bindingSha256: bindingDigest(binding), startedAt: new Date(lastClock).toISOString(), deadlineAt: new Date(Date.parse(original.receivedAt) + 60000).toISOString() });
         }
         catch {
-            invalidate('acceptance_failed');
+            // A deliberate boundary rejection already established its fact.
+            // Throw the sanitized reservation error without inventing another.
+            if (!failure) invalidate('acceptance_failed');
             return unavailable();
         } },
         produce(): object { if (produced) {
@@ -218,7 +222,7 @@ export function createSpy253ByteReviewLane() {
         } requireCondition(reserved); produced = true; ticket = Object.freeze(Object.create(null) as object); if (!boundary() || !payload)
             return ticket; try {
             const checks = inspect(payload.original, payload.input);
-            requireCondition(boundary());
+            if (!boundary()) return ticket;
             producedVerdict = parseVerdictStructure({ schema: 'gelt.review-before-discard-verdict.v1', attemptId, invocationId, revisions: payload.binding.revisions, reviewerRevision: spy253ReviewRevisions.reviewer, authorityId: 'spy253.inspection.no-market-authority.v1', bindingSha256: bindingDigest(payload.binding), completedAt: new Date(lastClock).toISOString(), elapsedMs: lastClock - Date.parse(payload.original.receivedAt), outcome: h.outcome(checks), checks });
         }
         catch {
@@ -235,7 +239,7 @@ export function createSpy253ByteReviewLane() {
         } try {
             const verdict = parseVerdictStructure(producedVerdict);
             requireCondition(verdict.attemptId === attemptId && verdict.invocationId === invocationId && verdict.bindingSha256 === bindingDigest(payload.binding) && equal(verdict.revisions, payload.binding.revisions) && verdict.reviewerRevision === spy253ReviewRevisions.reviewer && verdict.authorityId === 'spy253.inspection.no-market-authority.v1' && Date.parse(verdict.completedAt) === Date.parse(payload.original.receivedAt) + verdict.elapsedMs && Date.parse(verdict.completedAt) <= lastClock && verdict.elapsedMs < 60000 && verdict.outcome !== 'consistent_unverified');
-            requireCondition(boundary());
+            if (!boundary()) return current();
             acceptedVerdict = verdict;
         }
         catch {

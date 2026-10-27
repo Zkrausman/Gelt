@@ -261,6 +261,63 @@ describe('independent SPY253 source regression oracles', () => {
       else expect(adapter.emitSummary()!.status.outcome).toBe(expected);
     });
 
+  it.each(['production', 'acceptance'] as const)(
+    'keeps a deadline crossed during %s as timeout, without inventing acceptance failure', async phase => {
+      const adapter = createSpy253OriginalProcessReviewAdapter();
+      const f = await originalAndBinding(adapter.attemptId);
+      const handle = adapter.reserve(f.original, f.binding)!;
+      const start = Date.parse(decisionAt);
+      const crossDeadline = () => vi.spyOn(Date, 'now')
+        .mockReturnValueOnce(start).mockReturnValue(start + 60000);
+      if (phase === 'production') crossDeadline();
+      const ticket = adapter.completeReview(handle)!;
+      if (phase === 'acceptance') crossDeadline();
+      expect(adapter.acceptCompletion(handle, ticket)).toMatchObject({ accepted: false, reason: 'late' });
+      const timedOut = adapter.snapshot();
+      expect(timedOut.current).toMatchObject({ outcome: 'timed_out', review: 'unknown',
+        execution: 'unknown', disposal: 'not_established' });
+      expect(timedOut.receipts.some(r => r.kind === 'verdict_invalid')).toBe(false);
+      const emitted = adapter.emitSummary()!;
+      expect(emitted.status.outcome).toBe('timed_out');
+      expect(adapter.acknowledge(adapter.recipientComplete())).not.toBeNull();
+      const acknowledged = adapter.snapshot();
+      adapter.queueCancellation();
+      expect(adapter.snapshot().current.outcome).toBe('timed_out');
+      f.binding.evidence.completion = 'contradicted';
+      const later = adapter.snapshot();
+      expect(later.current).toMatchObject({ outcome: 'provenance_mismatch', summaryDelivery: 'acknowledged' });
+      expect(later.emitted).toBe(emitted);
+      expect(later.receipts.slice(0, acknowledged.receipts.length)).toEqual(acknowledged.receipts);
+      expect(later.receipts.some(r => r.kind === 'verdict_invalid')).toBe(false);
+      expect(adapter.emitSummary()).toBeNull();
+    });
+
+  it('preserves a known reservation deadline rather than adding generic acceptance failure', async () => {
+    const lane = createSpy253ByteReviewLane();
+    const f = await originalAndBinding(lane.attemptId);
+    vi.setSystemTime(new Date(Date.parse(decisionAt) + 60000));
+    expect(() => lane.reserve(f.original, f.binding, null)).toThrow();
+    expect(lane.current()).toMatchObject({ accepted: false, reason: 'late' });
+    expect(lane.observedFailures()).toEqual(['late']);
+    const adapter = createSpy253OriginalProcessReviewAdapter();
+    const g = await originalAndBinding(adapter.attemptId);
+    vi.setSystemTime(new Date(Date.parse(decisionAt) + 60000));
+    expect(adapter.reserve(g.original, g.binding)).toBeNull();
+    expect(adapter.snapshot().current.outcome).toBe('timed_out');
+    expect(adapter.snapshot().receipts.some(r => r.kind === 'verdict_invalid')).toBe(false);
+  });
+
+  it('consumes unreserved forged acceptance without inventing an original provenance comparison', () => {
+    const lane = createSpy253ByteReviewLane();
+    expect(lane.accept({})).toMatchObject({ accepted: false, reason: 'authenticity_failed' });
+    expect(lane.observedFailures()).toEqual(['authenticity_failed']);
+    expect(lane.current().reason).toBe('authenticity_failed');
+    expect(lane.accept({}).accepted).toBe(false);
+    expect(lane.observedFailures()).toContain('duplicate_completion');
+    expect(lane.observedFailures()).not.toContain('provenance_mismatch');
+    expect(() => lane.reserve({}, {}, null)).toThrow();
+  });
+
   it('shares the existing source-inspection allocation ceiling across both profiles', async () => {
     vi.resetModules();
     const legacy = await import('./alpaca-byte-review-checker.js');

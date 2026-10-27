@@ -4122,7 +4122,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-spy253-review-profile.regression.test.ts",
-      "sha256": "4371f1a88d063946f95736ab9c231426295700f22d026846d5429f60cd7d203f",
+      "sha256": "0875c60517595d3d5d36faf446b1ff1d7b96cef74a2d3e98da1c9fa50931454a",
       "reason": "Gelt bounded unadmitted SPY253 original-byte review profile and synthetic conformance; production closed"
     },
     {
@@ -4138,7 +4138,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-spy253-review-profile.ts",
-      "sha256": "5f007ce85edc888bc6d87279c89d436b48f94d1e8afe737e2285156ebf2898a3",
+      "sha256": "01b74f0f51c5f2158271b19979bfebebe267c3ea19a5b677305daa2b4e3e5769",
       "reason": "Gelt bounded unadmitted SPY253 original-byte review profile and synthetic conformance; production closed"
     }
   ]
