@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { shadowSizingPolicyId } from './shadow-sizing-contract.js';
+import { candidateShadowManifestSchema, candidateShadowIdSchema } from './candidate-shadow-contract.js';
 import { canonical } from './ledger-canonical.js';
 import { decimalSchema } from './ledger-contract.js';
 import { simulationSource, simulationPolicy, simulationHash, simulationTimestamp, simulationClassification, simulationObservationSchema } from './synthetic-simulation-economics.js';
@@ -52,11 +53,12 @@ export const sizingBindingPolicySchema = z.object({
   sourceCommit: z.string().regex(/^[a-f0-9]{40}$/), configSha256: simulationHash,
   sizingPolicyId: z.literal(shadowSizingPolicyId), quantityQuantum: positiveDecimal.refine(d => d.scale <= 18),
   buyLimitPrice: positiveDecimal, sellLimitPrice: positiveDecimal,
+  candidate: candidateShadowManifestSchema.optional(),
 }).strict();
 export type SizingBindingPolicy = z.infer<typeof sizingBindingPolicySchema>;
 export const sizingEvidenceSchema = z.object({ version: z.literal(1), policyId: z.literal(shadowSizingPolicyId),
   policySha256: simulationHash, proposalId: z.string().regex(/^shadow-sizing-[a-f0-9]{64}$/),
-  sizingInputSha256: simulationHash, proposalSha256: simulationHash, evidenceManifestSha256: simulationHash,
+  sizingInputSha256: simulationHash, proposalSha256: simulationHash, evidenceManifestSha256: simulationHash, candidateId: candidateShadowIdSchema.optional(),
 }).strict();
 export type SizingEvidence = z.infer<typeof sizingEvidenceSchema>;
 export const sizingReplayManifestSchema = z.object({
@@ -67,6 +69,7 @@ export const sizingReplayManifestSchema = z.object({
   policyId: z.literal(shadowSizingPolicyId), policySha256: simulationHash,
   proposalId: z.string().regex(/^shadow-sizing-[a-f0-9]{64}$/), inputSha256: simulationHash, proposalSha256: simulationHash,
   inputBytes: z.number().int().positive().max(262144), proposalBytes: z.number().int().positive().max(8192),
+  candidateId: candidateShadowIdSchema.optional(),
 }).strict();
 export const sizingBindingRejectionSchema = z.object({
   schema: z.literal('gelt.synthetic-sizing-binding-rejection.v1'), version: z.literal(1),

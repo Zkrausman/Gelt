@@ -811,6 +811,29 @@ export class SyntheticMockRobinhoodStore {
     });
   }
 
+  // A known cross-owner contradiction cannot release this writer or enable reuse.
+  fenceCandidateJoin(): void { this.storage.poisoned = true; }
+
+  // Internal constructed read: full replay bodies never cross the HTTP boundary.
+  readCandidateShadow(dispatchId: string) {
+    if (!this.evidence?.policy.candidate) return undefined;
+    if (!z.string().uuid().safeParse(dispatchId).success) fail();
+    return this.atomic(() => {
+      this.replayAll();
+      const row = this.orderRow(dispatchId);
+      if (!row) return undefined;
+      const payload = this.readStoredPayload(row), preview = payload.preview;
+      if (preview.version !== 2 || !preview.sizingEvidence || !this.evidence?.policy.candidate) throw new Error('candidate shadow unavailable');
+      this.evidence.verifyPreview(preview);
+      const replay = this.evidence.read(preview.sizingEvidence);
+      const order = this.readOrder(row);
+      const portfolio = { snapshot: this.projectPortfolio(),
+        state: this.unsettled() ? 'unsettled' as const : 'settled' as const };
+      return { candidate: JSON.parse(canonical(this.evidence.policy.candidate)) as NonNullable<SizingBindingPolicy['candidate']>,
+        input: replay.input, proposal: replay.proposal, preview, order, portfolio, termsHash: payload.termsHash };
+    });
+  }
+
   prepareSizingEvidence(bytes: Buffer, proposal: ShadowSizingProposal): SizingEvidence {
     if (!this.evidence || this.sizingBoundReadOnly || this.closed || this.storage.poisoned) fail();
     try {

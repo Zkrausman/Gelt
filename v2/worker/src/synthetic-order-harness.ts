@@ -10,6 +10,7 @@ import { storageFixture } from './storage-fixture.js';
 import { reopenPhaseForTest } from './synthetic-reopen-diagnostics.js';
 import { SyntheticPreviewDiagnostics } from './synthetic-preview-diagnostics.js';
 import { canonical } from './ledger-canonical.js';
+import { CandidateShadowJoinCorruption, readCandidateShadowResult } from './candidate-shadow-adapter.js';
 import { decimalSchema, eventSchema, intentSchema, ledgerId, orderSchema, projectionSchema, routingSchema, type Projection, type Result, type WriteReceipt } from './ledger-contract.js';
 import { OrderLifecycle, hasUnresolvedLifecycle, validateLifecycleProjections, type OrderAdapter } from './order-lifecycle.js';
 import { equalSecret } from './security.js';
@@ -174,6 +175,19 @@ class SyntheticFacts {
     if (!query.success || !paging.success) return { version: 1, ok: false, error: 'invalid' };
     return this.guard(() => ok(this.storage.db.transaction(() => this.read().filter(p => p.intent.ownerId === query.data.ownerId && p.intent.accountId === query.data.accountId).slice(paging.data.after, paging.data.after + paging.data.limit))()));
   }
+  fenceCandidateJoin(): void {
+    this.poisoned = true;
+    this.storage.poisoned = true;
+  }
+  candidateShadowFacts(intentId: string) {
+    return this.guard(() => ok(this.storage.db.transaction(() => {
+      const all = this.read();
+      return { projection: all.find(p => p.intent.intentId === intentId),
+        unresolved: hasUnresolvedLifecycle(all),
+        unknown: all.some(p => p.facts.some(e => e.type === 'dispatch-outcome-unknown')) };
+    })()));
+  }
+
   ownerHasUnresolvedLifecycle(ownerId: string): Result<boolean> {
     if (ownerId !== owner) return { version: 1, ok: false, error: 'invalid' };
     return this.guard(() => ok(this.storage.db.transaction(() => {
@@ -349,7 +363,41 @@ export function createSyntheticOrderHarness(sessionClock: () => number = Date.no
             if (selected.reconcile) reconcile = selected.reconcile;
             value = { configured: true }; break;
           }
-          case 'history': empty.parse(input); {
+          case 'history': {
+            const query = z.object({ candidateDispatchId: ledgerId.optional() }).strict().parse(input);
+            if (query.candidateDispatchId !== undefined) {
+              const readAt = sessionClock();
+              if (!Number.isSafeInteger(readAt) || readAt < current || readAt < issuedAt || readAt >= auth.expiresAt) return fail(403);
+              if (!mockStore) throw new Error();
+              const store = mockStore;
+              const fence = () => {
+                facts.fenceCandidateJoin();
+                store.fenceCandidateJoin();
+                lifecycle.haltNewOrders();
+                mockAdapter?.invalidateBound();
+              };
+              const result = facts.candidateShadowFacts(query.candidateDispatchId);
+              if (!result.ok) {
+                fence();
+                value = { state: 'unavailable' };
+              } else {
+                const { projection, unresolved, unknown } = result.value;
+                try {
+                  value = projection ? readCandidateShadowResult(store, projection, unresolved, unknown)
+                    : { state: 'unavailable' };
+                } catch (error) {
+                  if (!(error instanceof CandidateShadowJoinCorruption)) throw error;
+                  fence();
+                  value = { state: 'unavailable' };
+                }
+              }
+              const body = JSON.stringify({ version: 1, source, value });
+              if (Buffer.byteLength(body, 'utf8') > 32768) throw new Error();
+              const completedAt = sessionClock();
+              if (!Number.isSafeInteger(completedAt) || completedAt < readAt || completedAt >= auth.expiresAt) return fail(403);
+              res.end(body);
+              return;
+            }
             const result = facts.history({ ownerId: owner, accountId: account }, { after: 0, limit: 100 });
             if (!result.ok) throw new Error();
             value = { items: result.value.map(syntheticHistoryItem) };

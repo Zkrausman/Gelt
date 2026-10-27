@@ -4,19 +4,21 @@ title: Gelt Strategic Roadmap 🪙
 ---
 # Gelt Strategic Roadmap 🪙
 
-## Current delivery and next gates (2026-10-26; Linux, operations held)
+## Current delivery and next gates (2026-10-27; Linux, operations held)
 
-The latest shipped source is [PR24 / `599862f`](https://github.com/Zkrausman/Gelt/commit/599862fca9adff9fb5a746e09094d55ce6a85771).
+The published foundation is [PR24 / `599862f`](https://github.com/Zkrausman/Gelt/commit/599862fca9adff9fb5a746e09094d55ce6a85771), following PR22–23.
+This source revision adds the [versioned baseline candidate integration](specs/Candidate-Shadow-Synthetic-Integration.md); its source/synthetic scope was separately approved. It does not supply automatic Paper2Agent conversion or operating admission.
 This section supersedes current-readiness statements in the dated snapshots below;
 those snapshots and legacy completion checkboxes remain historical evidence, not
 permission to collect data or operate the current V2 trading path. The MVP and its
 actual operating journey are not declared accepted by these source deliveries.
 
-| Shipped increment | Usable source capability | Boundary and controlling record |
+| Source increment | Usable source capability | Boundary and controlling record |
 | --- | --- | --- |
 | [PR22: byte-review kernel](https://github.com/Zkrausman/Gelt/pull/22) | Bounded original-byte checks, private completion linkage and evidence-linked lifecycle. | [Kernel specification](specs/Alpaca-Byte-Review-Kernel.md): accepted document v1.3 / consumer 1.1; sixteen checks; constructed and explicitly simulated conformance are not actual operating proof. |
 | [PR23: original-process adapter](https://github.com/Zkrausman/Gelt/pull/23) | Original-object reservation, privately linked checker completion, one immutable emission and separate acknowledgement. | [Adapter specification](specs/Original-Process-Review-Adapter.md): original fixed BRCFIX scope; no acquisition or production-enable surface. |
 | [PR24: SPY253 inspection](https://github.com/Zkrausman/Gelt/pull/24) | Inspect variable connector-issued SPY253 originals and authenticate incomplete/rejected review results. | [Profile specification](specs/SPY253-Review-Profile.md): separate private evidence states; no manufactured completion, revision, candidate or handling facts. The legacy fixture API remains separate. |
+| [Baseline candidate integration](specs/Candidate-Shadow-Synthetic-Integration.md) | Fixed G05 evaluation to configured G06 sizing/lifecycle, candidate-bound durable evidence, protected dispatch-backed result and read-only reopen. | Constructed/SIMULATED_ONLY source conformance; no automatic conversion, actual campaign, qualified handling or live authority. G07/G08 legacy projection labels remain unchanged. |
 
 PR24 passed two fresh, distinct complete source/privacy reviews, 391 focused
 synthetic/baseline tests and required local checks on the reviewed and merged
@@ -75,46 +77,42 @@ ends at recommendation/rejection; the [automatic lifecycle goal](specs/Automatic
 previously left implementation unplanned. The deadline adds a planning target,
 not implementation, operating or financial authority.
 
-**Next implementation-sized deliverable, requiring a new bounded approval:** one
-versioned candidate → finite shadow lifecycle → durable evidence/reopen, or a
-truthful admission rejection. Reuse G05/G06 and one existing protected read surface;
-no second engine or new default production route. Treat this as one coherent
-source/synthetic integration delivery, not more independent validators or a ticket
-for every missing fact.
+**Approved baseline source slice:** one versioned G05 baseline candidate → existing
+configured synthetic lifecycle → durable evidence/protected read/reopen, or a
+truthful rejection/unavailable result. The [completion specification](specs/Candidate-Shadow-Synthetic-Integration.md)
+records implemented interfaces, tests, boundaries and delivery gates. A new approval
+for that same source slice is not outstanding. This is source conformance, not an
+actual shadow campaign, full workflow completion, G04 conversion or trading readiness.
 
-Acceptance for that proposed source slice:
+- The fixed artifact/manifest and existing G05 receipt/sizing checks retain distinct
+  source, configuration, policy, candidate and input identities. Supplied hashes
+  remain bindings rather than independent external provenance.
+- Existing stores and protected fixture reads retain simulated fills, fees,
+  cash/positions and uncertainty. Reopen restores no operating authority. Valid
+  no-effect artifacts are retained without inventing an order-backed result.
+- The grouped CLOSED/DEFER record preserves real input, revision/pagination,
+  runtime/handling/reviewer/settlement and economic dependencies as unestablished.
+  No supplier/trust profile or real SPY253 candidate is manufactured.
+- Complete independent/adversarial source/privacy review, exact-head verification,
+  normal CI/merge and remote verification govern delivery. Their receipts do not
+  establish operating qualification or permission to transact.
 
-- A typed, versioned candidate/artifact contract binds source/reference, parameters
-  and fidelity evidence. The existing G05 rule can be a clearly labelled baseline;
-  it must not be presented as automatically converted from G04. A future
-  Paper2Agent-produced candidate must supply its own verified lineage.
-- One grouped admission record binds input/window, runtime, source/reviewer,
-  handling/copies, completion/revisions, costs/risk and settlement evidence. Name
-  suppliers only where established; missing evidence rejects or remains unknown.
-- The existing explicitly constructed/SIMULATED_ONLY path demonstrates candidate,
-  decision, simulated fill/cash/position and durable run/readback identity, including
-  reopen, cancellation, stale/missing inputs, duplicate/UNKNOWN and forged lineage.
-  The real SPY253 unknown gates must stop before acquisition/effects; synthetic
-  success is not an actual shadow campaign or conversion success.
-- Complete independent and distinct adversarial source/privacy review, synthetic
-  integration/browser acceptance, ordinary CI/merge and remote verification.
-  Prepare the single concrete operating-release decision inside the same delivery;
-  do not ask the owner to assemble code, keys or technical paperwork.
+The original estimate for this bounded source/synthetic slice was **5–10
+human-equivalent engineering days**, including tests, review and integration,
+conditional on interface reuse. It is a planning estimate, not elapsed agent time,
+measured savings or remaining EOY effort. Full remaining conversion, external
+capability, qualification/acquisition, prospective observation and promotion work
+remain unestimated while their concrete interfaces/protocols are missing. Old
+conditional estimates overlap and must not be summed.
 
-Tentative engineering judgement for this **source/synthetic slice only: 5–10
-human-equivalent engineering days**, including contract confirmation, implementation,
-regression/fault tests, review/remediation, CI and integration. This assumes reuse
-of existing G05/G06 store/lifecycle/read interfaces and one baseline candidate;
-interface mismatch requires re-estimation inside that delivery. It excludes the
-converter, external capabilities, actual qualification/acquisition, prospective
-observation and live-promotion work. It is not elapsed agent time or a full EOY
-estimate. Full remaining project effort and required observation duration remain
-unknown; old conditional subtask estimates overlap and must not be summed.
-
-The new approval would cover source implementation and synthetic verification
-only. Actual qualification, provider calls/acquisition, existing-secret access/use,
-simulator/paper/shadow campaigns, live orders, security/access/retention changes and
-held retries remain excluded unless separately bounded and explicitly released.
+**Next independently ready preparation:** use the existing G04/G05 and new typed
+artifact contracts to bound one actual trading-reference conversion/fidelity
+proposal and the grouped operating-evidence prerequisites. Name an evidenced
+runtime/supplier or the exact missing interface; do not create another generic plan
+or ask the owner to assemble code/keys. Automatic conversion implementation,
+qualification, provider calls/acquisition, actual simulator/shadow/paper campaigns,
+live orders, security/access/retention changes and held retries each retain their
+separate scope boundary. None is released by this source milestone or deadline.
 
 **Critical path:** choose the bounded trading reference and conversion/artifact
 contract; join verified conversion/fidelity with accepted data/runtime/handling;
@@ -124,18 +122,17 @@ A technical promotion mechanism, sufficient evidence to promote a strategy and
 permission to transact are three separate gates. A correct mechanism may promote
 nothing; no profitability or performance is promised.
 
-**Parallel work:** current authority permits this docs delivery and retained-source
-contract/protocol/evidence/fixture preparation. After specific source approval,
-candidate/artifact integration and runner/readback can use separate file-owner
-lanes against one frozen contract, with independent adversarial fixture/privacy
-work. Conversion-fidelity and promotion-policy preparation can proceed alongside;
-their new code or execution still needs its scope. Prospective observation cannot
-be replaced by parallel coding or counted as ready while admission is held.
+**Parallel work:** independent fixture/privacy and source review can overlap
+against frozen artifacts with one source writer and serialized shared controls.
+Conversion-fidelity and promotion-policy source preparation can proceed within the
+existing planning mandate; their new code or execution still needs a bounded
+scope. Prospective observation cannot be replaced by parallel coding or counted
+as ready while admission is held.
 
 | Proposed checkpoint (America/New_York) | Required outcome; not a promised date or automatic release |
 | --- | --- |
-| **November 3 — decisive checkpoint** | Bound the one-case EOY acceptance scope, artifact/runner interfaces, suppliers and evaluation/observation protocol; prepare concrete source/qualification approval scopes and re-estimate full remaining effort. Retain or explicitly amend ZAR-209's MVP sequencing gate before new integration code. If these cannot be established, the operational EOY outcome is not currently supportable and must be re-scoped. |
-| **November 10 — earliest useful integrated demo to aim for** | Subject to the bounded implementation approval and prior checkpoint: candidate/artifact → evaluation → finite shadow lifecycle/evidence/reopen, initially labelled constructed if actual data admission is unavailable. Prove interfaces and failure handling; do not claim general paper understanding, actual market shadow or conversion fidelity from a baseline. This is a target, not an ETA. |
+| **November 3 — decisive checkpoint** | Bound the one-case EOY acceptance scope, artifact/runner interfaces, suppliers and evaluation/observation protocol; prepare concrete source/qualification approval scopes and re-estimate full remaining effort. The baseline constructed slice is separately approved; retain ZAR-209's MVP sequencing gate for actual conversion/research operation or obtain a precise scope change. If these cannot be established, the operational EOY outcome is not currently supportable and must be re-scoped. |
+| **November 10 — earliest useful integrated demo to aim for** | Inspect/reproduce this revision’s constructed baseline candidate → evaluation → finite lifecycle/evidence/reopen result; separately bound any automatic conversion or nonfixture demonstration. Prove interfaces/failure handling without claiming general paper understanding, actual market shadow or conversion fidelity. This remains a proposed checkpoint, not an operating release or ETA. |
 | **November 17 — actual-shadow start readiness** | Separately approved actual input and qualified runtime/consumer bindings support the first finite observation. Verify that the chosen protocol can still obtain enough evidence; do not shorten its standard to fit December. |
 | **December 1 — durable integration** | Inspect actual candidate/run lineage, observations, restart/reopen and duplicate/UNKNOWN/adverse behavior. Keep simulated fills separate from broker facts; stop/re-scope missing evidence. |
 | **December 15 — control mechanism** | Independently reviewed promotion/demotion/halt/risk/authority mechanism and bounded recovery evidence under approved procedures; no automatic eligibility from mechanism success. |
@@ -143,8 +140,8 @@ be replaced by parallel coding or counted as ready while admission is held.
 | **December 31 — gated readiness** | Accept only the technical readiness supported by passed gates. Strategy-specific evidence and a separate user-controlled initial live-activation/transaction handoff remain necessary. The deadline adds no routine per-strategy manual-click policy or permission to trade. |
 
 October 27 to December 31 is 65 calendar days, not 65 days of ready work or proof
-of an adequate shadow sample. The next decisive action is to approve or revise the
-single bounded source slice and resolve the November 3 scope/evidence checkpoint;
+of an adequate shadow sample. The next decisive checkpoint is a bounded actual conversion case, supported
+operating-evidence suppliers and predefined evaluation/observation protocol;
 no completion probability, observation adequacy or profitable outcome is asserted.
 
 ### Historical snapshots retained below
