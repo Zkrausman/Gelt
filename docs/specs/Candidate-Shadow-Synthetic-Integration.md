@@ -79,7 +79,13 @@ identity, acknowledgements and observed executions must agree. Execution joins
 require unique identities and exact one-to-one correspondence before a settled
 result: duplicate A cannot substitute for omitted B merely because counts match.
 Legitimate simulated fills awaiting lifecycle observation remain UNKNOWN; duplicate
-or conflicting observations make the joined read unavailable. Requested terms
+or conflicting observations make the joined read unavailable. A known join
+contradiction also fences both existing owners, halts new orders and invalidates
+pending bound capabilities before the response. Poisoned close retains the writer
+markers and rejects; reopen cannot restore authority or steal those markers. This
+is a stop, not cancellation, settlement, repair or a recovery service. A missing
+selection and legitimate observation lag do not trigger this corruption fence.
+Requested terms
 are shown separately from observed simulated fills. Fees and cash/quantity updates
 come from the configured simulator's exact-decimal event replay, not requested
 amounts, a close price, or a fabricated result DTO.
@@ -182,7 +188,15 @@ identities and requires exact bijective matching for settled results, while the
 same tests preserve UNKNOWN for legitimate unreconciled fills. No generic ledger,
 engine or recovery policy was changed.
 
-The corrected pre-review working candidate passed all 20 integration regressions,
+A subsequent adversarial review found that an unavailable result alone did not
+stop further preparation or confirmation after detected corruption. Owner-written
+regressions reproduced continued confirmation and clean ownership release before
+the correction. The owner-controlled fence now stops those paths and retains both
+markers in live and reopened cases. A separate missing-selection control still
+allows ordinary preparation and clean close; legitimate observation lag remains
+UNKNOWN.
+
+The corrected pre-review working candidate passed all 21 integration regressions,
 server tests, worker/web tests, Node script tests, worker type checking, Go
 race/vet/build, full V2 build, offline smoke, import inventory and whitespace
 checks. Counts and commands belong to their exact
@@ -216,9 +230,10 @@ qualification, conversion success, profitable behavior or live readiness.
 - `v2/worker/src/synthetic-sizing-binding-evidence.ts`: candidate validation in
   existing publication/replay, without new storage or larger limits.
 - `v2/worker/src/synthetic-mock-robinhood-storage.ts`: internal replay-backed
-  candidate/order/evidence/portfolio read.
+  candidate/order/evidence/portfolio read and corruption-only ownership fence.
 - `v2/worker/src/synthetic-order-harness.ts`: protected dispatch-selector read
-  and final owner-clock check; existing fixture gates retained.
+  and final owner-clock check; known join corruption halts orders, invalidates bound
+  capabilities and fences existing owners; existing fixture gates retained.
 - `v2/worker/src/candidate-shadow-integration.test.ts`: constructed integration
   and independent adverse/lineage/session/descriptor regressions.
 - `v2/IMPORT-MANIFEST.json`: actual scoped hashes and new Gelt entries; upstream

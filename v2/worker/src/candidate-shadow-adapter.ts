@@ -8,6 +8,11 @@ import { assertCandidateShadowBinding, candidateShadowId, candidateShadowOperati
   parseCandidateShadowJSON, parseCandidateShadowManifest } from './candidate-shadow-contract.js';
 import type { SyntheticMockRobinhoodStore } from './synthetic-mock-robinhood-storage.js';
 
+// Internal contradiction signal; the owning harness must fence before replying.
+export class CandidateShadowJoinCorruption extends Error {
+  constructor() { super('candidate shadow join unavailable'); }
+}
+
 // Primitive JSON strings are bounded before decoding. No artifact code, caller
 // receipt, callback or candidate hash selects the evaluator.
 export function evaluateCandidateShadowDecision(manifestText: unknown, inputText: unknown, observationText: unknown) {
@@ -101,7 +106,7 @@ export function readCandidateShadowResult(store: SyntheticMockRobinhoodStore, ra
     if (Buffer.byteLength(JSON.stringify(view), 'utf8') > 32768) throw new Error();
     return { state: 'available' as const, view };
   } catch {
-    return { state: 'unavailable' as const };
+    throw new CandidateShadowJoinCorruption();
   }
 }
 export type CandidateShadowResult = ReturnType<typeof readCandidateShadowResult>;

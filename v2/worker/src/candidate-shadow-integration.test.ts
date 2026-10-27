@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { createHash, randomUUID } from 'node:crypto';
 import Database from 'better-sqlite3';
 import { dirname, join } from 'node:path';
-import { rmSync, writeFileSync, readdirSync, readFileSync } from 'node:fs';
+import { rmSync, writeFileSync, readdirSync, readFileSync, existsSync } from 'node:fs';
 import { canonical } from './ledger-canonical.js';
 import { createSyntheticOrderHarness } from './synthetic-order-harness.js';
 import { candidateShadowArtifact, candidateShadowManifestSchema, candidateShadowId,
@@ -291,6 +291,8 @@ it.each(['live', 'reopened'] as const)('rejects duplicate lifecycle fill A subst
   expect((await f.read(id)).view.lifecycle.disposition).toBe('unknown');
   expect((await f.request('reconcile')).status).toBe(200);
   expect((await f.read(id)).view.lifecycle.disposition).toBe('settled');
+  let pending: Awaited<ReturnType<typeof f.prepare>> | undefined;
+  if (mode === 'live') { f.cash(); pending = await f.prepare(); }
   // Deliberate test-owned corruption: preserve distinct event identities and a
   // matching stored projection, but replace observation B's complete value by A.
   const db = new Database(f.h.path);
@@ -307,13 +309,34 @@ it.each(['live', 'reopened'] as const)('rejects duplicate lifecycle fill A subst
       db.prepare('UPDATE synthetic_intents SET projection=? WHERE id=?').run(canonical(projection), id);
     }).immediate();
   } finally { db.close(); }
+  let active = f.h, request = f.request;
   if (mode === 'live') {
     expect((await f.read(id)).state).toBe('unavailable');
   } else {
     await f.h.close();
-    const reopened = f.h.reopen(); harnesses.push(reopened);
-    const request = f.makeRequest(reopened, await reopened.start());
+    active = f.h.reopen(); harnesses.push(active);
+    request = f.makeRequest(active, await active.start());
     expect((await request('history', { candidateDispatchId: id })).body.value.state).toBe('unavailable');
-    expect((await request('resume')).status).toBe(409);
   }
+  if (pending) {
+    expect((await request('confirm', { confirmationToken: pending.confirmationToken, termsHash: pending.termsHash })).status).toBe(409);
+  }
+  expect((await request('resume')).status).toBe(409);
+  const calls = f.calls();
+  await expect(active.previewSizingBound()).rejects.toThrow();
+  expect(f.calls()).toBe(calls);
+  await expect(active.close()).rejects.toThrow();
+  expect(existsSync(active.path + '.lock')).toBe(true);
+  expect(existsSync(active.mockPath! + '.lock')).toBe(true);
+  expect(() => active.reopen()).toThrow();
 }, 20000);
+
+it('a missing candidate selection does not poison clean owners or block valid preparation', async () => {
+  const f = await fixture();
+  expect((await f.read(randomUUID())).state).toBe('unavailable');
+  await expect(f.h.previewSizingBound()).resolves.not.toHaveProperty('noOrder');
+  expect(f.calls()).toBe(1);
+  await expect(f.h.close()).resolves.toBeUndefined();
+  expect(existsSync(f.h.path + '.lock')).toBe(false);
+  expect(existsSync(f.h.mockPath! + '.lock')).toBe(false);
+});

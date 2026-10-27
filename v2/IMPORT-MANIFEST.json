@@ -3232,7 +3232,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "0a8397c4643c8a00b941abfcb9623c73ccd2a8bf103959d372b2b57d2f295cdd",
+      "sha256": "1a02835db5d88e504b151ae6597536abce3cdc4b9dcb6177993d4baec791806a",
       "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -3616,7 +3616,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "909646a03b5a371621b977863b0143b993611ff5a8b397421faa554690cc4bf4",
+      "sha256": "0703241bd4adb84d618ded024f8294656a78e6f073a873c7e0baac7dc8c8e877",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -4146,7 +4146,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/candidate-shadow-adapter.ts",
-      "sha256": "fb73f3047089eb7477e7f40122685966917dac7472732fec28ad9fa664723405",
+      "sha256": "51b0ac67ecc03bf96a3ad0874b2029a65cffc45489c1421317cdd80a2b412477",
       "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
     },
     {
@@ -4162,7 +4162,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/candidate-shadow-integration.test.ts",
-      "sha256": "2e75816e4875c4adbe2da9cec9ffadd7ee332c5ded0911875fa5f7182048c38a",
+      "sha256": "1aab7775d42711b2c368b0da24ec1d876945aabe4c9e0b6932206eb6cc0a4c89",
       "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
     }
   ]

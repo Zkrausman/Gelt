@@ -811,6 +811,9 @@ export class SyntheticMockRobinhoodStore {
     });
   }
 
+  // A known cross-owner contradiction cannot release this writer or enable reuse.
+  fenceCandidateJoin(): void { this.storage.poisoned = true; }
+
   // Internal constructed read: full replay bodies never cross the HTTP boundary.
   readCandidateShadow(dispatchId: string) {
     if (!this.evidence?.policy.candidate) return undefined;
