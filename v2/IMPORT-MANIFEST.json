@@ -4146,7 +4146,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/candidate-shadow-adapter.ts",
-      "sha256": "51b0ac67ecc03bf96a3ad0874b2029a65cffc45489c1421317cdd80a2b412477",
+      "sha256": "5cac1e27831cae07fa6a21c66e7e5ea1b8fae09cc70b251ec7201c1d04026700",
       "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
     },
     {
@@ -4162,7 +4162,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/candidate-shadow-integration.test.ts",
-      "sha256": "1aab7775d42711b2c368b0da24ec1d876945aabe4c9e0b6932206eb6cc0a4c89",
+      "sha256": "e085dcf964bd7209dece3f7469722bb52a3aad78d9a4eeae7dce38c5ddecf25b",
       "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
     }
   ]

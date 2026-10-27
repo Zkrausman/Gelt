@@ -46,7 +46,8 @@ export function readCandidateShadowResult(store: SyntheticMockRobinhoodStore, ra
     const claimed = projection.facts.find(e => e.type === 'dispatch-claimed');
     const acknowledged = projection.facts.find(e => e.type === 'broker-acknowledged');
     const canceled = projection.facts.some(e => e.type === 'cancel-acknowledged');
-    const lastStatus = projection.facts.filter(e => e.type === 'broker-status-observed').at(-1);
+    const statuses = projection.facts.filter(e => e.type === 'broker-status-observed');
+    const lastStatus = statuses.at(-1);
     const requested = { instrumentId: preview.order.instrumentId, currency: preview.order.currency,
       route: preview.order.route, side: preview.order.side, requestedQuantity: preview.order.quantity,
       requestedLimitPrice: preview.order.limitPrice };
@@ -71,6 +72,13 @@ export function readCandidateShadowResult(store: SyntheticMockRobinhoodStore, ra
     if (canceled && !order.cancelAcknowledged) throw new Error();
     const dispatchUnknown = projection.facts.some(e => e.type === 'dispatch-outcome-unknown');
     const missingObservations = observedIds.size !== fillsById.size || canceled !== order.cancelAcknowledged;
+    // A lifecycle observation may lag the mock owner, but a retained terminal
+    // outcome cannot differ from that owner's irreversible replayed outcome.
+    // Check the complete retained history: later observations cannot erase a
+    // contradiction. Missing/nonterminal observations retain their ordinary
+    // unsettled/UNKNOWN handling; they do not independently prove corruption.
+    if (statuses.some(status => status.brokerOrderId && status.brokerOrderId !== order.mockOrderId
+      || ['filled', 'canceled', 'rejected'].includes(status.status) && status.status !== order.status)) throw new Error();
     const terminalAligned = !!acknowledged && lastStatus?.brokerOrderId === order.mockOrderId
       && (order.status === 'filled' || order.status === 'canceled') && lastStatus.status === order.status;
     const disposition = ownerUnknown || dispatchUnknown || missingObservations ? 'unknown' as const

@@ -85,6 +85,10 @@ pending bound capabilities before the response. Poisoned close retains the write
 markers and rejects; reopen cannot restore authority or steal those markers. This
 is a stop, not cancellation, settlement, repair or a recovery service. A missing
 selection and legitimate observation lag do not trigger this corruption fence.
+All retained terminal status observations must agree with the mock owner’s
+irreversible replayed outcome, and present broker identities must match. A later
+status cannot hide an earlier contradictory terminal receipt. Nonterminal
+observations may lag; they retain their ordinary unsettled/UNKNOWN treatment.
 Requested terms
 are shown separately from observed simulated fills. Fees and cash/quantity updates
 come from the configured simulator's exact-decimal event replay, not requested
@@ -196,7 +200,16 @@ markers in live and reopened cases. A separate missing-selection control still
 allows ordinary preparation and clean close; legitimate observation lag remains
 UNKNOWN.
 
-The corrected pre-review working candidate passed all 21 integration regressions,
+The next complete pair independently found incompatible terminal outcomes escaping
+that fence as available uncertainty. Grouped regressions cover filled, canceled
+and rejected contradictions against terminal and nonterminal mock states through
+live and reopened owners, including an earlier false terminal hidden behind a
+later valid status. Eight reported-family regressions failed before the status
+correction; four historical-receipt regressions failed before broadening it to the
+complete retained status history. The same existing fence handles these known
+contradictions; there is no new recovery or ownership-release path.
+
+Verification for the corrected pre-review candidate includes all 45 integration regressions,
 server tests, worker/web tests, Node script tests, worker type checking, Go
 race/vet/build, full V2 build, offline smoke, import inventory and whitespace
 checks. Counts and commands belong to their exact

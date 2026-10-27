@@ -340,3 +340,62 @@ it('a missing candidate selection does not poison clean owners or block valid pr
   expect(existsSync(f.h.path + '.lock')).toBe(false);
   expect(existsSync(f.h.mockPath! + '.lock')).toBe(false);
 });
+
+// Mutate only test-owned lifecycle evidence and its matching projection: each
+// owner replays locally, so the cross-owner join must reject incompatible finals.
+it.each((['live', 'reopened'] as const).flatMap(mode => ([
+  ['canceled', 'filled', false], ['canceled', 'rejected', false],
+  ['filled', 'rejected', false], ['filled', 'canceled', false],
+  ['accepted', 'filled', false], ['accepted', 'canceled', false], ['accepted', 'rejected', false],
+  ['partially-filled', 'filled', false], ['partially-filled', 'canceled', false], ['partially-filled', 'rejected', false],
+  ['canceled', 'filled', true], ['filled', 'rejected', true],
+] as const).map(([mockStatus, falseStatus, hidden]) => [mode, mockStatus, falseStatus, hidden] as const)))
+('fences terminal contradictions through protected %s reads (%s vs %s; hidden=%s)', async (mode, mockStatus, falseStatus, hidden) => {
+    const f = await fixture(), { prepared, result } = await f.confirm(), id = result.intentId;
+    if (hidden) expect((await f.request('reconcile')).status).toBe(200);
+    if (mockStatus === 'filled') {
+      f.fill(id, (await f.read(id)).view.decision.decisionId, prepared.terms.order.requestedQuantity);
+    } else if (mockStatus === 'canceled') {
+      expect((await f.request('cancel', { intentId: id })).status).toBe(200);
+      f.h.mockStore!.settleCanceled(id);
+    } else if (mockStatus === 'partially-filled') {
+      f.fill(id, (await f.read(id)).view.decision.decisionId, d('1'));
+    }
+    expect((await f.request('reconcile')).status).toBe(200);
+    expect((await f.read(id)).view.lifecycle.disposition).toBe(mockStatus === 'filled' || mockStatus === 'canceled' ? 'settled' : 'unsettled');
+    // Pending confirmation must be revoked even though created before detection.
+    let pending: Awaited<ReturnType<typeof f.prepare>> | undefined;
+    if (mode === 'live' && (mockStatus === 'filled' || mockStatus === 'canceled')) {
+      if (mockStatus === 'filled') f.cash();
+      pending = await f.prepare();
+    }
+    const db = new Database(f.h.path);
+    try {
+      db.transaction(() => {
+        const rows = db.prepare('SELECT sequence,body FROM synthetic_events WHERE intent=? ORDER BY sequence').all(id) as {sequence:number;body:string}[];
+        const events = rows.map(row => JSON.parse(row.body));
+        const index = hidden ? events.findIndex(event => event.type === 'broker-status-observed')
+          : events.findLastIndex(event => event.type === 'broker-status-observed');
+        expect(events[index].status).toBe(hidden || mockStatus === 'accepted' ? 'open' : mockStatus);
+        events[index].status = falseStatus;
+        db.prepare('UPDATE synthetic_events SET body=? WHERE intent=? AND sequence=?').run(canonical(events[index]), id, rows[index].sequence);
+        const row = db.prepare('SELECT projection FROM synthetic_intents WHERE id=?').get(id) as {projection:string};
+        const projection = JSON.parse(row.projection); projection.facts = events;
+        db.prepare('UPDATE synthetic_intents SET projection=? WHERE id=?').run(canonical(projection), id);
+      }).immediate();
+    } finally { db.close(); }
+    let active = f.h, request = f.request;
+    if (mode === 'reopened') {
+      await active.close(); active = active.reopen(); harnesses.push(active);
+      request = f.makeRequest(active, await active.start());
+    }
+    const response = await request('history', {candidateDispatchId:id});
+    expect(response.status).toBe(200);
+    expect(response.body.value.state).toBe('unavailable');
+    if (pending) expect((await request('confirm', {confirmationToken:pending.confirmationToken,termsHash:pending.termsHash})).status).toBe(409);
+    expect((await request('resume')).status).toBe(409);
+    const calls = f.calls(); await expect(active.previewSizingBound()).rejects.toThrow(); expect(f.calls()).toBe(calls);
+    await expect(active.close()).rejects.toThrow();
+    expect(existsSync(active.path+'.lock')).toBe(true); expect(existsSync(active.mockPath!+'.lock')).toBe(true);
+    expect(() => active.reopen()).toThrow();
+}, 20000);
