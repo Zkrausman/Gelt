@@ -75,7 +75,11 @@ Evidence preparation and read replay compare the candidate with the actual rule
 input and simulator configuration. A dispatch-backed read verifies the complete
 sizing evidence, stored order payload, replayed mock events and portfolio. The
 lifecycle owner separately replays its facts; confirmation/claim terms, order
-identity, acknowledgements and observed executions must agree. Requested terms
+identity, acknowledgements and observed executions must agree. Execution joins
+require unique identities and exact one-to-one correspondence before a settled
+result: duplicate A cannot substitute for omitted B merely because counts match.
+Legitimate simulated fills awaiting lifecycle observation remain UNKNOWN; duplicate
+or conflicting observations make the joined read unavailable. Requested terms
 are shown separately from observed simulated fills. Fees and cash/quantity updates
 come from the configured simulator's exact-decimal event replay, not requested
 amounts, a close price, or a fabricated result DTO.
@@ -170,10 +174,18 @@ no-effect retained decisions, stale confirmation and detached caller identity.
 Two new clock regressions failed before the joined-response boundary correction
 and passed after it. A further source-pin regression protects descriptor drift.
 
-The complete pre-review working candidate passed server tests, worker/web tests,
-Node script tests, worker type checking, Go race/vet/build, full V2 build, offline
-smoke, import inventory and whitespace checks. The final focused source-pin/test
-addition is verified separately. Counts and commands belong to their exact
+The first complete independent and adversarial reviews found the same HIGH
+execution-join defect: duplicated lifecycle observation A could hide missing B.
+Owner-written corrupt-event/projection regressions reproduced it through both
+protected live reads and read-only reopen. The grouped correction rejects duplicate
+identities and requires exact bijective matching for settled results, while the
+same tests preserve UNKNOWN for legitimate unreconciled fills. No generic ledger,
+engine or recovery policy was changed.
+
+The corrected pre-review working candidate passed all 20 integration regressions,
+server tests, worker/web tests, Node script tests, worker type checking, Go
+race/vet/build, full V2 build, offline smoke, import inventory and whitespace
+checks. Counts and commands belong to their exact
 receipts; skipped unsupported legacy tests are not passes or Linux/runtime proof.
 The fixture suite can be reproduced with Node 22 and the retained locked
 dependencies, from `v2`:

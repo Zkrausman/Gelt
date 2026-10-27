@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { createHash, randomUUID } from 'node:crypto';
+import Database from 'better-sqlite3';
 import { dirname, join } from 'node:path';
 import { rmSync, writeFileSync, readdirSync, readFileSync } from 'node:fs';
 import { canonical } from './ledger-canonical.js';
@@ -9,7 +10,7 @@ import { candidateShadowArtifact, candidateShadowManifestSchema, candidateShadow
 import { evaluateCandidateShadowDecision } from './candidate-shadow-adapter.js';
 import { shadowRuleId, type ShadowRuleInput } from './shadow-rule-contract.js';
 import { shadowSizingPolicyId } from './shadow-sizing-contract.js';
-import { simulationRunSchema, simulationDigest, snapshot, units, executionPrice,
+import { simulationRunSchema, simulationDigest, snapshot, units, decimal, executionPrice,
   type SimulationRun, type SimulationSnapshot } from './synthetic-simulation-economics.js';
 
 const d = (value: string) => ({ value, precision: value.replace('.', '').length, scale: value.split('.')[1]?.length ?? 0 });
@@ -280,3 +281,39 @@ it('pins the fixed baseline descriptor to the inspected evaluator, contract and 
     expect(createHash('sha256').update(source).digest('hex')).toBe(sha256);
   }
 });
+
+it.each(['live', 'reopened'] as const)('rejects duplicate lifecycle fill A substituted for missing B through protected %s reads', async mode => {
+  const f = await fixture(), { prepared, result } = await f.confirm();
+  const id = result.intentId, decisionId = (await f.read(id)).view.decision.decisionId;
+  f.fill(id, decisionId, d('1'));
+  f.fill(id, decisionId, decimal(units(prepared.terms.order.requestedQuantity, 18) - units(d('1'), 18), 18), false);
+  // A legitimate lag in lifecycle observation remains UNKNOWN until reconcile.
+  expect((await f.read(id)).view.lifecycle.disposition).toBe('unknown');
+  expect((await f.request('reconcile')).status).toBe(200);
+  expect((await f.read(id)).view.lifecycle.disposition).toBe('settled');
+  // Deliberate test-owned corruption: preserve distinct event identities and a
+  // matching stored projection, but replace observation B's complete value by A.
+  const db = new Database(f.h.path);
+  try {
+    db.transaction(() => {
+      const rows = db.prepare('SELECT sequence,body FROM synthetic_events WHERE intent=? ORDER BY sequence').all(id) as { sequence: number; body: string }[];
+      const events = rows.map(row => JSON.parse(row.body));
+      const positions = events.flatMap((event, index) => event.type === 'execution-observed' ? [index] : []);
+      expect(positions).toHaveLength(2);
+      events[positions[1]].execution = events[positions[0]].execution;
+      db.prepare('UPDATE synthetic_events SET body=? WHERE intent=? AND sequence=?').run(canonical(events[positions[1]]), id, rows[positions[1]].sequence);
+      const stored = db.prepare('SELECT projection FROM synthetic_intents WHERE id=?').get(id) as { projection: string };
+      const projection = JSON.parse(stored.projection); projection.facts = events;
+      db.prepare('UPDATE synthetic_intents SET projection=? WHERE id=?').run(canonical(projection), id);
+    }).immediate();
+  } finally { db.close(); }
+  if (mode === 'live') {
+    expect((await f.read(id)).state).toBe('unavailable');
+  } else {
+    await f.h.close();
+    const reopened = f.h.reopen(); harnesses.push(reopened);
+    const request = f.makeRequest(reopened, await reopened.start());
+    expect((await request('history', { candidateDispatchId: id })).body.value.state).toBe('unavailable');
+    expect((await request('resume')).status).toBe(409);
+  }
+}, 20000);

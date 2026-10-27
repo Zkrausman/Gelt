@@ -52,15 +52,20 @@ export function readCandidateShadowResult(store: SyntheticMockRobinhoodStore, ra
       || acknowledged && acknowledged.brokerOrderId !== order.mockOrderId) throw new Error();
     const fills = order.executions.map(e => syntheticMockRunExecutionSchema.parse(e));
     const observed = projection.facts.flatMap(e => e.type === 'execution-observed' ? [e.execution] : []);
+    const fillsById = new Map(fills.map(fill => [fill.executionId, fill]));
+    if (fillsById.size !== fills.length) throw new Error();
+    const observedIds = new Set<string>();
     for (const observation of observed) {
-      const fill = fills.find(e => e.executionId === observation.executionId);
+      if (observedIds.has(observation.executionId)) throw new Error();
+      observedIds.add(observation.executionId);
+      const fill = fillsById.get(observation.executionId);
       if (!fill || canonical(observation) !== canonical({ executionId: fill.executionId,
         brokerOrderId: order.mockOrderId, observedQuantity: fill.quantity, observedPrice: fill.price,
         observedFee: fill.fee, currency: fill.currency })) throw new Error();
     }
     if (canceled && !order.cancelAcknowledged) throw new Error();
     const dispatchUnknown = projection.facts.some(e => e.type === 'dispatch-outcome-unknown');
-    const missingObservations = observed.length !== fills.length || canceled !== order.cancelAcknowledged;
+    const missingObservations = observedIds.size !== fillsById.size || canceled !== order.cancelAcknowledged;
     const terminalAligned = !!acknowledged && lastStatus?.brokerOrderId === order.mockOrderId
       && (order.status === 'filled' || order.status === 'canceled') && lastStatus.status === order.status;
     const disposition = ownerUnknown || dispatchUnknown || missingObservations ? 'unknown' as const
