@@ -32,3 +32,20 @@ it('accepts explicit decimal scales and exactly32character tokens without coerci
   expect(parsePAMRRequest(JSON.stringify(v)).rows).toEqual(v.rows);
   expect(convertPAMR(JSON.stringify(v)).status).toBe('computed');
 });
+for (const suffix of ['\n', '\r', '\u2028', '\u2029', '\r\n', '\n\n', ' ', '\t']) {
+  it(`rejects decimal/label suffix ${JSON.stringify(suffix)} without reinterpretation on conversion/reopen`, () => {
+    for (const field of ['decimal', 'label']) {
+      const v = input();
+      if (field === 'decimal') v.rows = [['1.2' + suffix, '1']];
+      else v.assets[0] += suffix;
+      expect(() => parsePAMRRequest(JSON.stringify(v))).toThrow();
+      expect(convertPAMR(JSON.stringify(v)).status).toBe('rejected');
+      // Malformed request data embedded in an artifact must reject too;
+      // agreement of caller-supplied digests cannot bypass request validation.
+      const old = convertPAMR(JSON.stringify(input()));
+      if (old.status !== 'computed') throw new Error('baseline');
+      const forged = JSON.parse(JSON.stringify(old.artifact)); forged.input = v;
+      expect(verifyPAMRArtifact(JSON.stringify(forged)).status).toBe('rejected');
+    }
+  });
+}

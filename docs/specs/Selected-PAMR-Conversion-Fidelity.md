@@ -55,7 +55,9 @@ of finite, strictly positive decimal strings with matching dimension. Numeric
 strings have at most 32 characters, no exponent/sign/leading zero ambiguity. No
 caller weights, prior-state assertion, callback, source module, path, market data
 selector or credential is accepted. Fixed epsilon is 0.5 and algorithmic tc is 0;
-PAMR1/PAMR2/mixtures are unsupported.
+PAMR1/PAMR2/mixtures are unsupported. Decimal and label expressions have no
+multiline flag; trailing LF/CR/Unicode line separators and whitespace reject
+through conversion and reopening, rather than being coerced as numeric data.
 
 Character and UTF-8 byte ceilings precede parsing (32 KiB request; 2 MiB artifact).
 The existing strict research parser rejects duplicate keys, depth above 16 and

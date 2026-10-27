@@ -4186,7 +4186,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/paper-conversion-contract.test.ts",
-      "sha256": "e6bad9cda7a0af0b5006b437dcafb2a95fb657c5bfc3513931bab9f0b0c2dfb9",
+      "sha256": "b9bce1be04eb55037800d8479666ecbf9120b565545402804a03f297c83acfaf",
       "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
     },
     {
