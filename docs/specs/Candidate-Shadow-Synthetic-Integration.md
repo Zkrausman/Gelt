@@ -211,4 +211,6 @@ qualification, conversion success, profitable behavior or live readiness.
   and independent adverse/lineage/session/descriptor regressions.
 - `v2/IMPORT-MANIFEST.json`: actual scoped hashes and new Gelt entries; upstream
   metadata, retained source, lockfile and notices unchanged.
+- `docs/ROADMAP.md`: current source capability/approval status, preserving the
+  complete historical snapshots and all operating holds.
 - This completion specification.
