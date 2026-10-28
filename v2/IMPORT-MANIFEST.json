@@ -3824,7 +3824,7 @@
       "upstreamSha256": null,
       "path": "worker/src/synthetic-sizing-binding-evidence.ts",
       "status": "added",
-      "sha256": "697ea0535ad043bb578393939f6adbe31aa0effe40eb15016f8d776ba7eb9727",
+      "sha256": "d6d72de7af3c56ed14aaf0410163a944db1c3d1951a721305fc60309a035128d",
       "reason": "Owner-approved constructed offline G06 sizing binding/evidence/tests; no genuine-run or provider authority."
     },
     {
@@ -4243,6 +4243,22 @@
       "status": "added",
       "path": "worker/src/pamr-consumer-contract.ts",
       "sha256": "25a8d1b5dd4f7515bf875db388ce61c0a3f6b1a470cc4b87c407983bfebb6b1d",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-consumer-evidence-contract.ts",
+      "sha256": "76dc74c75840d7f14fc04aa107cfde42f89cdbfa5d2c02fd03d5418c8f54a3bf",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-consumer-evidence.test.ts",
+      "sha256": "fce9b8a11024235193e0f7118a9d9af85a6009ffd7b762fd9f76b351f9f358b2",
       "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
     }
   ]

@@ -11,6 +11,23 @@ import { matchesShadowSizingProposal } from './shadow-sizing.js';
 import { simulationDigest, units, decimal, type SimulationRun } from './synthetic-simulation-economics.js';
 import { sizingBindingPolicySchema, sizingEvidenceSchema, sizingReplayManifestSchema,
   type SizingBindingPolicy, type SizingEvidence, type SyntheticRunPreview } from './synthetic-mock-robinhood-contract.js';
+import { resolve } from 'node:path';
+import { privateDirectory } from './private-files.js';
+import { simulationRunSchema, checkObservation } from './synthetic-simulation-economics.js';
+import {
+  pamrConsumerInputSchema, pamrConsumerProposalSchema,
+  type PAMRConsumerInput, type PAMRConsumerProposal,
+} from './pamr-consumer-contract.js';
+import { matchesPAMRConsumerProposal } from './pamr-consumer-adapter.js';
+import {
+  pamrConsumptionBounds, pamrConsumptionDisclosure,
+  pamrConsumptionOwnerPolicySchema, pamrConsumptionManifestSchema,
+  pamrConsumptionEvidenceLinkSchema, configuredPAMROwnerPolicySha256,
+  pamrConsumptionManifestSha256, pamrConsumptionLink,
+  type PAMRConsumptionOwnerPolicy, type PAMRConfiguredOwnerPolicySha256,
+  type PAMRConsumptionManifest, type PAMRConsumptionEvidenceLink,
+  type PAMRConsumptionRejection,
+} from './pamr-consumer-evidence-contract.js';
 
 export class SizingEvidenceRejected extends Error { constructor() { super('sizing evidence unavailable'); } }
 export type EvidenceStage = 'root-parent-sync' | 'policy-file-sync' | 'policy-staging-sync' | 'policy-publish' | 'policy-root-sync'
@@ -180,5 +197,326 @@ export class SyntheticSizingEvidence {
       || canonical(input.observation) !== canonical({ referencePrice: preview.quote.referencePrice, observedAt: preview.quote.observedAt,
         availableAt: preview.quote.availableAt, evidenceSha256: preview.quote.evidenceSha256 })
       || canonical(proposal.hypothetical?.modeledFillPrice) !== canonical(preview.quote.price)) throw new Error('sizing evidence unavailable');
+  }
+}
+
+// A normal rejection is distinguishable only before any persistence mutation.
+export class PAMRConsumptionRejected extends SizingEvidenceRejected {
+  constructor(readonly reason: PAMRConsumptionRejection) { super(); }
+}
+
+export type PAMRConsumptionReplay = {
+  input: PAMRConsumerInput;
+  proposal: PAMRConsumerProposal;
+  manifest: PAMRConsumptionManifest;
+};
+type PAMRValidated = {
+  input: PAMRConsumerInput;
+  proposal: PAMRConsumerProposal;
+  text: string;
+  proposalText: string;
+};
+type PAMRStored = PAMRConsumptionReplay & { link: PAMRConsumptionEvidenceLink };
+
+// Internal helper in the existing owner's evidence family. The caller must
+// later supply the active MockStore ownership/lifecycle fences around every
+// operation. Neither a path nor a hash establishes that ownership.
+export class PAMRConsumptionEvidence {
+  private readonly rootPath: string;
+  private readonly policyBody: string;
+  private readonly configBody: string;
+  private readonly ownerPolicyDigest: PAMRConfiguredOwnerPolicySha256;
+  private readonly readonlyReopen: boolean;
+  private failed = false;
+  private writing = false;
+
+  get root(): string { return this.rootPath; }
+  get policy(): PAMRConsumptionOwnerPolicy {
+    return pamrConsumptionOwnerPolicySchema.parse(parseResearchJSON(Buffer.from(this.policyBody)));
+  }
+  get policySha256(): PAMRConfiguredOwnerPolicySha256 { return this.ownerPolicyDigest; }
+  get reopened(): boolean { return this.readonlyReopen; }
+  get lastConsumption(): PAMRConsumptionEvidenceLink | null {
+    const records = this.replayed().records;
+    return records.at(-1)?.link ?? null;
+  }
+
+  constructor(root: string, config: SimulationRun, rawPolicy: unknown, fresh: boolean,
+    private readonly stageForTest?: (stage: EvidenceStage) => void) {
+    disabled();
+    let policy: PAMRConsumptionOwnerPolicy, checkedConfig: SimulationRun;
+    try {
+      if (process.platform !== 'linux' || typeof root !== 'string'
+        || root !== resolve(root) || typeof fresh !== 'boolean'
+        || (stageForTest !== undefined && typeof stageForTest !== 'function')) {
+        throw new Error();
+      }
+      checkedConfig = simulationRunSchema.parse(config);
+      policy = pamrConsumptionOwnerPolicySchema.parse(rawPolicy);
+      if (checkedConfig.classification !== 'constructed_offline_test'
+        || policy.runId !== checkedConfig.runId
+        || policy.sourceCommit !== checkedConfig.sourceCommit
+        || policy.configSha256 !== simulationDigest(checkedConfig)) throw new Error();
+      this.policyBody = canonical(policy);
+      this.configBody = canonical(checkedConfig);
+      if (Buffer.byteLength(this.policyBody) > smallLimit) throw new Error();
+      this.ownerPolicyDigest = configuredPAMROwnerPolicySha256(policy);
+    } catch { throw new PAMRConsumptionRejected('invalid_input'); }
+    this.rootPath = root;
+    this.readonlyReopen = !fresh;
+    try {
+      // Check the private parent and all ancestors before creating anything.
+      privateDirectory(dirname(root));
+      if (existsSync(root)) {
+        privateDirectory(root);
+        // Even an empty directory may be the retained result of an uncertain
+        // initial publication. A fresh owner must never reuse that path.
+        if (fresh) throw new Error();
+      } else {
+        if (!fresh) throw new Error();
+        mkdirSync(root, { mode: 0o700 });
+        syncDirectory(dirname(root)); this.stage('root-parent-sync');
+      }
+      const path = join(root, 'policy.json');
+      if (fresh) {
+        if (existsSync(path)) throw new Error();
+        const temp = join(root, `.policy-${randomUUID()}`);
+        this.writeNew(temp, this.policyBody, 'policy-file-sync');
+        syncDirectory(root); this.stage('policy-staging-sync');
+        if (existsSync(path)) throw new Error();
+        renameSync(temp, path); this.stage('policy-publish');
+        syncDirectory(root); this.stage('policy-root-sync');
+      }
+      this.replay();
+    } catch { this.unavailable(); }
+  }
+
+  private unavailable(): never {
+    this.failed = true;
+    throw new Error('PAMR consumption evidence unavailable');
+  }
+  private ready(): void {
+    if (this.failed || this.writing) this.unavailable();
+    try { disabled(); } catch { this.unavailable(); }
+  }
+  private stage(stage: EvidenceStage): void { this.stageForTest?.(stage); }
+  private writeNew(path: string, body: string, stage: EvidenceStage): void {
+    const fd = openSync(path, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+    try {
+      writeFileSync(fd, body, 'utf8');
+      fsyncSync(fd);
+      this.stage(stage);
+    } finally { closeSync(fd); }
+  }
+
+  private inventory(): { keys: string[]; bytes: number } {
+    privateDirectory(this.rootPath);
+    const entries = names(this.rootPath, pamrConsumptionBounds.records + 2);
+    if (!entries.includes('policy.json')) throw new Error();
+    const keys: string[] = [];
+    let bytes = 0;
+    const fileSize = (path: string, limit: number): number => {
+      const s = lstatSync(path);
+      if (!s.isFile() || s.isSymbolicLink() || s.nlink !== 1
+        || s.uid !== process.getuid!() || (s.mode & 0o777) !== 0o600
+        || !Number.isSafeInteger(s.size) || s.size <= 0 || s.size > limit) throw new Error();
+      return s.size;
+    };
+    for (const name of entries) {
+      const path = join(this.rootPath, name);
+      if (name === 'policy.json') {
+        bytes += fileSize(path, smallLimit);
+      } else {
+        // Staging files/directories are retained as uncertainty, never recovered
+        // or silently excluded from replay. Unknown entries also fail closed.
+        if (!hex.test(name) || keys.length >= pamrConsumptionBounds.records) throw new Error();
+        directory(path);
+        if (names(path, 3).sort().join(',') !== 'input.json,manifest.json,proposal.json') throw new Error();
+        bytes += fileSize(join(path, 'input.json'), inputLimit);
+        bytes += fileSize(join(path, 'proposal.json'), smallLimit);
+        bytes += fileSize(join(path, 'manifest.json'), smallLimit);
+        keys.push(name);
+      }
+      if (bytes > totalLimit) throw new Error();
+    }
+    return { keys, bytes };
+  }
+
+  private validated(bytes: Buffer, rawProposal: unknown): PAMRValidated {
+    try {
+      if (!Buffer.isBuffer(bytes)) throw new PAMRConsumptionRejected('invalid_input');
+      if (bytes.length > inputLimit) throw new PAMRConsumptionRejected('resource_limit');
+      const input = pamrConsumerInputSchema.parse(parseResearchJSON(bytes));
+      const text = canonical(input);
+      // Canonical outer input is mandatory. Embedded artifact text is verified
+      // by the pure consumer; lexical artifact variants cannot change ordinal use.
+      if (text !== bytes.toString('utf8')) throw new PAMRConsumptionRejected('invalid_input');
+      const proposal = pamrConsumerProposalSchema.parse(rawProposal);
+      const proposalText = canonical(proposal);
+      if (Buffer.byteLength(text) > inputLimit || Buffer.byteLength(proposalText) > smallLimit) {
+        throw new PAMRConsumptionRejected('resource_limit');
+      }
+      if (!matchesPAMRConsumerProposal(text, proposalText)) throw new PAMRConsumptionRejected('binding_mismatch');
+      const policy = this.policy;
+      if (canonical(input.config) !== this.configBody
+        || input.binding.runId !== policy.runId
+        || input.binding.sourceCommit !== policy.sourceCommit
+        || input.binding.configSha256 !== policy.configSha256
+        || input.binding.policySha256 !== policy.purePolicyDefinitionSha256
+        || canonical(input.quantityQuantum) !== canonical(policy.quantityQuantum)
+        || canonical(input.buyLimitPrice) !== canonical(policy.buyLimitPrice)
+        || canonical(input.sellLimitPrice) !== canonical(policy.sellLimitPrice)) {
+        throw new PAMRConsumptionRejected('binding_mismatch');
+      }
+      try {
+        const prefix = Date.parse(input.prefixAvailableAt);
+        const decision = Date.parse(input.decisionAt);
+        const evaluation = Date.parse(input.evaluationAt);
+        if (![prefix, decision, evaluation].every(t => Number.isSafeInteger(t) && t >= 0)
+          || prefix >= decision || decision > evaluation) throw new Error();
+        // Check clocks even when lifecycle/portfolio hypotheses made the pure
+        // decision abstain before its own clock branch.
+        checkObservation(input.config, input.decisionAt, input.observation, evaluation);
+      } catch { throw new PAMRConsumptionRejected('invalid_clock'); }
+      return { input, proposal, text, proposalText };
+    } catch (error) {
+      if (error instanceof PAMRConsumptionRejected) throw error;
+      throw new PAMRConsumptionRejected('invalid_input');
+    }
+  }
+
+  private manifest(value: PAMRValidated, previousManifestSha256: string | null): PAMRConsumptionManifest {
+    const { input, proposal, text, proposalText } = value;
+    return pamrConsumptionManifestSchema.parse({
+      schema: 'gelt.pamr-consumption-manifest.v1',
+      version: 1,
+      classification: 'constructed_offline_test',
+      consumerPolicyId: this.policy.consumerPolicyId,
+      configuredOwnerPolicySha256: this.ownerPolicyDigest,
+      purePolicyDefinitionSha256: this.policy.purePolicyDefinitionSha256,
+      binding: input.binding,
+      previousManifestSha256,
+      decisionId: proposal.decision.decisionId,
+      proposalId: proposal.proposalId,
+      decisionAt: input.decisionAt,
+      prefixAvailableAt: input.prefixAvailableAt,
+      evaluationAt: input.evaluationAt,
+      inputSha256: digest(text),
+      proposalSha256: digest(proposalText),
+      inputBytes: Buffer.byteLength(text),
+      proposalBytes: Buffer.byteLength(proposalText),
+      ...pamrConsumptionDisclosure,
+    });
+  }
+
+  private assertNext(value: PAMRValidated, previous: PAMRStored | undefined): void {
+    const binding = value.input.binding;
+    if (binding.ordinal !== (previous ? previous.manifest.binding.ordinal + 1 : 1)
+      || binding.expectedPreviousPrefixSha256 !== (previous?.manifest.binding.prefixSha256 ?? null)) {
+      throw new PAMRConsumptionRejected('lineage_mismatch');
+    }
+    if (previous) {
+      const priorEvaluation = Date.parse(previous.manifest.evaluationAt);
+      if (Date.parse(value.input.evaluationAt) < priorEvaluation
+        || Date.parse(value.input.decisionAt) <= priorEvaluation
+        || Date.parse(value.input.prefixAvailableAt) < priorEvaluation) {
+        throw new PAMRConsumptionRejected('invalid_clock');
+      }
+    }
+  }
+
+  private readOne(key: string): PAMRStored {
+    const path = join(this.rootPath, key);
+    const manifestBytes = boundedFile(join(path, 'manifest.json'), smallLimit);
+    const manifest = pamrConsumptionManifestSchema.parse(parseResearchJSON(manifestBytes));
+    if (canonical(manifest) !== manifestBytes.toString('utf8')
+      || pamrConsumptionManifestSha256(manifest) !== key) throw new Error();
+    const inputBytes = boundedFile(join(path, 'input.json'), inputLimit);
+    const proposalBytes = boundedFile(join(path, 'proposal.json'), smallLimit);
+    if (inputBytes.length !== manifest.inputBytes || proposalBytes.length !== manifest.proposalBytes
+      || digest(inputBytes.toString('utf8')) !== manifest.inputSha256
+      || digest(proposalBytes.toString('utf8')) !== manifest.proposalSha256) throw new Error();
+    const value = this.validated(inputBytes, parseResearchJSON(proposalBytes));
+    if (value.proposalText !== proposalBytes.toString('utf8')
+      || canonical(this.manifest(value, manifest.previousManifestSha256)) !== canonical(manifest)) throw new Error();
+    return { input: value.input, proposal: value.proposal, manifest, link: pamrConsumptionLink(manifest) };
+  }
+
+  private replay(): { records: PAMRStored[]; bytes: number } {
+    if (this.failed) throw new Error();
+    disabled();
+    const inventory = this.inventory();
+    if (boundedFile(join(this.rootPath, 'policy.json'), smallLimit).toString('utf8') !== this.policyBody) throw new Error();
+    const records = inventory.keys.map(key => this.readOne(key))
+      .sort((a, b) => a.manifest.binding.ordinal - b.manifest.binding.ordinal);
+    let previous: PAMRStored | undefined;
+    for (const record of records) {
+      const value: PAMRValidated = {
+        input: record.input, proposal: record.proposal,
+        text: canonical(record.input), proposalText: canonical(record.proposal),
+      };
+      this.assertNext(value, previous);
+      if (record.manifest.previousManifestSha256 !== (previous?.link.evidenceManifestSha256 ?? null)) throw new Error();
+      previous = record;
+    }
+    return { records, bytes: inventory.bytes };
+  }
+
+  private replayed(): { records: PAMRStored[]; bytes: number } {
+    this.ready();
+    try { return this.replay(); } catch { this.unavailable(); }
+  }
+
+  validatePolicy(): void { this.replayed(); }
+
+  prepare(bytes: Buffer, rawProposal: unknown): PAMRConsumptionEvidenceLink {
+    const before = this.replayed();
+    if (this.readonlyReopen) throw new PAMRConsumptionRejected('readonly');
+    const value = this.validated(bytes, rawProposal);
+    // Ordinal, not decision/proposal ID, owns single consumption. Never return
+    // an existing link from prepare, including for no_action or abstain.
+    if (value.input.binding.ordinal <= before.records.length) {
+      throw new PAMRConsumptionRejected('already_consumed');
+    }
+    this.assertNext(value, before.records.at(-1));
+    if (before.records.length >= pamrConsumptionBounds.records) {
+      throw new PAMRConsumptionRejected('resource_limit');
+    }
+    const manifest = this.manifest(value, before.records.at(-1)?.link.evidenceManifestSha256 ?? null);
+    const manifestText = canonical(manifest), link = pamrConsumptionLink(manifest);
+    const growth = Buffer.byteLength(value.text) + Buffer.byteLength(value.proposalText) + Buffer.byteLength(manifestText);
+    if (Buffer.byteLength(manifestText) > smallLimit || before.bytes + growth > totalLimit) {
+      throw new PAMRConsumptionRejected('resource_limit');
+    }
+    const target = join(this.rootPath, link.evidenceManifestSha256);
+    // From this point onward every exception, including typed test exceptions,
+    // is persistence uncertainty. No cleanup, overwrite, retry, or link reissue.
+    this.writing = true;
+    try {
+      const staging = join(this.rootPath, `.staging-${randomUUID()}`);
+      mkdirSync(staging, { mode: 0o700 });
+      this.writeNew(join(staging, 'input.json'), value.text, 'artifact-file-sync');
+      this.writeNew(join(staging, 'proposal.json'), value.proposalText, 'artifact-file-sync');
+      this.writeNew(join(staging, 'manifest.json'), manifestText, 'artifact-file-sync');
+      syncDirectory(staging); this.stage('artifact-staging-sync');
+      if (existsSync(target)) throw new Error();
+      renameSync(staging, target); this.stage('artifact-publish');
+      syncDirectory(this.rootPath); this.stage('artifact-root-sync');
+      const after = this.replay();
+      if (after.records.length !== before.records.length + 1
+        || canonical(after.records.at(-1)?.link) !== canonical(link)) throw new Error();
+      return link;
+    } catch { this.unavailable(); }
+    finally { this.writing = false; }
+  }
+
+  read(rawLink: unknown): PAMRConsumptionReplay {
+    const all = this.replayed();
+    let link: PAMRConsumptionEvidenceLink;
+    try { link = pamrConsumptionEvidenceLinkSchema.parse(rawLink); }
+    catch { throw new PAMRConsumptionRejected('invalid_input'); }
+    const record = all.records.find(r => r.link.evidenceManifestSha256 === link.evidenceManifestSha256);
+    if (!record || canonical(record.link) !== canonical(link)) this.unavailable();
+    return { input: record.input, proposal: record.proposal, manifest: record.manifest };
   }
 }
