@@ -3800,7 +3800,7 @@
       "upstreamSha256": null,
       "path": "worker/src/shadow-sizing.ts",
       "status": "added",
-      "sha256": "58a13f106f467e63a563c88a53d61c24d1e3fa2c274cdd0855c52dfc7e8a0603",
+      "sha256": "646cb8dc7998e27d8ad94e17a7a063958000e63add7d54a4f1b1c4f717e5e318",
       "reason": "Owner-approved standalone pure sizing proposal with bounded constructed snapshots; no provider/execution changes."
     },
     {
@@ -4196,6 +4196,22 @@
       "path": "worker/src/paper-conversion-contract.ts",
       "sha256": "470ba619606aaa3859b276f2f9d4ab53a79de2bfbf5c4c550d9527b4d00f6870",
       "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/long-cash-sizing-kernel.test.ts",
+      "sha256": "824be973a5871600efc764218d63a34f7d8683b9f532d746ba575cf42d04bfc9",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/long-cash-sizing-kernel.ts",
+      "sha256": "f7249c4a7e5c98eda09da1fa907b38c1bcbd023dc290e1b7e9651bd0a20503ab",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
     }
   ]
 }
