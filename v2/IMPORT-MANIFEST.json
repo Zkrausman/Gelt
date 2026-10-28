@@ -3576,7 +3576,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-transport.ts",
-      "sha256": "5d21aaac64bfa298ced1a4ce5313ec5c29a237aa0ea40fa659c59b5993c3a07e",
+      "sha256": "ed2eac744e15f8489d7b424b84774f1c06bc2d40247c2fc8f327f243d1eff745",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -3592,7 +3592,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-contract.ts",
-      "sha256": "09c6856a47d215b31beef009956ce8a8e3f13bcd5d4f83ab3837afbe86bbfa2c",
+      "sha256": "ba0ac5fe9efc1794bdc38bce16c955ee4959bb2b1f3c5b8219e6557a94bb1671",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -3616,7 +3616,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-storage.ts",
-      "sha256": "0703241bd4adb84d618ded024f8294656a78e6f073a873c7e0baac7dc8c8e877",
+      "sha256": "87a5aa66c0455443ad296c38d7fffb1a6408cb7515dd7aee650b4ccb7abb7e8d",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -4259,6 +4259,14 @@
       "status": "added",
       "path": "worker/src/pamr-consumer-evidence.test.ts",
       "sha256": "fce9b8a11024235193e0f7118a9d9af85a6009ffd7b762fd9f76b351f9f358b2",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-consumer-storage.test.ts",
+      "sha256": "1ca04751ae8d90bd79084b90fc608c5986d8bc8b3922771de340b5d0ca39bb33",
       "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
     }
   ]
