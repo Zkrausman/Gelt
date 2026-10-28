@@ -5,6 +5,7 @@ import { candidateShadowManifestSchema, candidateShadowIdSchema } from './candid
 import { canonical } from './ledger-canonical.js';
 import { decimalSchema } from './ledger-contract.js';
 import { simulationSource, simulationPolicy, simulationHash, simulationTimestamp, simulationClassification, simulationObservationSchema } from './synthetic-simulation-economics.js';
+import { pamrConsumptionEvidenceLinkSchema } from './pamr-consumer-evidence-contract.js';
 
 export const syntheticMockSource = 'gelt-synthetic-robinhood-mock-v1' as const;
 export const syntheticMockIssuer = 'urn:gelt:synthetic-mock-robinhood:v1' as const;
@@ -77,17 +78,27 @@ export const sizingBindingRejectionSchema = z.object({
   reason: z.enum(['invalid_input', 'input_too_large', 'receipt_mismatch', 'binding_mismatch']),
 }).strict();
 
-export const syntheticMockRunPreviewSchema = syntheticMockV1PreviewSchema.extend({
+const syntheticMockLegacyRunPreviewSchema = syntheticMockV1PreviewSchema.extend({
   version: z.literal(2), source: z.literal(simulationSource), policyId: z.literal(simulationPolicy),
   order: syntheticMockOrderSchema.extend({ side: z.enum(['buy', 'sell']) }).strict(),
   runId: identifier, configSha256: simulationHash, sourceCommit: z.string().regex(/^[a-f0-9]{40}$/),
   decisionId: z.string().regex(/^shadow-decision-[a-f0-9]{64}$/), decisionAt: simulationTimestamp,
   sizingEvidence: sizingEvidenceSchema.optional(),
+  pamrConsumption: z.never().optional(),
   inputSha256: simulationHash, portfolioSnapshotSha256: simulationHash, classification: simulationClassification,
   quote: simulationObservationSchema.extend({ instrumentId: z.literal(syntheticMockInstrument), price: positiveDecimal,
     source: z.literal('declared-simulated-observation-v2') }).strict(),
   fee: z.object({ amount: decimalSchema, currency: z.literal('USD'), source: z.literal('declared-simulated-cost-v2') }).strict(),
 }).strict();
+export const syntheticMockPAMRRunPreviewSchema = syntheticMockLegacyRunPreviewSchema.extend({
+  decisionId: z.string().regex(/^pamr-consumer-decision-[a-f0-9]{64}$/),
+  classification: z.literal('constructed_offline_test'),
+  sizingEvidence: z.never().optional(),
+  pamrConsumption: pamrConsumptionEvidenceLinkSchema,
+}).strict();
+export const syntheticMockRunPreviewSchema = z.union([
+  syntheticMockLegacyRunPreviewSchema, syntheticMockPAMRRunPreviewSchema,
+]);
 export const syntheticMockPreviewSchema = z.union([syntheticMockV1PreviewSchema, syntheticMockRunPreviewSchema]);
 export type SyntheticRunPreview = z.infer<typeof syntheticMockRunPreviewSchema>;
 
@@ -123,7 +134,7 @@ export const syntheticMockV1ExecutionSchema = z.object({
 
 export const syntheticMockRunExecutionSchema = syntheticMockV1ExecutionSchema.extend({
   version: z.literal(2), runId: identifier, configSha256: simulationHash, receiptId: identifier,
-  decisionId: z.string().regex(/^shadow-decision-[a-f0-9]{64}$/), fee: decimalSchema,
+  decisionId: z.string().regex(/^(?:shadow-decision-|pamr-consumer-decision-)[a-f0-9]{64}$/), fee: decimalSchema,
   observation: simulationObservationSchema,
 }).strict();
 export const syntheticMockExecutionSchema = z.union([syntheticMockV1ExecutionSchema, syntheticMockRunExecutionSchema]);
@@ -135,10 +146,14 @@ export const syntheticMockOrderViewSchema = z.object({
   mockOrderId: z.string().min(1).max(64).regex(/^[A-Za-z0-9-]+$/),
   previewId: identifier,
   sizingEvidence: sizingEvidenceSchema.optional(),
+  pamrConsumption: pamrConsumptionEvidenceLinkSchema.optional(),
   status: syntheticMockStatusSchema,
   executions: z.array(syntheticMockExecutionSchema).max(16),
   cancelAcknowledged: z.boolean(),
-}).strict();
+}).strict().refine(value =>
+  !(value.sizingEvidence && value.pamrConsumption)
+  && (value.source === simulationSource
+    || (!value.sizingEvidence && !value.pamrConsumption)));
 
 export type SyntheticMockOrder = z.infer<typeof syntheticMockOrderSchema> | SyntheticRunPreview['order'];
 export type SyntheticMockPreview = z.infer<typeof syntheticMockPreviewSchema>;

@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { SyntheticSizingEvidence, SizingEvidenceRejected, type EvidenceStage } from './synthetic-sizing-binding-evidence.js';
+import { SyntheticSizingEvidence, SizingEvidenceRejected, PAMRConsumptionEvidence, PAMRConsumptionRejected, type PAMRConsumptionReplay, type EvidenceStage } from './synthetic-sizing-binding-evidence.js';
 import type { ShadowSizingProposal } from './shadow-sizing-contract.js';
 import Database from 'better-sqlite3';
 import { z } from 'zod';
@@ -16,6 +16,15 @@ import {
   type SyntheticMockAdmissionInput, type SyntheticMockExecution, type SyntheticMockOrderView,
   type SyntheticMockPreview, type SyntheticMockSubmitInput, type SizingBindingPolicy, type SizingEvidence,
 } from './synthetic-mock-robinhood-contract.js';
+import { sizingBindingPolicySchema, type SyntheticRunPreview } from './synthetic-mock-robinhood-contract.js';
+import { parseResearchJSON } from './research-json.js';
+import {
+  pamrConsumerInputSchema, pamrConsumerProposalSchema, type PAMRConsumerProposal,
+} from './pamr-consumer-contract.js';
+import {
+  pamrConsumptionBounds, pamrConsumptionOwnerPolicySchema,
+  type PAMRConsumptionOwnerPolicy, type PAMRConsumptionEvidenceLink,
+} from './pamr-consumer-evidence-contract.js';
 
 const applicationId = 1196184660;
 const rowLimit = 1000;
@@ -109,22 +118,46 @@ export class SyntheticMockRobinhoodStore {
   private admissionFaultPending = false;
   private readonly config?: SimulationRun;
   private evidence?: SyntheticSizingEvidence;
+  private pamrEvidence?: PAMRConsumptionEvidence;
   private readonly evidenceRoot: string;
   get bindingPolicy() { return this.evidence ? JSON.parse(canonical(this.evidence.policy)) as SizingBindingPolicy : undefined; }
-  get sizingBoundReadOnly() { return this.evidence?.reopened === true; }
+  get pamrPolicy() { return this.pamrEvidence?.policy; }
+  get pamrConsumptionReadOnly() { return this.pamrEvidence?.reopened === true; }
+  // Existing mutation guards cover either evidence mode.
+  get sizingBoundReadOnly() { return this.evidence?.reopened === true || this.pamrConsumptionReadOnly; }
   private readonly statements: string[];
   get source() { return this.config ? simulationSource : syntheticMockSource; }
   get version() { return this.config ? 2 : 1; }
   get runConfig() { return this.config ? simulationRunSchema.parse(this.config) : undefined; }
   constructor(path: string, private readonly now: () => number = Date.now, private readonly previewDiagnostics?: SyntheticPreviewDiagnostics,
-    options: { simulationRun?: unknown; sizingPolicy?: unknown; evidenceStageForTest?: (stage: EvidenceStage) => void } = {}) {
+    options: { simulationRun?: unknown; sizingPolicy?: unknown; pamrPolicy?: PAMRConsumptionOwnerPolicy; evidenceStageForTest?: (stage: EvidenceStage) => void } = {}) {
     if (options.simulationRun !== undefined) {
       if (process.env.NODE_ENV !== 'test' || process.env.GELT_SYNTHETIC_ORDER_HARNESS !== 'offline-test-only'
         || process.env.GELT_SYNTHETIC_MOCK_ROBINHOOD !== 'offline-test-only') throw new Error('synthetic mock disabled');
       this.config = simulationRunSchema.parse(options.simulationRun);
     }
     if (options.sizingPolicy !== undefined && (!this.config || this.config.classification !== 'constructed_offline_test')) throw new Error('synthetic mock disabled');
-    if (options.evidenceStageForTest && (!options.sizingPolicy || process.env.NODE_ENV !== 'test')) throw new Error('synthetic mock disabled');
+    if (options.pamrPolicy !== undefined && (!this.config || this.config.classification !== 'constructed_offline_test'
+      || options.sizingPolicy !== undefined)) throw new Error('synthetic mock disabled');
+    if (options.evidenceStageForTest !== undefined && (typeof options.evidenceStageForTest !== 'function'
+      || (options.sizingPolicy === undefined && options.pamrPolicy === undefined)
+      || process.env.NODE_ENV !== 'test')) throw new Error('synthetic mock disabled');
+    // Reject policy/config contradictions before LedgerStorage creates a marker.
+    if (options.sizingPolicy !== undefined) {
+      const policy = sizingBindingPolicySchema.parse(options.sizingPolicy);
+      if (policy.runId !== this.config!.runId || policy.sourceCommit !== this.config!.sourceCommit
+        || policy.configSha256 !== simulationDigest(this.config!)) throw new SizingEvidenceRejected();
+      decimal(units(policy.quantityQuantum, 18), 18);
+    }
+    let pamrPolicy: PAMRConsumptionOwnerPolicy | undefined;
+    if (options.pamrPolicy !== undefined) {
+      pamrPolicy = pamrConsumptionOwnerPolicySchema.parse(options.pamrPolicy);
+      if (pamrPolicy.runId !== this.config!.runId || pamrPolicy.sourceCommit !== this.config!.sourceCommit
+        || pamrPolicy.configSha256 !== simulationDigest(this.config!)
+        || Buffer.byteLength(canonical(pamrPolicy), 'utf8') > pamrConsumptionBounds.policyBytes) {
+        throw new PAMRConsumptionRejected('binding_mismatch');
+      }
+    }
     this.evidenceRoot = path + '.sizing-evidence';
     this.statements = this.config ? [
       `CREATE TABLE mock_meta (id INTEGER PRIMARY KEY CHECK(id=1), source TEXT NOT NULL CHECK(source='${simulationSource}'), config_json TEXT NOT NULL, config_sha TEXT NOT NULL, portfolio_json TEXT NOT NULL) STRICT`,
@@ -146,8 +179,9 @@ export class SyntheticMockRobinhoodStore {
           else this.db.prepare('INSERT INTO mock_meta(id, source) VALUES(1, ?)').run(syntheticMockSource);
         }
         const evidenceRoot = this.evidenceRoot;
-        if (!this.evidence) {
+        if (!this.evidence && !this.pamrEvidence) {
           if (options.sizingPolicy !== undefined) this.evidence = new SyntheticSizingEvidence(evidenceRoot, this.config!, options.sizingPolicy, !existing.length, options.evidenceStageForTest);
+          else if (pamrPolicy !== undefined) this.pamrEvidence = new PAMRConsumptionEvidence(evidenceRoot, this.config!, pamrPolicy, !existing.length, options.evidenceStageForTest);
           else if (existsSync(evidenceRoot)) throw new Error('synthetic sizing mode unavailable');
         }
         this.validateSchema();
@@ -176,6 +210,7 @@ export class SyntheticMockRobinhoodStore {
     if (meta.length !== 1 || checkedInteger(meta[0].id) !== 1 || checkedText(meta[0].source, 128) !== this.source) throw new Error('synthetic mock storage unavailable');
     this.validateConfig();
     this.evidence?.validatePolicy();
+    this.pamrEvidence?.validatePolicy();
   }
 
   private atomic<T>(work: () => T): T {
@@ -205,7 +240,11 @@ export class SyntheticMockRobinhoodStore {
     }
   }
   private validateStorage(): void {
-    try { this.storage.validate(); this.evidence?.validatePolicy(); if (!this.constructing && !this.evidence && existsSync(this.evidenceRoot)) throw new Error('synthetic sizing mode unavailable'); }
+    try {
+      this.storage.validate(); this.evidence?.validatePolicy(); this.pamrEvidence?.validatePolicy();
+      if (!this.constructing && !this.evidence && !this.pamrEvidence && existsSync(this.evidenceRoot)) {
+        throw new Error('synthetic sizing mode unavailable');
+      } }
     catch (error) { this.storage.poisoned = true; throw error; }
   }
   private time(): number {
@@ -465,7 +504,9 @@ export class SyntheticMockRobinhoodStore {
       const row = this.admissionRow(previewId);
       if (!row) throw new Error('synthetic mock storage unavailable');
       const body = checkedText(row.preview_json, bodyLimit);
-      const preview = decode(syntheticMockPreviewSchema, body);
+      // Reparse the checked body to retain output brands at this local seam;
+      // the shared decoder's generic also accepts unbranded schema inputs.
+      const preview = syntheticMockPreviewSchema.parse(decode(syntheticMockPreviewSchema, body));
       const expires = checkedInteger(row.expires_ms);
       const dispatchId = row.consumed_dispatch === null ? null : checkedText(row.consumed_dispatch, 64);
       const previewSha = checkedText(row.preview_sha, 64);
@@ -625,6 +666,7 @@ export class SyntheticMockRobinhoodStore {
       : quantity > 0n ? 'partially-filled'
       : events.some(event => event.type === 'cancel-requested') ? 'pending-cancel' : 'accepted';
     return syntheticMockOrderViewSchema.parse({ source: this.source, dispatchId, mockOrderId: `mock-${orderId}`,
+      ...(preview.version === 2 && preview.pamrConsumption ? { pamrConsumption: preview.pamrConsumption } : {}),
       previewId: preview.previewId, ...(preview.version === 2 && preview.sizingEvidence ? { sizingEvidence: preview.sizingEvidence } : {}), status, executions, cancelAcknowledged: events.some(event => event.type === 'cancel-acknowledged') });
   }
   private readOrder(row: OrderRow): SyntheticMockOrderView {
@@ -690,8 +732,43 @@ export class SyntheticMockRobinhoodStore {
     if (body !== canonical(this.config) || checkedText(row.config_sha, 64) !== simulationDigest(this.config)
       || canonical(simulationRunSchema.parse(JSON.parse(body))) !== body) throw new Error('synthetic mock storage unavailable');
   }
+  private verifyPAMRPreview(preview: SyntheticRunPreview): PAMRConsumptionReplay {
+    if (!this.config || !this.pamrEvidence || !preview.pamrConsumption || preview.sizingEvidence) {
+      throw new Error('PAMR preview unavailable');
+    }
+    // read replays the complete chain. It never consumes or reissues an ordinal.
+    const replay = this.pamrEvidence.read(preview.pamrConsumption);
+    const { input, proposal, manifest } = replay, decision = proposal.decision, action = proposal.action;
+    if (action.outcome !== 'proposal' || !action.hypothetical
+      || input.lifecycleDisposition !== 'settled' || input.inputPortfolioUnknown || input.portfolio.state !== 'settled'
+      || canonical(input.config) !== canonical(this.config)
+      || preview.classification !== 'constructed_offline_test'
+      || preview.runId !== input.binding.runId || preview.sourceCommit !== input.binding.sourceCommit
+      || preview.configSha256 !== input.binding.configSha256
+      || preview.decisionId !== decision.decisionId || preview.decisionId !== manifest.decisionId
+      || preview.inputSha256 !== decision.inputSha256
+      || preview.decisionAt !== input.decisionAt || preview.decisionAt !== manifest.decisionAt
+      || preview.portfolioSnapshotSha256 !== input.binding.portfolioSnapshotSha256
+      || preview.portfolioSnapshotSha256 !== simulationDigest(input.portfolio.snapshot)
+      || preview.order.side !== action.side
+      || canonical(preview.order.quantity) !== canonical(action.quantity)
+      || canonical(preview.order.limitPrice) !== canonical(action.hypothetical.orderLimit)
+      || canonical(preview.fee.amount) !== canonical(action.hypothetical.commissionPerOrder)
+      || canonical(preview.quote.price) !== canonical(action.hypothetical.modeledFillPrice)
+      || canonical(input.observation) !== canonical({
+        referencePrice: preview.quote.referencePrice, observedAt: preview.quote.observedAt,
+        availableAt: preview.quote.availableAt, evidenceSha256: preview.quote.evidenceSha256,
+      })) throw new Error('PAMR preview unavailable');
+    // Historical replay uses this recorded snapshot; live reservation checks
+    // separately compare it with the current actual portfolio.
+    return replay;
+  }
   private previewPolicy(preview: SyntheticMockPreview): boolean {
     if (!this.config) return validPreviewPolicy(preview);
+    if (preview.version === 2 && preview.pamrConsumption) {
+      if (!this.pamrEvidence) return false;
+      try { this.verifyPAMRPreview(preview); } catch (error) { this.storage.poisoned = true; throw error; }
+    } else if (this.pamrEvidence) return false;
     if (this.evidence) {
       if (preview.version !== 2 || !preview.sizingEvidence) return false;
       try { this.evidence.verifyPreview(preview); } catch (error) { this.storage.poisoned = true; throw error; }
@@ -713,6 +790,7 @@ export class SyntheticMockRobinhoodStore {
     if (!this.previewPolicy(preview) || !validPreview(preview, now)) return false;
     if (!this.config || preview.version !== 2) return true;
     try {
+      if (preview.pamrConsumption && Date.parse(this.verifyPAMRPreview(preview).input.evaluationAt) > now) return false;
       checkObservation(this.config, preview.decisionAt, {
         referencePrice: preview.quote.referencePrice, observedAt: preview.quote.observedAt,
         availableAt: preview.quote.availableAt, evidenceSha256: preview.quote.evidenceSha256,
@@ -834,6 +912,35 @@ export class SyntheticMockRobinhoodStore {
     });
   }
 
+  // Internal full replay only; neither method adds a transport route.
+  readPAMRConsumption(link: PAMRConsumptionEvidenceLink): PAMRConsumptionReplay {
+    if (!this.pamrEvidence) fail();
+    return this.atomic(() => {
+      this.replayAll();
+      return this.pamrEvidence!.read(link);
+    });
+  }
+
+  readPAMRConsumer(dispatchId: string) {
+    if (!this.pamrEvidence) return undefined;
+    if (!z.string().uuid().safeParse(dispatchId).success) fail();
+    return this.atomic(() => {
+      this.replayAll();
+      const row = this.orderRow(dispatchId);
+      if (!row) return undefined;
+      const payload = this.readStoredPayload(row), preview = payload.preview;
+      if (preview.version !== 2 || !preview.pamrConsumption) throw new Error('PAMR consumer unavailable');
+      const replay = this.verifyPAMRPreview(preview);
+      const order = this.readOrder(row);
+      const portfolio = {
+        snapshot: this.projectPortfolio(),
+        state: this.unsettled() ? 'unsettled' as const : 'settled' as const,
+      };
+      return { input: replay.input, proposal: replay.proposal, manifest: replay.manifest,
+        preview, order, portfolio, termsHash: payload.termsHash };
+    });
+  }
+
   prepareSizingEvidence(bytes: Buffer, proposal: ShadowSizingProposal): SizingEvidence {
     if (!this.evidence || this.sizingBoundReadOnly || this.closed || this.storage.poisoned) fail();
     try {
@@ -846,6 +953,60 @@ export class SyntheticMockRobinhoodStore {
     } finally {
       // Also validate after a rejection or uncertain write; retain all orphans.
       this.validateStorage();
+    }
+  }
+
+  preparePAMRConsumption(bytes: Buffer, proposal: PAMRConsumerProposal): PAMRConsumptionEvidenceLink {
+    if (this.closed || this.storage.poisoned) throw new Error('synthetic mock storage unavailable');
+    try {
+      this.validateStorage();
+      this.replayAll();
+      if (!this.pamrEvidence || !this.config) throw new PAMRConsumptionRejected('binding_mismatch');
+      if (this.pamrConsumptionReadOnly) throw new PAMRConsumptionRejected('readonly');
+      if (!Buffer.isBuffer(bytes)) throw new PAMRConsumptionRejected('invalid_input');
+      if (bytes.length > pamrConsumptionBounds.inputBytes) throw new PAMRConsumptionRejected('resource_limit');
+      let input: ReturnType<typeof pamrConsumerInputSchema.parse>;
+      let checkedProposal: PAMRConsumerProposal;
+      try {
+        input = pamrConsumerInputSchema.parse(parseResearchJSON(bytes));
+        checkedProposal = pamrConsumerProposalSchema.parse(proposal);
+      } catch { throw new PAMRConsumptionRejected('invalid_input'); }
+      const now = this.now();
+      // Reject an unusable clock before querying time-dependent reservations.
+      // A known pre-write clock defect must not masquerade as storage damage.
+      if (!Number.isSafeInteger(now) || now < 0) throw new PAMRConsumptionRejected('invalid_clock');
+      const actual = {
+        snapshot: this.projectPortfolio(),
+        state: this.unsettled() ? 'unsettled' as const : 'settled' as const,
+      };
+      const policy = this.pamrEvidence.policy;
+      if (canonical(input.config) !== canonical(this.config)
+        || canonical(input.portfolio) !== canonical(actual)
+        || canonical(input.quantityQuantum) !== canonical(policy.quantityQuantum)
+        || canonical(input.buyLimitPrice) !== canonical(policy.buyLimitPrice)
+        || canonical(input.sellLimitPrice) !== canonical(policy.sellLimitPrice)) {
+        throw new PAMRConsumptionRejected('binding_mismatch');
+      }
+      if (checkedProposal.action.outcome === 'proposal'
+        && (actual.state !== 'settled' || input.lifecycleDisposition !== 'settled' || input.inputPortfolioUnknown)) {
+        throw new PAMRConsumptionRejected('binding_mismatch');
+      }
+      try {
+        const last = this.db.prepare('SELECT event_json FROM mock_events ORDER BY rowid DESC LIMIT 1').get() as { event_json: string } | undefined;
+        if (!Number.isSafeInteger(now) || now < 0 || Date.parse(input.evaluationAt) > now
+          || (last && decode(eventSchema, last.event_json).at > now)) throw new Error();
+        checkObservation(this.config, input.decisionAt, input.observation, now);
+      } catch { throw new PAMRConsumptionRejected('invalid_clock'); }
+      // This separately durable publication must not be wrapped in a DB
+      // transaction whose rollback could conceal a consumed ordinal.
+      return this.pamrEvidence.prepare(bytes, checkedProposal);
+    } catch (error) {
+      if (!(error instanceof PAMRConsumptionRejected)) this.storage.poisoned = true;
+      throw error;
+    } finally {
+      // Includes benign rejection and complete-publication writer loss.
+      try { this.validateStorage(); this.replayAll(); }
+      catch (error) { this.storage.poisoned = true; throw error; }
     }
   }
 

@@ -239,7 +239,8 @@ export class SyntheticMockRobinhoodClient {
             const value = schema.parse(envelope.value);
             // Optional compact sizing linkage is configured synthetic evidence only.
             // Full replay input never passes through this unchanged 8KiB boundary.
-            if (!this.options.simulationRun && value && typeof value === 'object' && 'sizingEvidence' in value) throw new Error();
+            if (!this.options.simulationRun && value && typeof value === 'object'
+              && ('sizingEvidence' in value || 'pamrConsumption' in value)) throw new Error();
             settleValue(value);
           } catch { fail('invalid-response'); }
         });

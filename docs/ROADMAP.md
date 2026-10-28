@@ -4,6 +4,35 @@ title: Gelt Strategic Roadmap 🪙
 ---
 # Gelt Strategic Roadmap 🪙
 
+## Fixed PAMR consumer source revision (2026-10-28; operations held)
+
+[PR26](https://github.com/Zkrausman/Gelt/pull/26) shipped the fixed G05 baseline
+candidate/lifecycle/evidence slice; [PR27](https://github.com/Zkrausman/Gelt/pull/27)
+shipped the selected PAMR mathematical converter and inert artifact. This revision
+adds the separately approved [fixed PAMR synthetic consumer](specs/PAMR-Synthetic-Consumer.md):
+two declared risk/reserve assets, quarter-scale floored exposure, exact sizing,
+durable once-only prefix consumption, existing configured lifecycle and protected
+simulated outcome/reopen evidence. The consumer's source implementation approval
+is not outstanding. Full source review and normal delivery gates govern this
+revision; no fixture result supplies operating permission.
+
+The next usable source capability is one reproducible constructed conversion →
+entry/observed partial or full fill/cancel → cash exit → evidence/reopen chain,
+with failed/forged/stale/UNKNOWN paths fenced. It is not general automatic paper
+conversion or an actual shadow campaign. Quarter exposure and the reserve mapping
+are explicit consumer adaptations, not full PAMR portfolio fidelity. Independent
+review, exact-head CI and merge receipts identify delivered source; they do not
+establish installation, qualification, profitable performance or live readiness.
+
+Ready follow-on work remains the existing bounded reconciliation of actual input,
+handling/runtime, consumer admission and evaluation-protocol prerequisites using
+the accepted Linux/SPY253 records. Actual acquisition, qualification, campaigns,
+promotion execution and trading remain held and require their own concrete scope.
+Production is CLOSED, operations DEFER and SPY253 C07/C13/C14 remain UNKNOWN.
+The December 31 target remains at risk; full remaining operating effort and
+observation time are not established. The dated sections below are preserved as
+history and are superseded by this paragraph only for the current source slice.
+
 ## Current delivery and next gates (2026-10-27; Linux, operations held)
 
 The published foundation is [PR24 / `599862f`](https://github.com/Zkrausman/Gelt/commit/599862fca9adff9fb5a746e09094d55ce6a85771), following PR22–23.

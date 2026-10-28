@@ -3,15 +3,13 @@ import { projectionSchema, type Projection } from './ledger-contract.js';
 import { shadowRuleInputSchema, shadowRuleMaxBytes } from './shadow-rule-contract.js';
 import { evaluateShadowRule } from './shadow-rule.js';
 import { simulationObservationSchema } from './synthetic-simulation-economics.js';
-import { syntheticMockRunExecutionSchema } from './synthetic-mock-robinhood-contract.js';
+import { joinSyntheticLifecycle, SyntheticLifecycleJoinCorruption } from './synthetic-lifecycle-join.js';
 import { assertCandidateShadowBinding, candidateShadowId, candidateShadowOperatingAdmission,
   parseCandidateShadowJSON, parseCandidateShadowManifest } from './candidate-shadow-contract.js';
 import type { SyntheticMockRobinhoodStore } from './synthetic-mock-robinhood-storage.js';
 
-// Internal contradiction signal; the owning harness must fence before replying.
-export class CandidateShadowJoinCorruption extends Error {
-  constructor() { super('candidate shadow join unavailable'); }
-}
+// Preserve the public constructor identity used by existing harnesses/tests.
+export { SyntheticLifecycleJoinCorruption as CandidateShadowJoinCorruption };
 
 // Primitive JSON strings are bounded before decoding. No artifact code, caller
 // receipt, callback or candidate hash selects the evaluator.
@@ -42,48 +40,8 @@ export function readCandidateShadowResult(store: SyntheticMockRobinhoodStore, ra
     const x = store.readCandidateShadow(projection.intent.intentId);
     if (!x) return { state: 'unavailable' as const };
     const { preview, order, input, proposal, portfolio } = x;
-    const confirmed = projection.facts.find(e => e.type === 'preview-confirmed');
-    const claimed = projection.facts.find(e => e.type === 'dispatch-claimed');
-    const acknowledged = projection.facts.find(e => e.type === 'broker-acknowledged');
-    const canceled = projection.facts.some(e => e.type === 'cancel-acknowledged');
-    const statuses = projection.facts.filter(e => e.type === 'broker-status-observed');
-    const lastStatus = statuses.at(-1);
-    const requested = { instrumentId: preview.order.instrumentId, currency: preview.order.currency,
-      route: preview.order.route, side: preview.order.side, requestedQuantity: preview.order.quantity,
-      requestedLimitPrice: preview.order.limitPrice };
-    if (!confirmed || !claimed || confirmed.previewId !== preview.previewId || claimed.previewId !== preview.previewId
-      || confirmed.termsHash !== x.termsHash || claimed.termsHash !== x.termsHash
-      || canonical(confirmed.fee) !== canonical(preview.fee.amount) || confirmed.feeCurrency !== preview.fee.currency
-      || confirmed.expiresAt !== preview.expiresAt || canonical(projection.intent.order) !== canonical(requested)
-      || acknowledged && acknowledged.brokerOrderId !== order.mockOrderId) throw new Error();
-    const fills = order.executions.map(e => syntheticMockRunExecutionSchema.parse(e));
-    const observed = projection.facts.flatMap(e => e.type === 'execution-observed' ? [e.execution] : []);
-    const fillsById = new Map(fills.map(fill => [fill.executionId, fill]));
-    if (fillsById.size !== fills.length) throw new Error();
-    const observedIds = new Set<string>();
-    for (const observation of observed) {
-      if (observedIds.has(observation.executionId)) throw new Error();
-      observedIds.add(observation.executionId);
-      const fill = fillsById.get(observation.executionId);
-      if (!fill || canonical(observation) !== canonical({ executionId: fill.executionId,
-        brokerOrderId: order.mockOrderId, observedQuantity: fill.quantity, observedPrice: fill.price,
-        observedFee: fill.fee, currency: fill.currency })) throw new Error();
-    }
-    if (canceled && !order.cancelAcknowledged) throw new Error();
-    const dispatchUnknown = projection.facts.some(e => e.type === 'dispatch-outcome-unknown');
-    const missingObservations = observedIds.size !== fillsById.size || canceled !== order.cancelAcknowledged;
-    // A lifecycle observation may lag the mock owner, but a retained terminal
-    // outcome cannot differ from that owner's irreversible replayed outcome.
-    // Check the complete retained history: later observations cannot erase a
-    // contradiction. Missing/nonterminal observations retain their ordinary
-    // unsettled/UNKNOWN handling; they do not independently prove corruption.
-    if (statuses.some(status => status.brokerOrderId && status.brokerOrderId !== order.mockOrderId
-      || ['filled', 'canceled', 'rejected'].includes(status.status) && status.status !== order.status)) throw new Error();
-    const terminalAligned = !!acknowledged && lastStatus?.brokerOrderId === order.mockOrderId
-      && (order.status === 'filled' || order.status === 'canceled') && lastStatus.status === order.status;
-    const disposition = ownerUnknown || dispatchUnknown || missingObservations ? 'unknown' as const
-      : ownerUnresolved || portfolio.state === 'unsettled' ? 'unsettled' as const
-      : terminalAligned ? 'settled' as const : 'unknown' as const;
+    const { fills, observed, dispatchUnknown, disposition } =
+      joinSyntheticLifecycle(projection, preview, order, x.termsHash, portfolio, ownerUnresolved, ownerUnknown);
     const candidateId = candidateShadowId(x.candidate);
     if (preview.sizingEvidence?.candidateId !== candidateId) throw new Error();
     const view = {
@@ -114,7 +72,7 @@ export function readCandidateShadowResult(store: SyntheticMockRobinhoodStore, ra
     if (Buffer.byteLength(JSON.stringify(view), 'utf8') > 32768) throw new Error();
     return { state: 'available' as const, view };
   } catch {
-    throw new CandidateShadowJoinCorruption();
+    throw new SyntheticLifecycleJoinCorruption();
   }
 }
 export type CandidateShadowResult = ReturnType<typeof readCandidateShadowResult>;
