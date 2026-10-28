@@ -8,6 +8,13 @@ timestamp: 2026-10-27T00:00:00Z
 
 # Selected PAMR mathematical conversion
 
+The separately authorized [fixed synthetic consumer](PAMR-Synthetic-Consumer.md)
+now connects this inert artifact to constructed sizing, durable single-use
+consumption and the existing synthetic lifecycle/protected read path. That
+quarter-scale risk/reserve adaptation does not change this mathematical recipe
+or close its external reference, rights or operating qualification limits. The
+description below retains the boundary of the original mathematical increment.
+
 This source increment implements one fixed, deterministic mathematical recipe and
 an inert candidate artifact. It neither interprets arbitrary papers nor executes
 the inspected MATLAB reference. It does not connect PAMR weights to G05 sizing,

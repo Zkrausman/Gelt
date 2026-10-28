@@ -3232,7 +3232,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-order-harness.ts",
-      "sha256": "1a02835db5d88e504b151ae6597536abce3cdc4b9dcb6177993d4baec791806a",
+      "sha256": "f71e83420398f1cc3e1c5a056de3b45f8b2e7b55bb3d91e52ad9c6a4be24c996",
       "reason": "ZAR-219 test-only synthetic lifecycle plus rebuilt opt-in application-mock seam; no production order route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -3600,7 +3600,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/synthetic-mock-robinhood-adapter.ts",
-      "sha256": "28ce6a8dc738d4c210c1769507dcc08078d9c015280a1cc0033a9eef35ea4b4e",
+      "sha256": "316a3adbcd7b2b992f87b6f547ce90a500c9e40934d8df2d4175fec45e7c1aaa",
       "reason": "Gelt offline synthetic application-mock contract, evidence, test, or runner; no production/provider route; G06 approved constructed offline sizing-bound coordination/linkage."
     },
     {
@@ -4146,7 +4146,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/candidate-shadow-adapter.ts",
-      "sha256": "5cac1e27831cae07fa6a21c66e7e5ea1b8fae09cc70b251ec7201c1d04026700",
+      "sha256": "dd30a9fe255775ed243a162161abb03fcd0989d3eb760502899ed464a400511a",
       "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
     },
     {
@@ -4267,6 +4267,30 @@
       "status": "added",
       "path": "worker/src/pamr-consumer-storage.test.ts",
       "sha256": "1ca04751ae8d90bd79084b90fc608c5986d8bc8b3922771de340b5d0ca39bb33",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-consumer-integration.test.ts",
+      "sha256": "1e46a783867c23e23f2c33d1f9e12f692e8b2c90f66f2ab088c93485530d476a",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-consumer-lifecycle-result.ts",
+      "sha256": "bbb616970d764a546259c93fb3dfeedb857581c5b2458a9853159ce18e05cf5b",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/synthetic-lifecycle-join.ts",
+      "sha256": "9078a982552e771ecf481bb2e36fd07e2de6f1c039f3b7f928f31c63090349fb",
       "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
     }
   ]
