@@ -4212,6 +4212,38 @@
       "path": "worker/src/long-cash-sizing-kernel.ts",
       "sha256": "f7249c4a7e5c98eda09da1fa907b38c1bcbd023dc290e1b7e9651bd0a20503ab",
       "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-consumer-adapter.test.ts",
+      "sha256": "adb83ccb6aa311831b3af859d71ddf164346621588e5445319daea093881cc7c",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-consumer-adapter.ts",
+      "sha256": "2985bbde1f0cb621bde9918bc75656c2919ed93a30923dad1de98d25024e34e8",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-consumer-contract.test.ts",
+      "sha256": "a2f0c665366eb41ca72ea137afb32cab344b87224f70b35c4125a5c64bd183f8",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-consumer-contract.ts",
+      "sha256": "25a8d1b5dd4f7515bf875db388ce61c0a3f6b1a470cc4b87c407983bfebb6b1d",
+      "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
     }
   ]
 }
