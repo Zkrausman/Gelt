@@ -4,6 +4,23 @@ title: Gelt Strategic Roadmap 🪙
 ---
 # Gelt Strategic Roadmap 🪙
 
+## Finite reviewed-input inspection source slice (2026-10-28; operations held)
+
+The separately approved [SPY253-to-PAMR inspection adapter](specs/SPY253-PAMR-Inspection.md)
+inspects the full 253-close original, explicitly selects the newest 65 structurally
+compatible closes and derives 64 exact adjacent relatives for one inert post-window
+artifact. Repeating or oversized decimal ratios reject. This is a short-history
+adaptation, not full 252-step fidelity or an actual eligible-market-data claim.
+The new inspection identity remains separate from PR28's constructed lifecycle.
+Source review and exact-head delivery gates remain required for this revision.
+
+Actual closure, handling/reviewer admission, provider completion/revision and
+causal availability evidence remain unresolved; C07/C13/C14 remain UNKNOWN.
+Acquisition, capacity extension, qualification and shadow/paper/live execution
+remain held. No operating approval follows from this source scope. The existing
+December 31 target remains at risk; full operating effort and observation time
+are unknown. Earlier source sections below remain historical context.
+
 ## Fixed PAMR consumer source revision (2026-10-28; operations held)
 
 [PR26](https://github.com/Zkrausman/Gelt/pull/26) shipped the fixed G05 baseline

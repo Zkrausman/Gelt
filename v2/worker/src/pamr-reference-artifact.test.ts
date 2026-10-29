@@ -93,3 +93,31 @@ it('rejects actual intermediate growth at finite resource bounds without exposin
   expect(result.status).toBe('rejected');
   if (result.status === 'rejected') expect(result.reason).toBe('resource_limit');
 });
+
+it('preserves the complete legacy constructed serialization and hash domains across the internal trace extraction', () => {
+  const input = request([['1', '1'], ['2', '1']]);
+  const bind = (domain: string, value: unknown) => digest(canonical({ domain, value }));
+  const sourceSha256 = bind('gelt.pamr.source.v1', pamrRecipe);
+  const parametersSha256 = bind('gelt.pamr.parameters.v1', { epsilon: '0.5', transactionCost: '0', assets: input.assets });
+  const inputSha256 = bind('gelt.pamr.input.v1', input);
+  let parent = bind('gelt.pamr.genesis.v1', { sourceSha256, parametersSha256, weights: ['1/2', '1/2'] });
+  const facts = [
+    { weightsBefore: ['1/2', '1/2'], loss: '1/2', tau: '0/1', weightsAfter: ['1/2', '1/2'] },
+    { weightsBefore: ['1/2', '1/2'], loss: '1/1', tau: '2/1', weightsAfter: ['0/1', '1/1'] },
+  ];
+  const steps = facts.map((f, i) => {
+    const rowSha256 = bind('gelt.pamr.row.v1', { ordinal: i + 1, assets: input.assets, row: input.rows[i] });
+    const body = { ordinal: i + 1, rowSha256, parentStateSha256: parent, ...f };
+    parent = bind('gelt.pamr.state.v1', { sourceSha256, parametersSha256, ...body });
+    return { ...body, stateSha256: parent };
+  });
+  const weightsFinal = ['0/1', '1/1'];
+  const expected = { schema: 'gelt.pamr-inert-candidate.v1', version: 1, classification: 'constructed_offline_test',
+    recipe: pamrRecipe, input, sourceSha256, parametersSha256, inputSha256, steps, weightsFinal,
+    outputSha256: bind('gelt.pamr.output.v1', { inputSha256, stateSha256: parent, weightsFinal }),
+    fidelity: 'selected_paper_equations_only', referenceExecution: 'not_performed', authentication: 'not_established',
+    effectScope: 'NONE', dispatchAllowed: false, promotionAllowed: false, production: 'CLOSED', operations: 'DEFER' };
+  const actual = artifact(input.rows);
+  expect(serializePAMRArtifact(actual)).toBe(canonical(expected));
+  expect(verifyPAMRArtifact(canonical(expected)).status).toBe('verified_data');
+});

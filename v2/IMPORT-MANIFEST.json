@@ -4170,7 +4170,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/pamr-reference-artifact.test.ts",
-      "sha256": "1bfb3080c3128f615b79111c35503cdf06d31c1d5c5770be4208bec91fabeff8",
+      "sha256": "01c1dd9455d8e8524de17819bff1df098693df8b945e34600e270b842e8bcdef",
       "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
     },
     {
@@ -4178,7 +4178,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/pamr-reference-artifact.ts",
-      "sha256": "721f440988848e1c55ee296cda57483f345b614e4e8535beeb183822a51aea26",
+      "sha256": "8eb55448af0f8c66c9f9519c3105ae7ebfe72f4e1bef05e0b682c037345eaace",
       "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
     },
     {
@@ -4194,7 +4194,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/paper-conversion-contract.ts",
-      "sha256": "470ba619606aaa3859b276f2f9d4ab53a79de2bfbf5c4c550d9527b4d00f6870",
+      "sha256": "d672a297e1490ebec37c5d4f28590b324d77b7a6f40cf322bcdfa2599a9e8ad4",
       "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
     },
     {
@@ -4292,6 +4292,22 @@
       "path": "worker/src/synthetic-lifecycle-join.ts",
       "sha256": "9078a982552e771ecf481bb2e36fd07e2de6f1c039f3b7f928f31c63090349fb",
       "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/spy253-pamr-inspection.ts",
+      "sha256": "bc38c199801c67c4abefd7176b173f47d3ffd88ce32727f54e2b7f9fbc321fb6",
+      "reason": "Bounded SPY253-to-PAMR inert inspection; source-only adaptation, no operating admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/spy253-pamr-inspection.test.ts",
+      "sha256": "1e86a660949662b619b8a9feaddb405bf0d4fd1cbe922d52e9fd79f569357fa8",
+      "reason": "Bounded SPY253-to-PAMR inert inspection; source-only adaptation, no operating admission"
     }
   ]
 }

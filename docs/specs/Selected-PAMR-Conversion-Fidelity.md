@@ -8,6 +8,13 @@ timestamp: 2026-10-27T00:00:00Z
 
 # Selected PAMR mathematical conversion
 
+The separately approved [finite SPY253 inspection adapter](SPY253-PAMR-Inspection.md)
+shares the internal mathematical trace under a distinct inert inspection identity.
+It selects 64 intervals from 65 explicitly selected closes, rejects nonterminating
+or oversized exact ratios and preserves unknown factual evidence. Its artifact
+is rejected by the constructed consumer; the original mathematical increment
+and its external-reference limitations below remain intact.
+
 The separately authorized [fixed synthetic consumer](PAMR-Synthetic-Consumer.md)
 now connects this inert artifact to constructed sizing, durable single-use
 consumption and the existing synthetic lifecycle/protected read path. That
