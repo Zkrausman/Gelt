@@ -147,6 +147,14 @@ the present planning disposition is reported here.
 
 ## Dependencies, proposed successors and decision boundary
 
+The [consumer-contract proposal](PAMR-A64-Consumer-Contract-Proposal.md) develops
+the first planning item below: a separate inert evidence assessor, explicit
+history-versus-consumption meaning and prospective timing boundaries. It is a
+proposed source design, not an implemented or admitted consumer. This case and
+all operating prerequisites remain NOT_READY.
+The first row below retains the PR31 preparation snapshot; the linked proposal
+is the current planning output, with its design recommendation still unaccepted.
+
 | Proposed successor | Concrete output and prerequisite | Status / full remaining effort |
 | --- | --- | --- |
 | Consumer-admission contract decision | Under the selected engineering objective, prepare one proposed typed versioned identity/history-versus-consumption/timing contract that keeps current legacy rejection and source/handling gates. Resolve exact consumer behavior in that planning output and include the exact source delta and synthetic acceptance criteria before any implementation approval. | Ready for bounded contract planning only, not dispatched. Consumer behavior remains undecided; no implementation or operation is ready. Effort UNKNOWN. No new engine, capacity increase or implementation released. |
