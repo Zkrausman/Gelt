@@ -4308,6 +4308,38 @@
       "path": "worker/src/spy253-pamr-inspection.test.ts",
       "sha256": "1e86a660949662b619b8a9feaddb405bf0d4fd1cbe922d52e9fd79f569357fa8",
       "reason": "Bounded SPY253-to-PAMR inert inspection; source-only adaptation, no operating admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-a64-inspection-evidence-contract.ts",
+      "sha256": "01f8d3c21fd1801fe4e6de3937de8899e87153842cbb395c058c65c5dce281ef",
+      "reason": "Bounded pure A64 inspection-evidence assessor; inert data only, no owner or operating admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-a64-inspection-evidence.ts",
+      "sha256": "8f59f56f9c343ddff8b32d567a38422901a28eb05fa1f00976fed32fd49e9e10",
+      "reason": "Bounded pure A64 inspection-evidence assessor; inert data only, no owner or operating admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-a64-inspection-evidence-contract.test.ts",
+      "sha256": "8641e481bde087b8c52cb922f10b8822a771ef9ca9e92307901bc7d4bc01f993",
+      "reason": "Bounded pure A64 inspection-evidence assessor; inert data only, no owner or operating admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-a64-inspection-evidence.test.ts",
+      "sha256": "ae9466769e6f7a97d88ef0848f289e0ec78ee6e973580a68c82d66885a81812e",
+      "reason": "Bounded pure A64 inspection-evidence assessor; inert data only, no owner or operating admission"
     }
   ]
 }
