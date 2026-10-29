@@ -64,6 +64,12 @@ These are proposed contract requirements, not an implemented schema or a mandate
 
 ## Evaluation and safety gates
 
+The separately maintained [prospective shadow evidence and promotion protocol](Prospective-Shadow-Promotion-Protocol.md)
+specifies the proposed case registration, fail-closed assessment outcomes and
+actual-supplier/readiness dependencies for later observation. It adopts no legacy
+numeric threshold, implements no promotion mechanism and releases no campaign or
+transaction. The execution-first MVP gate and authority boundary here remain.
+
 ### Implementation gate
 
 Verify source fidelity, equations, numerical behavior, and material assumptions. Exercise relevant failure, concurrency, and recovery paths. When Go is used, race-enabled tests are required, but a passing race detector only covers executed paths; it does not establish universal concurrency safety.

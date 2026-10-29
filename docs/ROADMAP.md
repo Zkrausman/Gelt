@@ -4,6 +4,21 @@ title: Gelt Strategic Roadmap 🪙
 ---
 # Gelt Strategic Roadmap 🪙
 
+## Prospective evaluation protocol preparation (2026-10-28; documentation only)
+
+[PR29](https://github.com/Zkrausman/Gelt/pull/29) shipped the finite inert SPY253/PAMR
+inspection slice. The next approved planning output is the
+[prospective shadow evidence and promotion protocol](specs/Prospective-Shadow-Promotion-Protocol.md):
+one case registration, explicit readiness/supplier gates and fail-closed evidence
+outcomes. It separates a qualified control mechanism, sufficient strategy evidence
+and permission to transact; no legacy profit-factor/trade-count rule is adopted.
+The next concrete dependency is one case-specific registration with justified
+evaluation policy and actual input/runtime/handling/consumer suppliers identified
+or missing facts stated. This is planning preparation, not an implemented policy.
+Qualification remains NOT_READY, production CLOSED, operations DEFER and
+C07/C13/C14 UNKNOWN. Acquisition, campaigns, trading and new implementation remain
+held; no EOY readiness or observation adequacy follows from publishing this record.
+
 ## Finite reviewed-input inspection source slice (2026-10-28; operations held)
 
 The separately approved [SPY253-to-PAMR inspection adapter](specs/SPY253-PAMR-Inspection.md)
