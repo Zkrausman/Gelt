@@ -159,8 +159,9 @@ length. No profitability, completion probability or deadline is guaranteed.
 
 The [PAMR A64 proposed case registration](PAMR-A64-Proposed-Case-Registration.md)
 fills known source bindings and names concrete identity/ordinal/window gaps. Its
-recommended engineering claim is unselected, suppliers and policy remain
-unadmitted, and no case, operating policy or observation is accepted by that proposal.
+engineering objective is selected for preparation only. Actual suppliers,
+consumer and policy remain unadmitted; no case, operating policy or observation
+is accepted by that proposal.
 
 This planning slice is acceptable only if reviewers can trace the gates and
 case-record fields to the existing source/goal boundaries, verify that no legacy

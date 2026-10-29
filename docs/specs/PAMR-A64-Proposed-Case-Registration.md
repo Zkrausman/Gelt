@@ -6,7 +6,7 @@ implementation_status: not-implemented
 source_snapshot: c368951c35ca5b98f9e9a49033b258d659192249
 ---
 
-# GELT-PAMR-A64-EVIDENCE-001 — proposal 1
+# GELT-PAMR-A64-EVIDENCE-001 — proposal 2
 
 This is **one proposed case**, prepared under the
 [prospective shadow evidence protocol](Prospective-Shadow-Promotion-Protocol.md).
@@ -16,9 +16,11 @@ Disposition: **NOT_READY; qualification NOT_READY; production CLOSED; operations
 DEFER; C07/C13/C14 UNKNOWN**. No acquisition, provider call, inference campaign,
 qualification, promotion or actual shadow/paper/live execution is released.
 
-## Concrete question and unaccepted claim choice
+## Selected objective and proposed evaluation question
 
-**Recommended proposed question:** for one separately admitted future observation
+**Selected objective: engineering evidence-chain integrity.** The owner selected
+this objective for preparation; case admission and operating policy remain
+unaccepted. **Proposed evaluation question:** for one separately admitted future observation
 epoch, can a fixed PAMR A64 input/decision be traced from its genuinely reviewed
 original through a compatible shadow consumer to a complete, bounded simulated
 outcome and durable read/reopen record, without duplicate or unauthorized effects,
@@ -30,27 +32,28 @@ the runtime that would admit the case itself; prerequisite qualification remains
 separate. A later evidence-complete result would support review of this narrow
 case only, not economic eligibility or permission to transact.
 
-The recommendation follows the existing source boundary: PR29 is inert, PR28
+The selected objective follows the existing source boundary: PR29 is inert, PR28
 rejects its identity, and the actual input/consumer/runtime suppliers remain
 unadmitted. Existing evidence can justify exact identity, arithmetic and durable
 record criteria. It cannot justify a return cutoff, confidence level, trade count
 or observation duration for an economic claim.
 
-**Owner choice remains UNSELECTED:** should the first case address this engineering
-evidence question, or economic strategy performance? The latter would ask whether
+**Objective choice is RESOLVED for engineering integrity only.** Economic strategy
+performance is not selected for this first case. That alternative would ask whether
 a precisely frozen adaptation meets an independently justified cost-aware
 comparison policy, with adequate prospective evidence. It needs additional
 cost/comparator/adequacy/decision-policy evidence; no such numeric criteria are
-chosen here. This is the single essential claim decision before this proposed
-registration can be accepted, not a request to approve a run or assemble code,
-keys or technical evidence. Preparing/reviewing this proposal is already allowed.
+chosen here. Selecting the objective neither fills the unresolved registration
+fields nor authorizes a run, implementation or operating policy. No further
+integrity-versus-economic choice is pending. Technical preparation stays with the
+source owner; the human is not asked to assemble code, keys or technical evidence.
 
 ## Proposed identity and fields
 
 | Field | Existing evidence or proposed value | Admission status |
 | --- | --- | --- |
-| Case ID/revision | `GELT-PAMR-A64-EVIDENCE-001`, `proposal-1`; documentation identifiers only. | Proposed; no dispatcher/run capability. |
-| Primary claim | Evidence-chain integrity, recommended above. | Owner choice UNSELECTED; no economic-promotion claim proposed as accepted. |
+| Case ID/revision | `GELT-PAMR-A64-EVIDENCE-001`, `proposal-2`; documentation identifiers only. | Proposed; no dispatcher/run capability. |
+| Primary claim | Engineering evidence-chain integrity, selected for preparation. | Objective choice resolved; case admission and operating policy NOT ACCEPTED. Economic performance is not selected. |
 | Candidate family | Selected PAMR-base mathematical implementation: epsilon `0.5`, algorithmic transaction-cost parameter `0`, explicit zero-norm tau=0 and equal initial weights. | Existing source recipe, not a qualified reference execution or actual candidate admission. Algorithmic tc=0 is not a zero-cost execution assumption. |
 | Mathematical history | PR29 finite adaptation: inspect 253 closes; select newest 65 structurally calendar-compatible closes; chronological 64 adjacent exact relatives; initialize at the selected-history start. | Existing source only; excludes 188 closes from the mathematical history and is not full 252-relative fidelity. |
 | Representation | Existing positive ordinary decimal token domain of at most 32 characters; reject nonterminating/oversized ratios without rounding. Reserve relative literal `1` is a mathematical convention. | Real-input representability coverage UNKNOWN. Rejections cannot be dropped from a future opportunity register or replaced with synthetic/rounded values. |
@@ -146,10 +149,12 @@ the present planning disposition is reported here.
 
 | Proposed successor | Concrete output and prerequisite | Status / full remaining effort |
 | --- | --- | --- |
-| Consumer-admission contract decision | After the case claim is chosen, propose one typed versioned identity/history-versus-consumption/timing contract that keeps current legacy rejection and source/handling gates. Include the exact source delta and synthetic acceptance criteria before any implementation approval. | Conditional planning, not dispatched; claim choice and exact consumer behavior unresolved. Effort UNKNOWN. No new engine, capacity increase or implementation released. |
+| Consumer-admission contract decision | Under the selected engineering objective, prepare one proposed typed versioned identity/history-versus-consumption/timing contract that keeps current legacy rejection and source/handling gates. Resolve exact consumer behavior in that planning output and include the exact source delta and synthetic acceptance criteria before any implementation approval. | Ready for bounded contract planning only, not dispatched. Consumer behavior remains undecided; no implementation or operation is ready. Effort UNKNOWN. No new engine, capacity increase or implementation released. |
 | One finite qualification/evidence proposal | After actual custodian/interfaces and an applicable input/window/economic policy are identified, prepare one bounded operation or smallest supported evidence request with explicit inputs, output, recipients, lifetime, stops and acceptance. The case cannot qualify its own prerequisites. | HELD, not ready execution depth; supplier/profile/policy evidence absent. Preparation/execution effort and observation time UNKNOWN. No diagnostic/capture/campaign or held-route retry released. |
 
-Neither conditional item is counted as ready implementation or ready operation.
+Neither item is counted as ready implementation or ready operation. Only the
+contract-decision proposal is independently ready planning; the qualification
+proposal remains held on its stated supplier/policy prerequisites.
 No separate issue, duplicate assignment or new inference campaign is created.
 The Gelt source owner retains technical preparation; actual research/risk policy,
 runtime/handling and operating acceptors remain unassigned or unadmitted, not
@@ -157,11 +162,13 @@ silently delegated to a provider. Full remaining case planning/review, new sourc
 integration, qualification and observation effort is UNKNOWN; old estimates
 overlap and are not remaining-work totals.
 
-**Smallest owner question:** for this first case, choose engineering evidence-chain
-integrity (recommended) or economic strategy evaluation. This selects the claim
-to prepare, not an operating policy, threshold or permission to implement/run.
-The proposal can be documented and independently reviewed without that answer;
-the case itself cannot be accepted without its required decisions and authority.
+**Remaining decision boundary:** the engineering objective is selected, while the
+compatible consumer identity/ordinal/timing contract, future input window,
+actual suppliers, economics, adequacy and finite operation budget remain
+unresolved. This proposal can be documented and reviewed; the case cannot be
+accepted without its required facts, decisions and separately bounded authority.
+No new approval is requested merely to prepare the already-authorized contract
+decision proposal, and no implementation or execution is released by that planning.
 
 ## Documentation verification boundary
 
