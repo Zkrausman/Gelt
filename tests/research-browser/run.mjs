@@ -197,7 +197,7 @@ try {
   await loadDetail();
   await page.getByRole('link', { name: 'Workspace', exact: true }).click();
   await expect(page).toHaveURL('http://127.0.0.1:3000/');
-  await expect(page.getByRole('heading', { name: 'Order & execution workspace', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Evidence before execution.', exact: true })).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL('http://127.0.0.1:3000/research');
   await expect(page.getByRole('button', { name: 'Load research library' })).toBeEnabled();

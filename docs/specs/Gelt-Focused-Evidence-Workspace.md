@@ -184,3 +184,19 @@ retained, not relabeled. The local cap bounds process concurrency only and does
 not change test configuration, assertions or deadlines. Hosted CI's normal npm
 test command is unchanged and must independently pass; local bounded success is
 not a waiver of that gate. The precise host-contention cause is not established.
+
+## Hosted route correction after source review
+
+The first hosted PR run passed nominal V2 unit tests, build, offline smoke, Go
+and scientific checks. History browser acceptance passed its ten protected
+history stages, then failed while looking for disabled order controls on the
+old `/` route. The controls now live on `/orders`. Its final navigation
+is corrected to `/orders`. A bounded scan of the other browser consumers also
+found the research test still expecting the old root heading after its Workspace
+link. That expectation now matches the new evidence-home heading, preserving
+the same root navigation, back-navigation and protected evidence clearing. All
+control, disabled-capability, no-external-call,
+private fixture and cleanup assertions and deadlines remain unchanged. The
+failed hosted receipt is retained. This correction requires fresh independent
+and adversarial review, exact-head verification and every normal hosted gate;
+no rerun or prior source approval certifies the corrected head.

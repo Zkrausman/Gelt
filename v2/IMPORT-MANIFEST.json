@@ -3352,7 +3352,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/running-next-history-acceptance.mjs",
-      "sha256": "3a89990d6d567826ba3a814805b937d85cad550f75466a50a913e082c5586e85",
+      "sha256": "11de44394dbdfbdab71eeafa4bbb7b4048514b903e26bad69bfec008d45973ed",
       "reason": "Gelt ZAR-218 synthetic offline running browser history acceptance with bounded startup diagnostics"
     },
     {

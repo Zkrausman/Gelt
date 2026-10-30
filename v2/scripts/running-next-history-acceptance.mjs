@@ -515,7 +515,7 @@ try {
   assert.equal(capability.status, 200);
   assert.deepEqual(capability.value, { version: 'v1', mode: 'disabled', execution: false, preview: false, confirmation: false, dispatch: false, cancellation: false, reconciliation: false, reason: 'production_adapter_unsupported' });
   assert.equal(await evaluate(`fetch('/api/connection/confirm', { method:'POST', headers:{'Content-Type':'application/json','X-Gelt-CSRF':sessionStorage.getItem('gelt-csrf')}, body:'{}' }).then(response=>response.status)`), 404);
-  await cdp.send('Page.navigate', { url: 'http://127.0.0.1:3000/' });
+  await cdp.send('Page.navigate', { url: 'http://127.0.0.1:3000/orders' });
   await wait(() => query(`[...document.querySelectorAll('button')].some(button=>button.textContent.trim() === 'Request fresh exact preview — unavailable')`), 'disabled order controls');
   assert.deepEqual(await query(`[...document.querySelectorAll('button')].filter(button => /^(Request fresh exact preview|Confirm exact terms|Request cancel)/.test(button.textContent.trim())).map(button => ({ label:button.textContent.trim(),disabled:button.disabled }))`), [
     { label: 'Request fresh exact preview — unavailable', disabled: true },
