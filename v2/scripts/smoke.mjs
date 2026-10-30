@@ -8,6 +8,8 @@ import { readPrivate } from '../worker/dist/private-files.js';
 import { storageFixture } from '../worker/dist/storage-fixture.js';
 import { launch, ready, root, childEnvironment } from './runtime.mjs';
 import { capabilitiesSchema, healthSchema } from '../worker/dist/contract.js';
+import { verifyAgentDataCommands } from './agent-data-conformance.mjs';
+verifyAgentDataCommands();
 let group = launch();
 let interrupted = false;
 for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { interrupted = true; process.exitCode = 1; void group.stop(); });
