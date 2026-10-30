@@ -1,4 +1,7 @@
 import { expect, it } from 'vitest';
+import { Readable, Writable } from 'node:stream';
+import { executePAMRProposalCommand, pamrProposalCommand } from './pamr-proposal-command.js';
+import { runPAMRProposalCLI } from './pamr-proposal-cli.js';
 import { canonical, digest } from './ledger-canonical.js';
 import { convertPAMR } from './pamr-reference-artifact.js';
 import { pamrRecipe } from './paper-conversion-contract.js';
@@ -118,4 +121,47 @@ it('rejects malformed public input and output boundaries without leaking source 
   expect(proposePAMRConsumer('{"private":"sentinel","private":1}')).toEqual({ status: 'rejected', reason: 'invalid_input' });
   const v = fixture(); expect(matchesPAMRConsumerProposal(canonical(v), {})).toBe(false);
   expect(proposePAMRConsumer(canonical({ ...v, unexpected: true })).status).toBe('rejected');
+});
+
+
+it('exposes real constructed proposal computation and whole-input verification through the agent entry', async () => {
+  const input = fixture(), inputText = canonical(input), expected = proposal(input);
+  const request = (operation: 'propose' | 'verify', proposalText?: string) => canonical({
+    schema: pamrProposalCommand.requestSchema, operation, inputText,
+    ...(proposalText === undefined ? {} : { proposalText }),
+  });
+  const result = executePAMRProposalCommand(request('propose'));
+  expect(result.exitCode).toBe(0);
+  expect(JSON.parse(result.text)).toMatchObject({ status: 'proposal_data', classification: 'constructed_offline_test',
+    effectAuthority: 'none', dispatchAllowed: false, promotionAllowed: false, consumption: 'not_performed',
+    authenticity: 'not_established', qualification: 'NOT_READY', production: 'CLOSED', operations: 'DEFER', value: expected });
+  const verified = executePAMRProposalCommand(request('verify', canonical(expected)));
+  expect(verified.exitCode).toBe(0);
+  expect(JSON.parse(verified.text)).toMatchObject({ status: 'verified_proposal_data', proposalId: expected.proposalId, outcome: expected.action.outcome });
+  const chunks: Buffer[] = [], output = new Writable({ write(b, _e, done) { chunks.push(Buffer.from(b)); done(); } });
+  expect(await runPAMRProposalCLI([], Readable.from([Buffer.from(request('propose'))]), output)).toBe(0);
+  expect(Buffer.concat(chunks).toString('utf8')).toBe(result.text);
+  const forged = JSON.parse(canonical(expected)); forged.action.quantity.value = '9';
+  expect(JSON.parse(executePAMRProposalCommand(request('verify', canonical(forged))).text)).toMatchObject({ status: 'rejected', reason: 'proposal_mismatch' });
+  for (const proposalText of [canonical(expected).replace('"policyId":', '"policyId":"invalid","policyId":'), '{}', ' '.repeat(8192)]) {
+    expect(executePAMRProposalCommand(request('verify', proposalText)).exitCode).toBe(2);
+  }
+  expect(JSON.parse(executePAMRProposalCommand(request('verify', ' '.repeat(8193))).text).reason).toBe('resource_limit');
+});
+
+it('preserves bound-input rejection, UNKNOWN and unsupported sizing across the agent proposal boundary', () => {
+  const command = (v: PAMRConsumerInput) => executePAMRProposalCommand(canonical({ schema: pamrProposalCommand.requestSchema, operation: 'propose', inputText: canonical(v) }));
+  for (const key of Object.keys(fixture().binding)) {
+    const v = fixture(); (v.binding as Record<string, unknown>)[key] = key === 'ordinal' ? 1 : '0'.repeat(64);
+    expect(command(v).exitCode).toBe(2);
+  }
+  const unknown = fixture(); unknown.inputPortfolioUnknown = true;
+  expect(JSON.parse(command(unknown).text).value.action).toMatchObject({ outcome: 'abstain', reason: 'decision_abstain', side: null, quantity: null });
+  const overweight = fixture(undefined, '15', '4.99'); overweight.observation.referencePrice = d('2');
+  overweight.binding.observationSha256 = hash('gelt.pamr-consumer.observation.v1', overweight.observation);
+  expect(JSON.parse(command(overweight).text).value.action).toMatchObject({ outcome: 'abstain', reason: 'positive_target_overweight_unsupported', side: null });
+  const malformed = fixture(); malformed.artifactText = artifactText([['1', '1']], ['SYNTH-OTHER', 'SYNTH-RESERVE']);
+  expect(command(malformed).exitCode).toBe(2);
+  const privacy = fixture(); privacy.observation = { ...privacy.observation, extra: '/private/SENTINEL' } as any;
+  const denied = command(privacy); expect(denied.exitCode).toBe(2); expect(denied.text).not.toContain('/private/SENTINEL');
 });

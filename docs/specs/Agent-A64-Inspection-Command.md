@@ -93,7 +93,10 @@ persistence and execution authority.
 - `v2/worker/src/a64-inspection-command.ts`: fixed capability/response envelope,
   direct whole-input assessor invocation and response-byte bound.
 - `v2/worker/src/a64-inspection-cli.ts`: finite stdin/stdout transport and compiled
-  entry point; importing the module does not start the CLI.
+  entry point; importing the module does not start the CLI. The subsequent
+  [constructed PAMR command](Agent-Constructed-PAMR-Proposal-Command.md) shares
+  the same finite I/O implementation through `bounded-data-stdio.ts`; A64 wire
+  identities, limits, assessor and error-lifecycle guarantees remain unchanged.
 - `v2/worker/src/a64-inspection-command.test.ts`: discovery, arguments, duplicate/
   legacy/multiple JSON, exact resource boundaries, invalid/split UTF-8, input
   timeout/error/close and output error/timeout/once-only failure tests.
