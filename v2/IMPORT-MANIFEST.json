@@ -4418,7 +4418,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/bounded-data-stdio.ts",
-      "sha256": "ffa9a71b97dce2f62f071a80cbd7d5a13140850ab58ba977843328db57fed764",
+      "sha256": "0f2d63b6ffdce15d8d3c045fee97ee0b85b72d9c9672809f7bd726f7d095c5de",
       "reason": "Gelt fixed constructed-PAMR agent data interface and shared bounded stdio/tests; no execution authority."
     },
     {
