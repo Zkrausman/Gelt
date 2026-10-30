@@ -2560,7 +2560,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/smoke.mjs",
-      "sha256": "a604fa7890e76dfab8f3f7f8631384d2e9b39f7894185021fddc051b3d744567",
+      "sha256": "cead410741a5d5bfa0e1c8d296e1f561880f8a7718b35f329a98d9a3b843dd2f",
       "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
     },
     {
@@ -4484,6 +4484,22 @@
       "path": "worker/src/prospective-declaration-contract.ts",
       "sha256": "0bee5dc6da9fc197814419324bb8da3cb17a7040dea9f49c1a983f6fc0d32e76",
       "reason": "Gelt bounded prospective declaration preflight and tests; unadmitted data only, no actual profile or execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/agent-data-conformance.mjs",
+      "sha256": "cf6a937cd48d3fa2dfab89ba3d53685ac0e16e09a097b64aedd9f1c306febede",
+      "reason": "Gelt offline compiled agent-data command conformance and response fixtures; no product execution or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/agent-data-response-fixtures.json",
+      "sha256": "0d7fff371d9a9f13ce427c2cb48dca2596f488c54c6aa94ef4adaa54687101e9",
+      "reason": "Gelt offline compiled agent-data command conformance and response fixtures; no product execution or operating authority."
     }
   ],
   "retiredLocalEntries": []

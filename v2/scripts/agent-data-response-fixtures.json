@@ -1,0 +1,443 @@
+{
+  "schema": "gelt.test.agent-data-command-responses.v1",
+  "sourceReviewedHead": "fd283ffd003a214e438e3f13bd276d1f12b234a5",
+  "sourceMergedCommit": "99119c5bca7e6756ed9d50095d23259b526b2b18",
+  "meaning": "Accepted offline data-command response fixtures, not market data, authenticity, qualification or operating evidence. Case modes select fixed test inputs; fixture values cannot configure executors, limits or exit expectations.",
+  "cases": [
+    {
+      "entry": "a64-inspection-cli.js",
+      "mode": "capability",
+      "response": {
+        "C07": "UNKNOWN",
+        "C13": "UNKNOWN",
+        "C14": "UNKNOWN",
+        "artifactBytes": 180000,
+        "caseReadiness": "NOT_READY",
+        "command": "assess_a64_inspection_evidence",
+        "consumptionAttempts": 0,
+        "contextBytes": 8192,
+        "dispatchAllowed": false,
+        "effectAuthority": "none",
+        "filesystemAccess": false,
+        "historyUpdates": 64,
+        "inputBytes": 262144,
+        "inputEncoding": "one_complete_utf8_json_document",
+        "inputSchema": "gelt.pamr-a64-inspection-evidence-input.v1",
+        "networkAccess": false,
+        "operationalDecisions": 0,
+        "operations": "DEFER",
+        "outputBytes": 8192,
+        "outputMeaning": "data_consistency_only_not_authenticity_or_admission",
+        "persistence": "not_performed",
+        "persistenceEffects": false,
+        "production": "CLOSED",
+        "promotionAllowed": false,
+        "prospectiveReadiness": "NOT_READY",
+        "qualification": "NOT_READY",
+        "schema": "gelt.agent.a64-inspection-capability.v1",
+        "transport": {
+          "inputChunks": 4096,
+          "inputTimeoutMs": 5000,
+          "outputTimeoutMs": 5000
+        }
+      }
+    },
+    {
+      "entry": "a64-inspection-cli.js",
+      "mode": "invalid_input",
+      "response": {
+        "C07": "UNKNOWN",
+        "C13": "UNKNOWN",
+        "C14": "UNKNOWN",
+        "command": "assess_a64_inspection_evidence",
+        "dispatchAllowed": false,
+        "effectAuthority": "none",
+        "operations": "DEFER",
+        "production": "CLOSED",
+        "promotionAllowed": false,
+        "qualification": "NOT_READY",
+        "reason": "invalid_input",
+        "schema": "gelt.agent.a64-inspection-response.v1",
+        "status": "rejected"
+      }
+    },
+    {
+      "entry": "a64-inspection-cli.js",
+      "mode": "usage",
+      "response": {
+        "C07": "UNKNOWN",
+        "C13": "UNKNOWN",
+        "C14": "UNKNOWN",
+        "command": "assess_a64_inspection_evidence",
+        "dispatchAllowed": false,
+        "effectAuthority": "none",
+        "operations": "DEFER",
+        "production": "CLOSED",
+        "promotionAllowed": false,
+        "qualification": "NOT_READY",
+        "reason": "usage_error",
+        "schema": "gelt.agent.a64-inspection-response.v1",
+        "status": "rejected"
+      }
+    },
+    {
+      "entry": "pamr-proposal-cli.js",
+      "mode": "capability",
+      "response": {
+        "C07": "UNKNOWN",
+        "C13": "UNKNOWN",
+        "C14": "UNKNOWN",
+        "artifactBytes": 180000,
+        "authenticity": "not_established",
+        "classification": "constructed_offline_test",
+        "command": "constructed_pamr_proposal_data",
+        "consumerSchema": "gelt.pamr-consumer-input.v1",
+        "consumption": "not_performed",
+        "dataOperations": [
+          "propose",
+          "verify"
+        ],
+        "dispatchAllowed": false,
+        "effectAuthority": "none",
+        "inputBytes": 262144,
+        "meaning": "hypothetical_data_consistency_not_account_risk_or_execution_approval",
+        "operations": "DEFER",
+        "outputBytes": 8192,
+        "policyId": "gelt.pamr-risk-reserve-quarter-floor18.v1",
+        "production": "CLOSED",
+        "promotionAllowed": false,
+        "proposalBytes": 8192,
+        "qualification": "NOT_READY",
+        "requestSchema": "gelt.agent.constructed-pamr-request.v1",
+        "schema": "gelt.agent.constructed-pamr-capability.v1",
+        "transport": {
+          "inputChunks": 4096,
+          "inputTimeoutMs": 5000,
+          "outputTimeoutMs": 5000
+        }
+      }
+    },
+    {
+      "entry": "pamr-proposal-cli.js",
+      "mode": "invalid_input",
+      "response": {
+        "C07": "UNKNOWN",
+        "C13": "UNKNOWN",
+        "C14": "UNKNOWN",
+        "authenticity": "not_established",
+        "classification": "constructed_offline_test",
+        "command": "constructed_pamr_proposal_data",
+        "consumption": "not_performed",
+        "dispatchAllowed": false,
+        "effectAuthority": "none",
+        "operations": "DEFER",
+        "production": "CLOSED",
+        "promotionAllowed": false,
+        "qualification": "NOT_READY",
+        "reason": "invalid_input",
+        "schema": "gelt.agent.constructed-pamr-response.v1",
+        "status": "rejected"
+      }
+    },
+    {
+      "entry": "pamr-proposal-cli.js",
+      "mode": "usage",
+      "response": {
+        "C07": "UNKNOWN",
+        "C13": "UNKNOWN",
+        "C14": "UNKNOWN",
+        "authenticity": "not_established",
+        "classification": "constructed_offline_test",
+        "command": "constructed_pamr_proposal_data",
+        "consumption": "not_performed",
+        "dispatchAllowed": false,
+        "effectAuthority": "none",
+        "operations": "DEFER",
+        "production": "CLOSED",
+        "promotionAllowed": false,
+        "qualification": "NOT_READY",
+        "reason": "usage_error",
+        "schema": "gelt.agent.constructed-pamr-response.v1",
+        "status": "rejected"
+      }
+    },
+    {
+      "entry": "prospective-declaration-cli.js",
+      "mode": "capability",
+      "response": {
+        "C07": "UNKNOWN",
+        "C13": "UNKNOWN",
+        "C14": "UNKNOWN",
+        "authentication": "not_established",
+        "calendarCompatibility": "unknown",
+        "caseReadiness": "NOT_READY",
+        "classification": "unadmitted_prospective_declaration_only",
+        "command": "preflight_a64_prospective_declaration",
+        "consumptionAttempts": 0,
+        "declarationBytes": 8192,
+        "dispatchAllowed": false,
+        "effectAuthority": "none",
+        "filesystemInput": false,
+        "historyUpdates": 0,
+        "inputBytes": 262144,
+        "inputSchema": "gelt.agent.a64-prospective-declaration-input.v1",
+        "meaning": "supplied_declaration_consistency_not_actual_evidence_or_profile_admission",
+        "networkAccess": false,
+        "operationalDecisions": 0,
+        "operations": "DEFER",
+        "outputBytes": 8192,
+        "persistence": "not_performed",
+        "predecessorScope": "one_complete_initial_declaration_only_not_actual_history",
+        "production": "CLOSED",
+        "profileAdmission": "not_established",
+        "promotionAllowed": false,
+        "qualification": "NOT_READY",
+        "schema": "gelt.agent.a64-prospective-declaration-capability.v1",
+        "sessionMeaning": "proposed_date_labels_not_qualified_market_sessions",
+        "transport": {
+          "inputChunks": 4096,
+          "inputTimeoutMs": 5000,
+          "outputTimeoutMs": 5000
+        }
+      }
+    },
+    {
+      "entry": "prospective-declaration-cli.js",
+      "mode": "invalid_input",
+      "response": {
+        "C07": "UNKNOWN",
+        "C13": "UNKNOWN",
+        "C14": "UNKNOWN",
+        "actualChecks": [
+          {
+            "id": "C01_ISSUANCE",
+            "result": "unknown"
+          },
+          {
+            "id": "C02_PAGE_BYTES",
+            "result": "unknown"
+          },
+          {
+            "id": "C03_REQUEST_CURSOR",
+            "result": "unknown"
+          },
+          {
+            "id": "C04_ROWS_DECIMALS",
+            "result": "unknown"
+          },
+          {
+            "id": "C05_OBSERVATIONS",
+            "result": "unknown"
+          },
+          {
+            "id": "C06_RECEIPT",
+            "result": "unknown"
+          },
+          {
+            "id": "C07_CLOSURE_REVISIONS",
+            "result": "unknown"
+          },
+          {
+            "id": "C08_CALENDAR",
+            "result": "unknown"
+          },
+          {
+            "id": "C09_AVAILABILITY",
+            "result": "unknown"
+          },
+          {
+            "id": "C10_CONTEXT_POLICY",
+            "result": "unknown"
+          },
+          {
+            "id": "C11_CANDIDATE",
+            "result": "unknown"
+          },
+          {
+            "id": "C12_AUTHORITY_FENCES",
+            "result": "unknown"
+          },
+          {
+            "id": "C13_REVIEWER_ADMISSION",
+            "result": "unknown"
+          },
+          {
+            "id": "C14_HANDLING",
+            "result": "unknown"
+          },
+          {
+            "id": "C15_LIFECYCLE",
+            "result": "unknown"
+          },
+          {
+            "id": "C16_IMMUTABILITY",
+            "result": "unknown"
+          }
+        ],
+        "actualFacts": {
+          "RCurrentCImmutableE": "unknown",
+          "actualOriginalIssuance": "unknown",
+          "actualSupplier": "unknown",
+          "calendarCompletion": "unknown",
+          "causalAvailability": "unknown",
+          "clockAuthentication": "unknown",
+          "currentOriginalValidity": "unknown",
+          "economicPolicy": "unknown",
+          "handling": "unknown",
+          "inputRights": "unknown",
+          "lifecycleState": "unknown",
+          "observationPolicy": "unknown",
+          "ownAcknowledgement": "unknown",
+          "ownerAdmission": "unknown",
+          "privateCompletion": "unknown",
+          "prospectiveProfileAdmission": "unknown",
+          "providerCompletion": "unknown",
+          "providerRevisionCoherence": "unknown",
+          "releaseSettlement": "unknown",
+          "reviewerAdmission": "unknown"
+        },
+        "authentication": "not_established",
+        "calendarCompatibility": "unknown",
+        "caseReadiness": "NOT_READY",
+        "classification": "unadmitted_prospective_declaration_only",
+        "command": "preflight_a64_prospective_declaration",
+        "consumptionAttempts": 0,
+        "dispatchAllowed": false,
+        "effectAuthority": "none",
+        "filesystemInput": false,
+        "historyUpdates": 0,
+        "meaning": "supplied_declaration_consistency_not_actual_evidence_or_profile_admission",
+        "networkAccess": false,
+        "operationalDecisions": 0,
+        "operations": "DEFER",
+        "persistence": "not_performed",
+        "production": "CLOSED",
+        "profileAdmission": "not_established",
+        "promotionAllowed": false,
+        "qualification": "NOT_READY",
+        "reason": "invalid_input",
+        "schema": "gelt.agent.a64-prospective-declaration-response.v1",
+        "status": "rejected_input"
+      }
+    },
+    {
+      "entry": "prospective-declaration-cli.js",
+      "mode": "usage",
+      "response": {
+        "C07": "UNKNOWN",
+        "C13": "UNKNOWN",
+        "C14": "UNKNOWN",
+        "actualChecks": [
+          {
+            "id": "C01_ISSUANCE",
+            "result": "unknown"
+          },
+          {
+            "id": "C02_PAGE_BYTES",
+            "result": "unknown"
+          },
+          {
+            "id": "C03_REQUEST_CURSOR",
+            "result": "unknown"
+          },
+          {
+            "id": "C04_ROWS_DECIMALS",
+            "result": "unknown"
+          },
+          {
+            "id": "C05_OBSERVATIONS",
+            "result": "unknown"
+          },
+          {
+            "id": "C06_RECEIPT",
+            "result": "unknown"
+          },
+          {
+            "id": "C07_CLOSURE_REVISIONS",
+            "result": "unknown"
+          },
+          {
+            "id": "C08_CALENDAR",
+            "result": "unknown"
+          },
+          {
+            "id": "C09_AVAILABILITY",
+            "result": "unknown"
+          },
+          {
+            "id": "C10_CONTEXT_POLICY",
+            "result": "unknown"
+          },
+          {
+            "id": "C11_CANDIDATE",
+            "result": "unknown"
+          },
+          {
+            "id": "C12_AUTHORITY_FENCES",
+            "result": "unknown"
+          },
+          {
+            "id": "C13_REVIEWER_ADMISSION",
+            "result": "unknown"
+          },
+          {
+            "id": "C14_HANDLING",
+            "result": "unknown"
+          },
+          {
+            "id": "C15_LIFECYCLE",
+            "result": "unknown"
+          },
+          {
+            "id": "C16_IMMUTABILITY",
+            "result": "unknown"
+          }
+        ],
+        "actualFacts": {
+          "RCurrentCImmutableE": "unknown",
+          "actualOriginalIssuance": "unknown",
+          "actualSupplier": "unknown",
+          "calendarCompletion": "unknown",
+          "causalAvailability": "unknown",
+          "clockAuthentication": "unknown",
+          "currentOriginalValidity": "unknown",
+          "economicPolicy": "unknown",
+          "handling": "unknown",
+          "inputRights": "unknown",
+          "lifecycleState": "unknown",
+          "observationPolicy": "unknown",
+          "ownAcknowledgement": "unknown",
+          "ownerAdmission": "unknown",
+          "privateCompletion": "unknown",
+          "prospectiveProfileAdmission": "unknown",
+          "providerCompletion": "unknown",
+          "providerRevisionCoherence": "unknown",
+          "releaseSettlement": "unknown",
+          "reviewerAdmission": "unknown"
+        },
+        "authentication": "not_established",
+        "calendarCompatibility": "unknown",
+        "caseReadiness": "NOT_READY",
+        "classification": "unadmitted_prospective_declaration_only",
+        "command": "preflight_a64_prospective_declaration",
+        "consumptionAttempts": 0,
+        "dispatchAllowed": false,
+        "effectAuthority": "none",
+        "filesystemInput": false,
+        "historyUpdates": 0,
+        "meaning": "supplied_declaration_consistency_not_actual_evidence_or_profile_admission",
+        "networkAccess": false,
+        "operationalDecisions": 0,
+        "operations": "DEFER",
+        "persistence": "not_performed",
+        "production": "CLOSED",
+        "profileAdmission": "not_established",
+        "promotionAllowed": false,
+        "qualification": "NOT_READY",
+        "reason": "usage_error",
+        "schema": "gelt.agent.a64-prospective-declaration-response.v1",
+        "status": "rejected_input"
+      }
+    }
+  ]
+}
