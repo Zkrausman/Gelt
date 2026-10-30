@@ -4,6 +4,38 @@ title: Gelt Strategic Roadmap 🪙
 ---
 # Gelt Strategic Roadmap 🪙
 
+## Agent-first source delivery queue (2026-10-30; operations held)
+
+The owner commissioned roadmap extension **and continued implementation** toward
+agent-first automation. This supersedes older absence-of-implementation-authority
+statements below only for bounded source work under this commission. It does not
+release acquisition, actual qualification/campaigns, credentials, financial
+actions or live promotion. Agent analysis/proposals stay separate from
+deterministic validation/risk constraints and auditable execution interfaces.
+The focused human UI supports oversight and intervention; charts remain deferred
+unless they serve a concrete decision or explanation. [PR34](https://github.com/Zkrausman/Gelt/pull/34)
+delivered that focused UI; it is not a new implementation task.
+
+| Source outcome / state | Useful output and dependencies | Acceptance / tentative full effort |
+| --- | --- | --- |
+| **In progress: agent inspection command** | [One bounded stdin/JSON command](specs/Agent-A64-Inspection-Command.md) over the shipped whole-input assessor, including discovery, stable reasons/exit statuses and no effects. Reuses PR33 rather than another inference or engine. | Whole-input recomputation, exact existing limits, malformed/forged/unknown/resource/transport/privacy tests; independent and adversarial review, exact-head local/hosted checks and ordinary delivery. Estimated 8–14 human-equivalent engineering hours. |
+| **Dependency-ordered source successor: bounded proposal validation** | Expose only the reusable pure PAMR/G05 proposal/sizing path to an agent: explicit input/candidate/policy/units/fee/cap bindings and structured rejection. Depends on first delivery and exact existing-interface reuse; stop on a broader mismatch. No order, lifecycle or provider activation. | Exact integer/decimal oracle and boundary families, forged/stale/UNKNOWN and unsupported reduction/multi-asset rejection, zero authority escalation; full review/test/delivery loop. Estimated 12–20 human-equivalent engineering hours. |
+| **Source successor requiring exact contract binding: prospective identity validation** | Use the existing private prospective-window/revision decision to implement bounded validation of explicit caller-supplied purpose/revision/time-ordering and missing-evidence reasons. Keep historical identity separate; do not invent a supplier, market calendar, date, freshness threshold or policy. | Rebinding/late/corrected/incomplete/contradictory cases cannot promote; unknown actual evidence stays unknown; bounded full review/test/delivery. Estimated 12–20 human-equivalent engineering hours, conditional on narrow interface reuse. |
+
+These are tentative full source-engineering estimates, including tests, review,
+fixes, integration and delivery—not measured agent elapsed time, a promise of
+48-hour concurrent activity or observation coverage. Gelt contributes this queue
+to the owner's cross-service work horizon; the parent coordinates the other
+services. Dependency-ordered/proposed successors do not count as independently
+ready jobs. Each is narrowed against the delivered source before execution; no
+extra engine, paid service, benchmark or inference campaign is implied.
+
+Actual supplier/rights, calendar/availability/completion/revision evidence,
+runtime/handling/reviewer qualification, operating/economic policy and actual
+shadow/paper/live outcomes remain separate gates. Qualification NOT_READY,
+production CLOSED, operations DEFER and C07/C13/C14 UNKNOWN remain. No source
+fixture, machine-readable assessment or deadline establishes trading readiness.
+
 ## Focused Gelt workspace (2026-10-29; source delivery revision)
 
 The owner's explicit simplification direction supersedes the earlier preference

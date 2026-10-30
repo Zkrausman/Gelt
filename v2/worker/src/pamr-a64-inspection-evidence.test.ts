@@ -1,4 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
+import { Readable, Writable } from 'node:stream';
+import { executeA64InspectionCommand } from './a64-inspection-command.js';
+import { runA64InspectionCLI } from './a64-inspection-cli.js';
 import { canonical, digest } from './ledger-canonical.js';
 import { checkIds } from './alpaca-byte-review-contract.js';
 import {
@@ -674,4 +677,25 @@ it('rejects an availability assertion preceding the rebound artifact review comp
   rejected(pack(artifact, context));
   context.timing.assertedCompleteInputAvailableAt = artifact.request.lineage.review.completedAt;
   expect(assessed(pack(artifact, context)).facts.causalAvailability).toBe('unknown');
+});
+
+it('exposes the real whole-input assessment through the agent command and stdin transport without authority or raw input', async () => {
+  const f = fixture();
+  const command = executeA64InspectionCommand(f.text);
+  expect(command.exitCode).toBe(0);
+  const value = JSON.parse(command.text);
+  expect(value.value).toEqual(assessed(f.text));
+  expect(value).toMatchObject({ status: 'assessed_data', effectAuthority: 'none', dispatchAllowed: false, promotionAllowed: false, qualification: 'NOT_READY', production: 'CLOSED', operations: 'DEFER' });
+  expect(value.value).toMatchObject(a64InspectionEvidenceHolds);
+  expect(Buffer.byteLength(command.text)).toBeLessThanOrEqual(8192);
+  expect(command.text).not.toContain(epoch);
+  expect(command.text).not.toContain('artifactText');
+  expect(command.text).not.toContain('contextText');
+  const chunks: Buffer[] = [], output = new Writable({ write(b, _e, done) { chunks.push(Buffer.from(b)); done(); } });
+  const bytes = Buffer.from(f.text);
+  expect(await runA64InspectionCLI([], Readable.from([bytes.subarray(0, 17), bytes.subarray(17)]), output)).toBe(0);
+  expect(Buffer.concat(chunks).toString('utf8')).toBe(command.text);
+  const forged = pack(f.artifact, { ...f.context, bindings: { ...f.context.bindings, artifactSha256: otherHash } });
+  expect(executeA64InspectionCommand(forged).exitCode).toBe(2);
+  expect(JSON.parse(executeA64InspectionCommand(forged).text)).toMatchObject({ status: 'rejected', reason: 'binding_mismatch', dispatchAllowed: false });
 });

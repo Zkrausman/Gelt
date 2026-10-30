@@ -4338,7 +4338,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/pamr-a64-inspection-evidence.test.ts",
-      "sha256": "ae9466769e6f7a97d88ef0848f289e0ec78ee6e973580a68c82d66885a81812e",
+      "sha256": "ed43a59c3d1c01a5a3ae053bc6164e1c82ebf8b39f8f4f6d14e3dc542074ee4c",
       "reason": "Bounded pure A64 inspection-evidence assessor; inert data only, no owner or operating admission"
     },
     {
@@ -4388,6 +4388,30 @@
       "path": "web/lib/orders-credential.test.ts",
       "sha256": "c0f47797c3cf6eb1d7499cb10b98dde05d17e3c4e14675c5c0133d733c9907ef",
       "reason": "Gelt UI stripdown: real component credential-change and delayed-response privacy regressions"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-inspection-cli.ts",
+      "sha256": "557bdefc803002caaaab2f4ba233d6e486ae544b6ca340852f893fd4a234c820",
+      "reason": "Gelt agent-first bounded read-only A64 assessment command/transport and synthetic boundary tests; no operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-inspection-command.test.ts",
+      "sha256": "98261e37b12142a870e98a7ce144df9765d13dffdc7791df40e6c3bf64f80a60",
+      "reason": "Gelt agent-first bounded read-only A64 assessment command/transport and synthetic boundary tests; no operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-inspection-command.ts",
+      "sha256": "916067b54cd4bb9d65fca3fe7584b9e84dc6f26f9333d9d06e312711f58c5c5e",
+      "reason": "Gelt agent-first bounded read-only A64 assessment command/transport and synthetic boundary tests; no operating authority."
     }
   ],
   "retiredLocalEntries": []
