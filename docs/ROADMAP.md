@@ -4,6 +4,20 @@ title: Gelt Strategic Roadmap 🪙
 ---
 # Gelt Strategic Roadmap 🪙
 
+## Focused Gelt workspace (2026-10-29; source delivery revision)
+
+The owner's explicit simplification direction supersedes the earlier preference
+for a general OpenTerminal-style surface. Reuse Gelt's existing Next.js application
+for candidate/evidence → readiness boundaries → recorded results; keep protected
+research, history, owner session and disabled order/status controls. Remove the
+unused widget/terminal surface and exclusive dependencies while preserving
+required derived-code attribution and history. See the
+[focused workspace specification](specs/Gelt-Focused-Evidence-Workspace.md).
+This is UI/source simplification, not automatic conversion, data acquisition,
+prospective-case admission, runtime qualification or a trading release.
+NOT_READY/CLOSED/DEFER and C07/C13/C14 UNKNOWN remain. Existing dated roadmap
+material below is preserved as history, not a new terminal maintenance mandate.
+
 ## Prospective evaluation protocol preparation (2026-10-28; documentation only)
 
 [PR29](https://github.com/Zkrausman/Gelt/pull/29) shipped the finite inert SPY253/PAMR

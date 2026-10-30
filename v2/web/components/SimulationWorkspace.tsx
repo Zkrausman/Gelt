@@ -1,7 +1,6 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import { useTerminal } from '../store/terminal';
-import { simulationPanels, type RecordedSimulation } from '../../worker/src/simulation-view-contract';
+import React, { useEffect, useRef, useState } from 'react';
+import { simulationPanels, type SimulationPanel, type RecordedSimulation } from '../../worker/src/simulation-view-contract';
 import { SimulationRequests, SimulationReadError, requestSimulation } from '../lib/simulation-requests';
 
 const factLabels: Record<string, string> = {
@@ -14,8 +13,7 @@ const factLabels: Record<string, string> = {
 };
 
 export default function SimulationWorkspace() {
-  const selectedPanel = useTerminal(s => s.simulationPanel);
-  const panel = simulationPanels.includes(selectedPanel) ? selectedPanel : 'run';
+  const [panel, setPanel] = useState<SimulationPanel>('run');
   const requests = useRef(new SimulationRequests());
   const csrfRef = useRef('');
   const expiryRef = useRef<{ at: number; csrf: string } | null>(null);
@@ -57,8 +55,8 @@ export default function SimulationWorkspace() {
       if (error instanceof SimulationReadError && error.sessionDenied) { setItems([]); setSelected(''); setExpires(null); expiryRef.current = null; forgetCurrentSession(read.csrf); setMessage('Viewer session expired or unavailable. Recorded data cleared.'); }
     } finally { if (requests.current.finish(read)) setBusy(false); }
   }
-  return <section className="p-4 space-y-4" aria-label="Recorded simulation workspace">
-    <h1 className="text-xl amber">Simulation terminal</h1>
+  return <main className="gelt-recorded p-4 space-y-4" aria-label="Recorded simulation workspace">
+    <h1 className="text-xl amber">Recorded simulation results</h1>
     <p>Recorded synthetic application-mock fixtures · no real brokerage, market feed, agent session or trading controls.</p>
     <div className="flex flex-wrap gap-3 items-center">
       <button className="term-btn" disabled={!signedIn || busy} onClick={() => void load('simulation-list')}>Load recorded runs</button>
@@ -68,8 +66,9 @@ export default function SimulationWorkspace() {
       <a href="/connect" className="amber">Open viewer session</a>
     </div>
     <p role="status">{message}</p>
-    <div className="terminal-panel min-h-64" aria-busy={busy}>
-      <div className="panel-title"><strong>{panel.toUpperCase()}</strong><span>RECORDED / SYNTHETIC</span></div>
+    <nav aria-label="Simulation panels" className="gelt-panels">{simulationPanels.map(item => <button key={item} type="button" aria-pressed={panel === item} onClick={() => setPanel(item)}>{item}</button>)}</nav>
+    <div className="gelt-result-panel min-h-64" aria-busy={busy}>
+      <div className="gelt-result-title"><strong>{panel.toUpperCase()}</strong><span>RECORDED / SYNTHETIC</span></div>
       <div className="p-4 space-y-3 overflow-auto">
         {!run ? <p>No recorded run selected. Protected data is cleared while loading or unavailable.</p> : <>
           <p className="dim">{run.label} · recorded {run.recordedAt} · view ID {run.id}</p>
@@ -83,5 +82,5 @@ export default function SimulationWorkspace() {
         </>}
       </div>
     </div>
-  </section>;
+  </main>;
 }

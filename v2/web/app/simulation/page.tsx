@@ -1,3 +1,2 @@
-'use client';
-import Terminal from '../../components/Terminal';
-export default function SimulationPage() { return <Terminal simulation />; }
+import SimulationWorkspace from '../../components/SimulationWorkspace';
+export default function SimulationPage() { return <SimulationWorkspace />; }

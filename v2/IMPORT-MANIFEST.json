@@ -40,8 +40,8 @@
       "upstreamSha256": "badaa00acc49135a2c1654b02f3c2956905dc170d9a9182fc2cc2001dde8a83f",
       "status": "modified",
       "path": "README.md",
-      "sha256": "923711080310bb70ca6344238d246498fdbb7e50f1dcb95cc0edb34c9475c144",
-      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-216 offline M5 boundary"
+      "sha256": "9fd77cbce424780256a8aae9eb80c85a07e0a0ad86acfad18e7363eeb1edd776",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": "data/readme.md",
@@ -104,16 +104,16 @@
       "upstreamSha256": "ea53b5ddb62cf7f8180bc81ae72e4d00b81e7fe8e127926cbf728f528f5a3f87",
       "status": "modified",
       "path": "package-lock.json",
-      "sha256": "b2330e24bd86f36757c260541d1cbd9d585da46f6de92312a3ead82ac1ba4945",
-      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+      "sha256": "637637be00aeeb761237b84b67498703bd68d54ffb9d869b5fcb5a073f83d31e",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": "package.json",
       "upstreamSha256": "f1ef5a54ea2d8e887c6c0ebad56470329c5aba43e310c1ef3afd99cda40b875d",
       "status": "modified",
       "path": "package.json",
-      "sha256": "5d9aa26cb07dc9421e88fb22df9f8e8e8b6df3abeb58855180b434dffc82ead6",
-      "reason": "Alpaca key-entry CLI: explicit separate worker build command; dependency lock unchanged."
+      "sha256": "b98cf90d87724f89e36ce2aaa0f2ca869958ef9ee8acddf46634ede1efcfe56e",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": "server/Dockerfile",
@@ -374,234 +374,234 @@
     {
       "upstreamPath": "web/app/globals.css",
       "upstreamSha256": "23c5f7e2a1ab1016141b2de1f0994db08accf40e8e1d58ae99bc3de732a33d50",
-      "status": "retained",
+      "status": "modified",
       "path": "web/app/globals.css",
-      "sha256": "23c5f7e2a1ab1016141b2de1f0994db08accf40e8e1d58ae99bc3de732a33d50",
-      "reason": "Verbatim upstream source/asset"
+      "sha256": "d9bf233f9fecd5989dca75bc2d9b4b34c0b4dbb3bc1d379939dfbdb4bc331366",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": "web/app/layout.tsx",
       "upstreamSha256": "7f76e16380451ace46619c151bba3abb7a5d0c867d184088f28fb153f8656c90",
-      "status": "retained",
+      "status": "modified",
       "path": "web/app/layout.tsx",
-      "sha256": "7f76e16380451ace46619c151bba3abb7a5d0c867d184088f28fb153f8656c90",
-      "reason": "Verbatim upstream source/asset"
+      "sha256": "4fb33779d3e0313ac50765e1bf5c8d9ea6f4bb301d0cd21fa9404785a2c508cd",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": "web/app/page.tsx",
       "upstreamSha256": "108687feab6c956af2bdb2326bb3bf5d1fbbeab53c7bf73addbd557e9a853e2f",
       "status": "modified",
       "path": "web/app/page.tsx",
-      "sha256": "d26cbb67fffc47d1f80051e7abe0ed22246d75854f49f01dd0aad35cb8f0b5cd",
-      "reason": "G03 retained terminal shell and protected read-only recorded fixture view"
+      "sha256": "5c25401cb4f70b73f463f749808b1a2c67ddeb8a4187becfc293ecac527beff2",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": "web/app/providers.tsx",
       "upstreamSha256": "f1cc94d61d4808f317c72627394fcdcf9ff4c325eaa6870b0c9d8ed4e19ede86",
-      "status": "retained",
-      "path": "web/app/providers.tsx",
-      "sha256": "f1cc94d61d4808f317c72627394fcdcf9ff4c325eaa6870b0c9d8ed4e19ede86",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/CommandPalette.tsx",
       "upstreamSha256": "f44b0acbf6c3c8038445c65b952b5025cff0d90878223dc826c30d7ef64bd125",
-      "status": "modified",
-      "path": "web/components/CommandPalette.tsx",
-      "sha256": "6a9ef8cf931b08c1f196df09e1bf91d489e6aa4d5b07cb3bbe8151ca4be21fe6",
-      "reason": "G03 retained terminal shell and protected read-only recorded fixture view"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/Flash.tsx",
       "upstreamSha256": "f1a0ef90d3a98740c1676bdf839aef1628bc1bd2c512d74ca365d093eab7f80d",
-      "status": "retained",
-      "path": "web/components/Flash.tsx",
-      "sha256": "f1a0ef90d3a98740c1676bdf839aef1628bc1bd2c512d74ca365d093eab7f80d",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/Sidebar.tsx",
       "upstreamSha256": "14afa736c31d280b25cf0dc2205e9ddc018c5ed28305c0d017fcf5579076ff5a",
-      "status": "modified",
-      "path": "web/components/Sidebar.tsx",
-      "sha256": "76948fb31bb7aa70a6fd2cd420ac92ac8fb021531b2c6807968b172e4cc6c2ca",
-      "reason": "G03 retained terminal shell and protected read-only recorded fixture view"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/Terminal.tsx",
       "upstreamSha256": "161226f0cdab4e2d805c441af09914ece9ffda91d9fe493f7e6d38f34e8ae982",
-      "status": "modified",
-      "path": "web/components/Terminal.tsx",
-      "sha256": "b48d94fd3af8b12b9b5371807be402fcc609742f89f304eb4a78b9d6d3883de6",
-      "reason": "G03 retained terminal shell and protected read-only recorded fixture view"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/TopBar.tsx",
       "upstreamSha256": "f515edaaf8be4e6246ee4a9a3f8b19f53ac2a2ca5f3cabd9bcc349caa8445c0c",
-      "status": "modified",
-      "path": "web/components/TopBar.tsx",
-      "sha256": "a8d5f0d3791cc7d3363152b18f8c0afbcd18b50186db9d104f15e6be92a37b63",
-      "reason": "G03 retained terminal shell and protected read-only recorded fixture view"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/Workspace.tsx",
       "upstreamSha256": "e02e6f334dbb8fcb8ccf582866f970e22a41f6e79cd687feb9a9b6dcce5a59e6",
-      "status": "modified",
-      "path": "web/components/Workspace.tsx",
-      "sha256": "2c577f19a124e1e61425b3f115e3f8d072b0ec691af76d3be0e97d8f247ddd3d",
-      "reason": "G03 retained terminal shell and protected read-only recorded fixture view"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/AiWidget.tsx",
       "upstreamSha256": "8d3076c499c325d1a87fbd8a23e73bf793aa06af9c192f2978ba2f3526aae03e",
-      "status": "retained",
-      "path": "web/components/widgets/AiWidget.tsx",
-      "sha256": "8d3076c499c325d1a87fbd8a23e73bf793aa06af9c192f2978ba2f3526aae03e",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/CalendarWidget.tsx",
       "upstreamSha256": "705c11a5281e5d6a54c778b74ff6269e5242f798180c2a510f39611cae913629",
-      "status": "retained",
-      "path": "web/components/widgets/CalendarWidget.tsx",
-      "sha256": "705c11a5281e5d6a54c778b74ff6269e5242f798180c2a510f39611cae913629",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/ChartWidget.tsx",
       "upstreamSha256": "34b6eab357152912c59705020949016504a03b7c3c65df67041bdfa19150ef60",
-      "status": "retained",
-      "path": "web/components/widgets/ChartWidget.tsx",
-      "sha256": "34b6eab357152912c59705020949016504a03b7c3c65df67041bdfa19150ef60",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/CryptoWidget.tsx",
       "upstreamSha256": "d3889f172cc2560b44c76e06d28199fed97c28acfe41e70d1926b35c1127475a",
-      "status": "retained",
-      "path": "web/components/widgets/CryptoWidget.tsx",
-      "sha256": "d3889f172cc2560b44c76e06d28199fed97c28acfe41e70d1926b35c1127475a",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/HeatmapWidget.tsx",
       "upstreamSha256": "66979c654f48cbd5786744af6d82eb85de3aa8f25ed54c8d7e54884a8ba52a60",
-      "status": "retained",
-      "path": "web/components/widgets/HeatmapWidget.tsx",
-      "sha256": "66979c654f48cbd5786744af6d82eb85de3aa8f25ed54c8d7e54884a8ba52a60",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/InsiderWidget.tsx",
       "upstreamSha256": "c131fba6bc322f7ba682e68a4f089268fd09d1bd60a7d71d5d5d1ce91d6a0d0f",
-      "status": "retained",
-      "path": "web/components/widgets/InsiderWidget.tsx",
-      "sha256": "c131fba6bc322f7ba682e68a4f089268fd09d1bd60a7d71d5d5d1ce91d6a0d0f",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/MacroWidget.tsx",
       "upstreamSha256": "d09ddb5f2d20e181eeb2dfa547cc9d1512b8bcc3f3ff478a0495454c1e59331a",
-      "status": "retained",
-      "path": "web/components/widgets/MacroWidget.tsx",
-      "sha256": "d09ddb5f2d20e181eeb2dfa547cc9d1512b8bcc3f3ff478a0495454c1e59331a",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/NewsWidget.tsx",
       "upstreamSha256": "303625279f6a8d8cde42309ddadabbbb0eb2afbc32513355768ff1364b23301a",
-      "status": "retained",
-      "path": "web/components/widgets/NewsWidget.tsx",
-      "sha256": "303625279f6a8d8cde42309ddadabbbb0eb2afbc32513355768ff1364b23301a",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/OptionsWidget.tsx",
       "upstreamSha256": "6a5e451ce933139ba6c20b51001c5496b24dc3b2240a4b625241ed171989d850",
-      "status": "retained",
-      "path": "web/components/widgets/OptionsWidget.tsx",
-      "sha256": "6a5e451ce933139ba6c20b51001c5496b24dc3b2240a4b625241ed171989d850",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/PortfolioWidget.tsx",
       "upstreamSha256": "a91068b3bbffb4d30644ed0ec97ec5eb4ab80ac12afe4725d08112339679e51e",
-      "status": "retained",
-      "path": "web/components/widgets/PortfolioWidget.tsx",
-      "sha256": "a91068b3bbffb4d30644ed0ec97ec5eb4ab80ac12afe4725d08112339679e51e",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/QuoteWidget.tsx",
       "upstreamSha256": "3cbd80c0c084326b9a60b780c83ab2216b51daca9c584a8c7af21c661676dccc",
-      "status": "retained",
-      "path": "web/components/widgets/QuoteWidget.tsx",
-      "sha256": "3cbd80c0c084326b9a60b780c83ab2216b51daca9c584a8c7af21c661676dccc",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/RecapWidget.tsx",
       "upstreamSha256": "d1b9c7c6490a4c82663a877e9e973976031607a2d7eeff585fc07e450a636cf1",
-      "status": "retained",
-      "path": "web/components/widgets/RecapWidget.tsx",
-      "sha256": "d1b9c7c6490a4c82663a877e9e973976031607a2d7eeff585fc07e450a636cf1",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/ScreenerWidget.tsx",
       "upstreamSha256": "b5822cab9f2ee0d92c5921192d31051e22da418faf8baa550ed8183ad79bd2cc",
-      "status": "retained",
-      "path": "web/components/widgets/ScreenerWidget.tsx",
-      "sha256": "b5822cab9f2ee0d92c5921192d31051e22da418faf8baa550ed8183ad79bd2cc",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/TvWidget.tsx",
       "upstreamSha256": "78f5b6d90319d7929ed886318dca5bdbed710bf8938e2aead2d1db406594ba7b",
-      "status": "retained",
-      "path": "web/components/widgets/TvWidget.tsx",
-      "sha256": "78f5b6d90319d7929ed886318dca5bdbed710bf8938e2aead2d1db406594ba7b",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/components/widgets/WatchlistWidget.tsx",
       "upstreamSha256": "3d793f7645e85d5671bf3c84b740044ad2eab47f46549f22af60d3bcf61c86bf",
-      "status": "retained",
-      "path": "web/components/widgets/WatchlistWidget.tsx",
-      "sha256": "3d793f7645e85d5671bf3c84b740044ad2eab47f46549f22af60d3bcf61c86bf",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/lib/api-key.ts",
       "upstreamSha256": "ff053a649bad2e219982afe56b8026dedf69cd1f53944e70896a28602b84b4a6",
-      "status": "retained",
-      "path": "web/lib/api-key.ts",
-      "sha256": "ff053a649bad2e219982afe56b8026dedf69cd1f53944e70896a28602b84b4a6",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/lib/api.ts",
       "upstreamSha256": "f77ea59cc34df2c5ca27ee44a14e602b0a9bd45521217741e24bf2720feafde9",
-      "status": "retained",
-      "path": "web/lib/api.ts",
-      "sha256": "f77ea59cc34df2c5ca27ee44a14e602b0a9bd45521217741e24bf2720feafde9",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/lib/indicators.ts",
       "upstreamSha256": "b223dff2bece3fd5ff485dbf31552e3784091bd96bc487017761c99a432e2d29",
-      "status": "retained",
-      "path": "web/lib/indicators.ts",
-      "sha256": "b223dff2bece3fd5ff485dbf31552e3784091bd96bc487017761c99a432e2d29",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/lib/links.ts",
       "upstreamSha256": "83ba583a8e79811df2ae981b7f409db25e2fd3a31ef4ba931c9c6e95dd9c50b6",
-      "status": "retained",
-      "path": "web/lib/links.ts",
-      "sha256": "83ba583a8e79811df2ae981b7f409db25e2fd3a31ef4ba931c9c6e95dd9c50b6",
-      "reason": "Verbatim upstream source/asset"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/next-env.d.ts",
@@ -624,8 +624,8 @@
       "upstreamSha256": "ce0fc9e933195be6f47a0cf8f2635c1fd19b926c2031be87f044b19daec09803",
       "status": "modified",
       "path": "web/package.json",
-      "sha256": "76676e4171a33f644e8ce8015202f29244ac7bf364267ecc59b2360f042b9430",
-      "reason": "Loopback-only direct web script defaults; unchanged dependencies"
+      "sha256": "3187a85c707faf20f7915d64a8ebdc0b2d6d32e4a92f402876f9b6e527503444",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": "web/postcss.config.mjs",
@@ -638,10 +638,10 @@
     {
       "upstreamPath": "web/store/terminal.ts",
       "upstreamSha256": "7f756ee9fcbf65ecea4594ebf3d5fa0204c2a58e88e65bc16c82c5710916e909",
-      "status": "modified",
-      "path": "web/store/terminal.ts",
-      "sha256": "e102aded384af9f4d7bc5d297f4cea8210e36cfd5d1094121a303d506f7fa036",
-      "reason": "G03 retained terminal shell and protected read-only recorded fixture view"
+      "status": "omitted",
+      "path": null,
+      "sha256": null,
+      "reason": "Owner-approved removal of unused OpenTerminal widget/UI surface; original upstream identity retained"
     },
     {
       "upstreamPath": "web/tsconfig.json",
@@ -672,8 +672,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "DEPENDENCY-NOTICES.json",
-      "sha256": "42da48e004c8987b45e899632cf39e00513bf4e4843448a7a67864406f46ab85",
-      "reason": "Gelt M2 foundation source, test, documentation or dependency notice"
+      "sha256": "dc6e68f76a58abe5a8512adbee418c8b310e7115c17a96c31a11255d2949c5db",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": null,
@@ -2544,16 +2544,16 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/runtime.mjs",
-      "sha256": "a9ec3396f248bbedc9eef7270c5f6860bf58ac4a0d5459c061dacf4d2208d3b0",
-      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+      "sha256": "b738f0d543ac70bf5826f6964dee7d52f5a2da5ca973cbd232e74002286ca5eb",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/runtime.test.mjs",
-      "sha256": "6bd62f3c422f521e6ca60b91ace04bd27c4e01cb63e11f62db99dcafcd15679f",
-      "reason": "ZAR-209 isolated private reference-evidence import and protected inspection"
+      "sha256": "b13c823a7fbacdbe86e367c69d67c7efbdbbeea6e139a49e132aa41caf2b0782",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": null,
@@ -2576,8 +2576,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/verify-import.mjs",
-      "sha256": "5f2ad92f458ec554e1f91ff30574e0bfda848633e4445aa75af5ee0ff17165ee",
-      "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
+      "sha256": "ae2814ac3bf894979c5e9b67368dec1be233ba0e79c389f4ae72894e073f2f0b",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": null,
@@ -2656,7 +2656,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/update-local-import.mjs",
-      "sha256": "f0d2d23a9edfaf63ea7198b3908714e8f13b38e36b8f9da5b7efe5da3e236554",
+      "sha256": "278392346eec01183e5d526dd813d1aa1cf3e6663c42ec0fec724d08f3e6d59f",
       "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-218 provenance preservation on rehash"
     },
     {
@@ -3240,8 +3240,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "web/lib/pi-handoff-page.test.ts",
-      "sha256": "6258a65a41e7b1b9d0a894565556fab50eba8db1f9aa51085aac7e3aa2cd064b",
-      "reason": "ZAR-219 real Next home server-render default-disabled fixture control regression test"
+      "sha256": "9309daf7d640025b20f528b205c39a0de3bc3c1024057d558285096c03994cfe",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": null,
@@ -3264,8 +3264,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/running-next-pi-acceptance.mjs",
-      "sha256": "fbdaf9a8655beab8e122e80413a40ca600944a20b73e0dbd849e1cc686f9fa1b",
-      "reason": "ZAR-219 bounded test-only running Next/Edge Pi handoff fixture acceptance, outside production startup"
+      "sha256": "e7f90d3f34c2c8e1d2b782c131957102c7c1ddaa9fba03254c2f9ff5dfa0e976",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": null,
@@ -3352,7 +3352,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/running-next-history-acceptance.mjs",
-      "sha256": "3a89990d6d567826ba3a814805b937d85cad550f75466a50a913e082c5586e85",
+      "sha256": "11de44394dbdfbdab71eeafa4bbb7b4048514b903e26bad69bfec008d45973ed",
       "reason": "Gelt ZAR-218 synthetic offline running browser history acceptance with bounded startup diagnostics"
     },
     {
@@ -3640,24 +3640,24 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "tests/simulation-terminal/run.mjs",
-      "sha256": "d3dd372a7cdfa77c152acc16c1f30c942f48039be8f0fc2740224604fee86941",
-      "reason": "G03 protected recorded simulation terminal and focused acceptance; no agent or live effects"
+      "sha256": "a8429eff518fc45b7bc6638799ec307cfe814b053ee15d67b9c819e48fe8f056",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "web/app/simulation/page.tsx",
-      "sha256": "17542227017277d32893e1c666addd3a5ffc4ac6da446eee62031c780e75a965",
-      "reason": "G03 protected recorded simulation terminal and focused acceptance; no agent or live effects"
+      "sha256": "62ac279eaccb650ff4c2738396c48f826943fec67411caadf44fd5e98b7188cf",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "web/components/SimulationWorkspace.tsx",
-      "sha256": "82bfb2429de01fcfb1ae2b1e3a77c06102a5aa5825bf5e89aaa88b704c284afd",
-      "reason": "G03 protected recorded simulation terminal and focused acceptance; no agent or live effects"
+      "sha256": "03d3aa57849d062e36a15f68e477190fd4e4edb4d650cf5b48231606dedeb5fa",
+      "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
       "upstreamPath": null,
@@ -4340,6 +4340,55 @@
       "path": "worker/src/pamr-a64-inspection-evidence.test.ts",
       "sha256": "ae9466769e6f7a97d88ef0848f289e0ec78ee6e973580a68c82d66885a81812e",
       "reason": "Bounded pure A64 inspection-evidence assessor; inert data only, no owner or operating admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "provenance/terminal-dependency-removal.json",
+      "sha256": "9531a34ea422089b47f56d3b25243d91d35c20b8d536da04c8017ada2742893a",
+      "reason": "Gelt UI stripdown: exact removed-dependency provenance and preceding lock reconstruction"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/app/orders/page.tsx",
+      "sha256": "64fd86c7193376a7b70bf03af52ba5cc4928f99fc5f9baa8a35af09f59ee662a",
+      "reason": "Gelt UI stripdown: relocated protected order/status workspace with credential/current-response guards"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/gelt-home.test.ts",
+      "sha256": "a622d719a916ef9cdc94c5fc0cf42b3c12076635967a86fcbf0613e18853d418",
+      "reason": "Gelt UI stripdown: truthful evidence-first home and unauthenticated recorded-view rendering regressions"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/verify-dependency-removal.mjs",
+      "sha256": "5ca6f824facadbf8bceaaa7528a95a69bf6acee8ed3174435e1e9dbd0c1ccb10",
+      "reason": "Gelt UI stripdown: bounded removal-only lock/provenance verification, no retained upgrades"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "scripts/verify-dependency-removal.test.mjs",
+      "sha256": "d31c32b7c2aabd07ab234b1dd25cf025d4002d3477bf41907b23287ed70e8dd3",
+      "reason": "Gelt UI stripdown: coordinated proof-concealment and retained-dependency negative regressions"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/orders-credential.test.ts",
+      "sha256": "c0f47797c3cf6eb1d7499cb10b98dde05d17e3c4e14675c5c0133d733c9907ef",
+      "reason": "Gelt UI stripdown: real component credential-change and delayed-response privacy regressions"
     }
-  ]
+  ],
+  "retiredLocalEntries": []
 }

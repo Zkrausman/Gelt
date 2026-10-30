@@ -123,7 +123,7 @@ try {
   cdp = await browserPage(debugPort);
   await cdp.send('Page.enable'); await cdp.send('Runtime.enable');
   phase = 'home hydration';
-  await cdp.send('Page.navigate', { url: 'http://127.0.0.1:3000/' });
+  await cdp.send('Page.navigate', { url: 'http://127.0.0.1:3000/orders' });
   await wait(() => visible('Offline Pi handoff — fixture review, not authorization'), 'hydrated home');
   assert.equal(await visible('Fixture state: disabled / unavailable'), true);
   assert.equal(await query(`[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Prepare synthetic handoff')`), false);
@@ -232,7 +232,7 @@ try {
   assert.equal(await visible('Confirm exact terms — unavailable'), true);
   const expiredReview = await evaluate(`fetch('/api/connection/pi-review',{method:'POST',headers:{'Content-Type':'application/json','X-Gelt-CSRF':sessionStorage.getItem('gelt-csrf')},body:JSON.stringify(${JSON.stringify({ id, digest, draft: { account: 'synthetic-pi-account-a', route: 'RHS', instrument: 'BTC-USD', side: 'BUY', type: 'LIMIT', quantity: '0.0002', limitPrice: '50000.00', revision: 1 } })})}).then(r=>r.status)`);
   assert.equal(expiredReview, 409);
-  console.log('PASS running Edge home → raw-gated Next named BFF → private injected worker: disabled/status/prepare/edit/review/restart stale rejection + recovery/expiry/security; execution false');
+  console.log('PASS running Edge protected-status page → raw-gated Next named BFF → private injected worker: disabled/status/prepare/edit/review/restart stale rejection + recovery/expiry/security; execution false');
 } catch (error) {
   console.error('Running Next acceptance failed:', error);
   process.exitCode = 1;

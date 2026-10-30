@@ -57,7 +57,7 @@ export async function ready(group, timeout = 20000) {
     try {
       const responses = await Promise.all(urls.map(url => fetch(url, { signal: AbortSignal.timeout(1000) })));
       const texts = await Promise.all(responses.map(r => r.text()));
-      const homeReady = texts[2].includes('GELT / LOCAL TRADING DESK') && texts[2].includes('SAFETY GATE');
+      const homeReady = texts[2].includes('GELT WORKSPACE') && texts[2].includes('SAFETY GATE');
       if (responses.every(r => r.ok) && texts[0].includes('market-analysis') && texts[1].includes('execution-worker') && homeReady) {
         // An occupied port might briefly answer before our child reports EADDRINUSE.
         await delay(200); group.assertAlive(); return;
