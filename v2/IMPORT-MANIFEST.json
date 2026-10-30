@@ -4444,6 +4444,46 @@
       "path": "worker/src/pamr-proposal-command.ts",
       "sha256": "5b4656dcb9c193c064190b30245a8d9536356a4fee572100d0707430c8d9cfac",
       "reason": "Gelt fixed constructed-PAMR agent data interface and shared bounded stdio/tests; no execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/prospective-declaration-cli.ts",
+      "sha256": "f8b8306bb6579a28190df576b0ee868d0879b040fd5360f17b0529cd6f28bff3",
+      "reason": "Gelt bounded prospective declaration preflight and tests; unadmitted data only, no actual profile or execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/prospective-declaration-command.test.ts",
+      "sha256": "236c0347a9b1bfeca53786b5c6296a036681b7a3765f83296ad640fcd392faee",
+      "reason": "Gelt bounded prospective declaration preflight and tests; unadmitted data only, no actual profile or execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/prospective-declaration-command.ts",
+      "sha256": "8f931e4a6519bc7e29b565e3dec7c00817c8cb61fe97ff9383b28e5c7f4e7f55",
+      "reason": "Gelt bounded prospective declaration preflight and tests; unadmitted data only, no actual profile or execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/prospective-declaration-contract.test.ts",
+      "sha256": "ae4bc4a53502aad7c71eba99a7992098f6763ed28ca2645c3275267ab9663c22",
+      "reason": "Gelt bounded prospective declaration preflight and tests; unadmitted data only, no actual profile or execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/prospective-declaration-contract.ts",
+      "sha256": "0bee5dc6da9fc197814419324bb8da3cb17a7040dea9f49c1a983f6fc0d32e76",
+      "reason": "Gelt bounded prospective declaration preflight and tests; unadmitted data only, no actual profile or execution authority."
     }
   ],
   "retiredLocalEntries": []
