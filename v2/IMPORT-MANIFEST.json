@@ -4218,7 +4218,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/pamr-consumer-adapter.test.ts",
-      "sha256": "adb83ccb6aa311831b3af859d71ddf164346621588e5445319daea093881cc7c",
+      "sha256": "0b4e6a2c4c08f646cbbe2e54edabc1bafd5b6d1a429c486902c65d22989b6dc9",
       "reason": "Gelt bounded synthetic PAMR consumer integration; source conformance only, no operating authority"
     },
     {
@@ -4338,7 +4338,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/pamr-a64-inspection-evidence.test.ts",
-      "sha256": "ed43a59c3d1c01a5a3ae053bc6164e1c82ebf8b39f8f4f6d14e3dc542074ee4c",
+      "sha256": "ac5c554eeaced9c8e021f4e10a853a5ecfc663215dc2071ef578d48d17a5aad5",
       "reason": "Bounded pure A64 inspection-evidence assessor; inert data only, no owner or operating admission"
     },
     {
@@ -4394,7 +4394,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-inspection-cli.ts",
-      "sha256": "557bdefc803002caaaab2f4ba233d6e486ae544b6ca340852f893fd4a234c820",
+      "sha256": "0f31dee2841d9c4c74fd326f66add8f484a3a24e46ea76c6723451ef23767799",
       "reason": "Gelt agent-first bounded read-only A64 assessment command/transport and synthetic boundary tests; no operating authority."
     },
     {
@@ -4402,7 +4402,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-inspection-command.test.ts",
-      "sha256": "98261e37b12142a870e98a7ce144df9765d13dffdc7791df40e6c3bf64f80a60",
+      "sha256": "c2da4af5907d6f095b2018f1c967b5826b8e96e9545a2776825159d140f0f5b5",
       "reason": "Gelt agent-first bounded read-only A64 assessment command/transport and synthetic boundary tests; no operating authority."
     },
     {
@@ -4410,8 +4410,40 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-inspection-command.ts",
-      "sha256": "916067b54cd4bb9d65fca3fe7584b9e84dc6f26f9333d9d06e312711f58c5c5e",
+      "sha256": "7c82edd87ae88d2f2a106ba83886ad9473a4cfb0de44e518aae2ffb4f957ff5b",
       "reason": "Gelt agent-first bounded read-only A64 assessment command/transport and synthetic boundary tests; no operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/bounded-data-stdio.ts",
+      "sha256": "ffa9a71b97dce2f62f071a80cbd7d5a13140850ab58ba977843328db57fed764",
+      "reason": "Gelt fixed constructed-PAMR agent data interface and shared bounded stdio/tests; no execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-proposal-cli.ts",
+      "sha256": "0596ce7b29c94c7e806c43c81aac76b5062d374062140311f94158810b808b43",
+      "reason": "Gelt fixed constructed-PAMR agent data interface and shared bounded stdio/tests; no execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-proposal-command.test.ts",
+      "sha256": "f92aab9337867a9ecca6f4ba62b00e46a25763bb2e61fe72a6c3e46450ebd035",
+      "reason": "Gelt fixed constructed-PAMR agent data interface and shared bounded stdio/tests; no execution authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/pamr-proposal-command.ts",
+      "sha256": "5b4656dcb9c193c064190b30245a8d9536356a4fee572100d0707430c8d9cfac",
+      "reason": "Gelt fixed constructed-PAMR agent data interface and shared bounded stdio/tests; no execution authority."
     }
   ],
   "retiredLocalEntries": []

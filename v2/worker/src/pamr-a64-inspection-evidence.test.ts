@@ -2,6 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { Readable, Writable } from 'node:stream';
 import { executeA64InspectionCommand } from './a64-inspection-command.js';
 import { runA64InspectionCLI } from './a64-inspection-cli.js';
+import { executePAMRProposalCommand, pamrProposalCommand } from './pamr-proposal-command.js';
 import { canonical, digest } from './ledger-canonical.js';
 import { checkIds } from './alpaca-byte-review-contract.js';
 import {
@@ -492,6 +493,9 @@ it('explicitly preserves rejection by all existing constructed extraction routes
     expect(verifyPAMRArtifact(text).status).toBe('rejected');
     expect(() => parsePAMRRequest(text)).toThrow();
     expect(() => derivePAMRConsumerPrefix(text)).toThrow();
+    const proposal = executePAMRProposalCommand(canonical({ schema: pamrProposalCommand.requestSchema, operation: 'propose', inputText: text }));
+    expect(proposal.exitCode).toBe(2);
+    expect(JSON.parse(proposal.text)).toMatchObject({ effectAuthority: 'none', dispatchAllowed: false, qualification: 'NOT_READY' });
   }
   expect(canonical(f.artifact)).not.toContain('gelt.pamr-inert-candidate.v1');
 

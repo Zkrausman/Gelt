@@ -2,11 +2,8 @@ import { canonical } from './ledger-canonical.js';
 import { assessA64InspectionEvidence } from './pamr-a64-inspection-evidence.js';
 import { a64InspectionEvidenceLimits, a64InspectionEvidenceHolds } from './pamr-a64-inspection-evidence-contract.js';
 
-export const a64InspectionTransportLimits = Object.freeze({
-  inputTimeoutMs: 5000,
-  outputTimeoutMs: 5000,
-  inputChunks: 4096,
-});
+import { boundedDataTransportLimits as a64InspectionTransportLimits } from './bounded-data-stdio.js';
+export { a64InspectionTransportLimits };
 
 // Agent-readable discovery for this one data-only command, not an action registry.
 export const a64InspectionCommand = Object.freeze({

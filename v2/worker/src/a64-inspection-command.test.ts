@@ -175,3 +175,17 @@ it('accepts one healthy output only after finish and close, guarding later error
   expect(output.writableFinished).toBe(true); expect(output.closed).toBe(true); expect(writes).toBe(1);
   expect(() => output.emit('error', new Error('PRIVATE_SENTINEL'))).not.toThrow();
 });
+
+it('guards repeated input errors after owned EOF or timeout without reopening the input', async () => {
+  const ended = Readable.from([Buffer.from('{}')]), first = sink();
+  expect(await runA64InspectionCLI([], ended, first.stream)).toBe(2);
+  expect(ended.destroyed).toBe(true);
+  expect(() => ended.emit('error', new Error('PRIVATE_SENTINEL'))).not.toThrow();
+  expect(() => ended.emit('error', new Error('SECOND_PRIVATE_SENTINEL'))).not.toThrow();
+  vi.useFakeTimers(); const stalled = new PassThrough(), second = sink();
+  const pending = runA64InspectionCLI([], stalled, second.stream);
+  await vi.advanceTimersByTimeAsync(a64InspectionTransportLimits.inputTimeoutMs);
+  expect(await pending).toBe(2); expect(stalled.destroyed).toBe(true);
+  expect(() => stalled.emit('error', new Error('PRIVATE_SENTINEL'))).not.toThrow();
+  expect(() => stalled.emit('error', new Error('SECOND_PRIVATE_SENTINEL'))).not.toThrow();
+});
