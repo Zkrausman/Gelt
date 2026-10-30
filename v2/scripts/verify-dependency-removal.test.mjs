@@ -30,3 +30,22 @@ test('dropping a shared retained dependency or altering removal provenance canno
   const evidence = proof(); evidence.removedPackages[Object.keys(evidence.removedPackages)[0]].version = 'altered';
   assert.throws(() => reconstructPreStripdownLock(lock(), evidence));
 });
+test('coordinated metadata overrides cannot hide a retained package mutation', () => {
+  const changed = lock(), evidence = proof(), key = 'node_modules/next';
+  evidence.metadataBefore[key] = structuredClone(changed.packages[key]);
+  changed.packages[key].version = '0.0.0-concealed';
+  assert.throws(() => reconstructPreStripdownLock(changed, evidence));
+});
+test('coordinated removed-package proof cannot hide deletion of a shared package', () => {
+  const changed = lock(), evidence = proof(), key = 'node_modules/zod';
+  evidence.removedPackages[key] = structuredClone(changed.packages[key]);
+  delete changed.packages[key];
+  assert.throws(() => reconstructPreStripdownLock(changed, evidence));
+});
+
+test('inherited proof metadata cannot override a retained package', () => {
+  const changed = lock(), evidence = proof(), key = 'node_modules/next';
+  Object.setPrototypeOf(evidence.metadataBefore, { [key]: structuredClone(changed.packages[key]) });
+  changed.packages[key].version = '0.0.0-inherited';
+  assert.throws(() => reconstructPreStripdownLock(changed, evidence));
+});

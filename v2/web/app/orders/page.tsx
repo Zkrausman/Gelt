@@ -6,6 +6,8 @@ import type { z } from 'zod';
 import type { HistoryDetailResponse, HistoryListResponse, TimelineFact } from '../../../worker/src/history-contract';
 import { isStatusFresh, parseM3Status, selectedAccountLabel, type M3Status } from '../../lib/m6-ui';
 
+type ProtectedRequest = Readonly<{ generation: number; csrf: string; signal: AbortSignal }>;
+
 type OrderSurface = {
   version: 'v1'; mode: 'disabled'; execution: false; preview: false; confirmation: false;
   dispatch: false; cancellation: false; reconciliation: false;
@@ -80,41 +82,86 @@ export default function Orders() {
   const [handoff, setHandoff] = useState<z.infer<typeof handoffResponseSchema> | null>(null);
   const [revision, setRevision] = useState(0);
   const revisionRef = useRef(0), requestRef = useRef(false);
+  const csrfRef = useRef(''), generationRef = useRef(0);
+  const activeRef = useRef<{ read: ProtectedRequest; controller: AbortController } | null>(null);
+  function invalidateProtectedRequests() {
+    generationRef.current++; activeRef.current?.controller.abort();
+    activeRef.current = null; requestRef.current = false;
+  }
+  function clearProtectedState() {
+    setConnection(null); setConnectionAt(null); setOrderSurface(null);
+    setPiStatus(null); setHandoff(null); setHistory(null); setDetail(null);
+  }
+  function changeCsrf(value: string) {
+    invalidateProtectedRequests(); csrfRef.current = value; setCsrf(value);
+    clearProtectedState(); setBusy(false);
+    setSurfaceMessage('Unknown — credential context changed. Read fresh protected status.');
+    setMessage('Credential context changed. Protected results cleared; refresh before use.');
+  }
+  function beginProtectedRequest(): ProtectedRequest | null {
+    if (!csrfRef.current || requestRef.current) return null;
+    const controller = new AbortController();
+    const read = Object.freeze({ generation: ++generationRef.current, csrf: csrfRef.current, signal: controller.signal });
+    activeRef.current = { read, controller }; requestRef.current = true; setBusy(true);
+    return read;
+  }
+  function current(read: ProtectedRequest): boolean {
+    return activeRef.current?.read === read && read.generation === generationRef.current
+      && read.csrf === csrfRef.current && !read.signal.aborted;
+  }
+  function finish(read: ProtectedRequest) {
+    if (!current(read)) return;
+    activeRef.current = null; requestRef.current = false; setBusy(false);
+  }
   function invalidateDraft() {
     revisionRef.current++;
     setRevision(revisionRef.current); setHandoff(null);
-    if (csrf) void protectedPost('pi-invalidate', { revision: revisionRef.current }).catch(() => {});
+    if (csrfRef.current) void protectedPost('pi-invalidate', { revision: revisionRef.current }).catch(() => {});
   }
 
   useEffect(() => {
     const tick = () => setNow(Date.now());
-    tick();
-    const timer = window.setInterval(tick, 1000);
-    try { setCsrf(sessionStorage.getItem('gelt-csrf') ?? ''); } catch { setMessage('Tab storage unavailable. Protected state remains unknown.'); }
-    return () => window.clearInterval(timer);
+    const restore = () => {
+      try { changeCsrf(sessionStorage.getItem('gelt-csrf') ?? ''); }
+      catch { changeCsrf(''); setMessage('Tab storage unavailable. Protected state remains unknown.'); }
+    };
+    const hide = () => {
+      invalidateProtectedRequests(); clearProtectedState(); setBusy(false);
+      setSurfaceMessage('Unknown — page left. Read fresh protected status.');
+      setMessage('Page navigation cleared protected results. Refresh after returning.');
+    };
+    tick(); restore(); const timer = window.setInterval(tick, 1000);
+    window.addEventListener('pagehide', hide); window.addEventListener('pageshow', restore);
+    window.addEventListener('focus', restore); window.addEventListener('storage', restore);
+    return () => {
+      invalidateProtectedRequests(); window.clearInterval(timer);
+      window.removeEventListener('pagehide', hide); window.removeEventListener('pageshow', restore);
+      window.removeEventListener('focus', restore); window.removeEventListener('storage', restore);
+    };
   }, []);
 
-  async function protectedPost(operation: string, body: unknown = {}): Promise<unknown> {
+  async function protectedPost(operation: string, body: unknown = {}, read?: ProtectedRequest): Promise<unknown> {
+    const token = read?.csrf ?? csrfRef.current;
+    if (!token || (read && !current(read))) throw new Error('stale credential context');
     const response = await fetch(`/api/connection/${operation}`, {
-      method: 'POST', credentials: 'same-origin', cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', 'X-Gelt-CSRF': csrf },
+      method: 'POST', credentials: 'same-origin', cache: 'no-store', signal: read?.signal,
+      headers: { 'Content-Type': 'application/json', 'X-Gelt-CSRF': token },
       body: JSON.stringify(body),
     });
+    if (read && !current(read)) throw new Error('stale response');
     const value: unknown = await response.json();
+    if (read && !current(read)) throw new Error('stale response');
     if (!response.ok) throw new Error('protected operation unavailable');
     return value;
   }
   async function readProtectedState() {
-    if (!csrf || busy) return;
-    setBusy(true); setMessage('Reading protected connection and worker status…');
-    setConnection(null); setConnectionAt(null); setOrderSurface(null); setPiStatus(null); setHandoff(null);
-    // A status refresh may follow a selection/session change in another tab.
-    // Never retain facts under a newly displayed account identity.
-    setHistory(null); setDetail(null);
+    const read = beginProtectedRequest(); if (!read) return;
+    clearProtectedState(); setMessage('Reading protected connection and worker status…');
     try {
       const [connectionResult, surfaceResult, piResult] = await Promise.all([
-        protectedPost('status'), protectedPost('order-status'), protectedPost('pi-status'),
+        protectedPost('status', {}, read), protectedPost('order-status', {}, read), protectedPost('pi-status', {}, read),
       ]);
+      if (!current(read)) return;
       const parsedPi = handoffStatusSchema.safeParse(piResult);
       setPiStatus(parsedPi.success ? parsedPi.data : null);
       const parsedConnection = parseM3Status(connectionResult);
@@ -129,66 +176,71 @@ export default function Orders() {
         ? 'Protected M3 status loaded. Connected means only the M3 connection state; it does not prove trading support or funds.'
         : 'Connection state unavailable or invalid.');
     } catch {
-      setConnection(null); setConnectionAt(null); setOrderSurface(null); setPiStatus(null); setHandoff(null);
+      if (!current(read)) return;
+      clearProtectedState();
       setSurfaceMessage('Worker/BFF status unavailable. Preview, confirmation, dispatch, cancellation and reconciliation remain unavailable.');
       setMessage('Protected status read failed or the session expired. No account or order outcome is assumed.');
-    } finally { setBusy(false); }
+    } finally { finish(read); }
   }
   function currentDraft(): HandoffDraft {
     return { account: fixtureAccount as HandoffDraft['account'], route, instrument, side: 'BUY', type: 'LIMIT', quantity, limitPrice, revision: revisionRef.current };
   }
   async function prepareHandoff() {
-    if (!csrf || !piStatus?.enabled || requestRef.current || !validDraft) return;
-    requestRef.current = true; setBusy(true); setHandoff(null);
-    const draft = currentDraft();
+    if (!piStatus?.enabled || !validDraft) return;
+    const read = beginProtectedRequest(); if (!read) return;
+    setHandoff(null); const draft = currentDraft();
     try {
-      const result = handoffResponseSchema.parse(await protectedPost('pi-prepare', draft));
+      const result = handoffResponseSchema.parse(await protectedPost('pi-prepare', draft, read));
+      if (!current(read)) return;
       if (draft.revision !== revisionRef.current || JSON.stringify(currentDraft()) !== JSON.stringify(result.draft) || result.expiresAt <= Date.now()) throw new Error('stale draft');
       setHandoff(result); setMessage('Synthetic offline Pi handoff prepared for review only. No broker preview or authority exists.');
-    } catch { setHandoff(null); setMessage('Fixture handoff unavailable or draft changed. Nothing submitted.'); }
-    finally { requestRef.current = false; setBusy(false); }
+    } catch { if (current(read)) { setHandoff(null); setMessage('Fixture handoff unavailable or draft changed. Nothing submitted.'); } }
+    finally { finish(read); }
   }
   async function reviewHandoff() {
-    if (!csrf || !handoff || requestRef.current || handoff.expiresAt <= Date.now() || JSON.stringify(currentDraft()) !== JSON.stringify(handoff.draft)) return;
-    requestRef.current = true; setBusy(true);
+    if (!handoff || handoff.expiresAt <= Date.now() || JSON.stringify(currentDraft()) !== JSON.stringify(handoff.draft)) return;
+    const read = beginProtectedRequest(); if (!read) return;
     try {
-      const result = handoffResponseSchema.parse(await protectedPost('pi-review', { id: handoff.id, digest: handoff.digest, draft: currentDraft() }));
-      if (revisionRef.current !== result.draft.revision || result.expiresAt <= Date.now()) throw new Error('stale review');
+      const result = handoffResponseSchema.parse(await protectedPost('pi-review', { id: handoff.id, digest: handoff.digest, draft: currentDraft() }, read));
+      if (!current(read)) return;
+      if (revisionRef.current !== result.draft.revision || JSON.stringify(currentDraft()) !== JSON.stringify(result.draft) || result.expiresAt <= Date.now()) throw new Error('stale review');
       setMessage('Reviewed synthetic fixture terms only. No Pi session, broker approval or order submission.');
-    } catch { setHandoff(null); setMessage('Fixture review expired or unavailable. Nothing submitted.'); }
-    finally { requestRef.current = false; setBusy(false); }
+    } catch { if (current(read)) { setHandoff(null); setMessage('Fixture review expired or unavailable. Nothing submitted.'); } }
+    finally { finish(read); }
   }
   async function loadHistory() {
-    if (!csrf || busy) return;
     const selectedHandle = isStatusFresh(connectionAt, Date.now()) ? connection?.selected : null;
     if (!selectedHandle) {
       setHistory(null); setDetail(null);
       setMessage('Refresh protected status and select an account before reading history.');
       return;
     }
-    setBusy(true); setDetail(null); setHistory(null); setMessage('Loading selected-account durable ledger history…');
+    const read = beginProtectedRequest(); if (!read) return;
+    setDetail(null); setHistory(null); setMessage('Loading selected-account durable ledger history…');
     try {
-      const result = await protectedPost('history', { after: 0, limit: 50 }) as HistoryListResponse;
+      const result = await protectedPost('history', { after: 0, limit: 50 }, read) as HistoryListResponse;
+      if (!current(read)) return;
       if (result.version !== 'v1' || !Array.isArray(result.items) || result.accountHandle !== selectedHandle) throw new Error('account changed');
       setHistory(result); setMessage(result.items.length ? 'Protected history loaded. Records are ledger facts, not proof of live provider interoperability.' : 'No ledger intents are recorded for the currently selected account.');
-    } catch { setMessage('History unavailable or account selection changed. Refresh protected status before reading again.'); }
-    finally { setBusy(false); }
+    } catch { if (current(read)) { clearProtectedState(); setMessage('History unavailable or account selection changed. Refresh protected status before reading again.'); } }
+    finally { finish(read); }
   }
   async function openTimeline(intentId: string) {
-    if (!csrf || busy) return;
     const selectedHandle = isStatusFresh(connectionAt, Date.now()) ? connection?.selected : null;
     if (!selectedHandle || history?.accountHandle !== selectedHandle || !history.items.some(item => item.intentId === intentId)) {
       setHistory(null); setDetail(null);
       setMessage('Account selection is stale or changed. Refresh status and history before opening a timeline.');
       return;
     }
-    setBusy(true); setDetail(null);
+    const read = beginProtectedRequest(); if (!read) return;
+    setDetail(null);
     try {
-      const result = await protectedPost('intent', { intentId, after: 0, limit: 50 }) as HistoryDetailResponse;
+      const result = await protectedPost('intent', { intentId, after: 0, limit: 50 }, read) as HistoryDetailResponse;
+      if (!current(read)) return;
       if (result.version !== 'v1' || !Array.isArray(result.timeline) || result.accountHandle !== selectedHandle || result.intent.intentId !== intentId) throw new Error('account changed');
       setDetail(result); setMessage('Stored timeline page loaded in ledger sequence order.');
-    } catch { setHistory(null); setMessage('Timeline unavailable or account selection changed. Refresh protected status and history.'); }
-    finally { setBusy(false); }
+    } catch { if (current(read)) { clearProtectedState(); setMessage('Timeline unavailable or account selection changed. Refresh protected status and history.'); } }
+    finally { finish(read); }
   }
 
   const statusFresh = isStatusFresh(connectionAt, now);
@@ -215,7 +267,7 @@ export default function Orders() {
       <p style={{ marginBottom: 8 }}>{surfaceMessage}</p>
       <p style={{ ...dim, margin: '0 0 12px' }}>No MCP order adapter, preview/place/cancel interoperability, or unknown-ID correlation is proven. No fixture data is shown as a broker quote, account, order, execution, or fill. Unknown outcomes must stop further orders until human-reviewed reconciliation.</p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-        <label style={{ ...label, width: 'min(360px, 100%)' }}>Restore this tab’s CSRF token<input aria-label="Restore CSRF" type="password" autoComplete="off" value={csrf} onChange={event => { setHandoff(null); setPiStatus(null); setCsrf(event.target.value); }} style={inputStyle} /></label>
+        <label style={{ ...label, width: 'min(360px, 100%)' }}>Restore this tab’s CSRF token<input aria-label="Restore CSRF" type="password" autoComplete="off" value={csrf} onChange={event => changeCsrf(event.target.value)} style={inputStyle} /></label>
         <button type="button" style={buttonStyle} disabled={busy || !csrf} onClick={() => void readProtectedState()}>Read protected status</button>
         <button type="button" style={buttonStyle} disabled={busy || !csrf} onClick={() => void loadHistory()}>Load durable history</button>
         <a href="/connect" style={{ ...amber, padding: 10 }}>Connection setup &amp; account selection →</a>

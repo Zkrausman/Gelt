@@ -7,7 +7,11 @@ export function reconstructPreStripdownLock(lock, removal) {
   assert.equal(removal.priorLockSha256, 'b2330e24bd86f36757c260541d1cbd9d585da46f6de92312a3ead82ac1ba4945');
   assert.equal(lock.name, 'gelt');
   assert.equal(new Set(removal.priorPackageOrder).size, removal.priorPackageOrder.length);
+  assert.deepEqual(Object.keys(removal.metadataBefore).sort(), ['', 'web'], 'only root/web metadata may be reconstructed');
+  assert.deepEqual(Object.keys(removal.metadataAfter).sort(), ['', 'web'], 'only root/web metadata may be changed');
   const removed = removal.removedPackages;
+  assert.equal(Object.keys(removed).length, 122);
+  assert.equal(createHash('sha256').update(JSON.stringify(Object.keys(removed).sort())).digest('hex'), 'cadf45a9130d743f21cc1c7e99bf198f7fcc0d92d9451eb8afb2ef78314f91c6', 'exact independently pinned terminal removal key set');
   for (const key of Object.keys(removed)) assert.ok(!Object.hasOwn(lock.packages, key), `removed package returned: ${key}`);
   assert.deepEqual(new Set(Object.keys(lock.packages)), new Set(removal.priorPackageOrder.filter(key => !Object.hasOwn(removed, key))));
   const expectedRoot = structuredClone(removal.metadataBefore['']);
@@ -21,7 +25,7 @@ export function reconstructPreStripdownLock(lock, removal) {
   assert.deepEqual(lock.packages[''], expectedRoot, 'only declared root removal/rebrand');
   assert.deepEqual(lock.packages.web, expectedWeb, 'only terminal-exclusive web declarations removed');
   for (const key of ['', 'web']) assert.deepEqual(lock.packages[key], removal.metadataAfter[key]);
-  const restored = { ...lock, name: removal.priorName, packages: Object.fromEntries(removal.priorPackageOrder.map(key => [key, removal.metadataBefore[key] ?? removed[key] ?? lock.packages[key]])) };
+  const restored = { ...lock, name: removal.priorName, packages: Object.fromEntries(removal.priorPackageOrder.map(key => [key, key === '' || key === 'web' ? removal.metadataBefore[key] : Object.hasOwn(removed, key) ? removed[key] : lock.packages[key]])) };
   assert.equal(createHash('sha256').update(JSON.stringify(restored, null, 2) + '\n').digest('hex'), removal.priorLockSha256, 'exact pre-stripdown dependency inventory');
   return restored;
 }

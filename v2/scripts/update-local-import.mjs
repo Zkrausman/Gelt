@@ -14,7 +14,7 @@ for (const p of files(root)) {
   if (p === 'IMPORT-MANIFEST.json') continue;
   const hash = createHash('sha256').update(readFileSync(resolve(root, p))).digest('hex');
   let entry = manifest.entries.find(e => e.path === p);
-  if (!entry) { entry = { upstreamPath: null, upstreamSha256: null, status: 'added', path: p, sha256: hash, reason: 'Gelt M4 worker-owned durable ledger source, test or documentation' }; manifest.entries.push(entry); }
+  if (!entry) { entry = { upstreamPath: null, upstreamSha256: null, status: 'added', path: p, sha256: hash, reason: 'Gelt local source addition; feature-specific provenance requires owner review' }; manifest.entries.push(entry); }
   else if (entry.sha256 !== hash) {
     if (entry.status === 'retained') throw new Error(`Explicit provenance review required before modifying retained import: ${p}`);
     // A hash refresh must not rewrite historical provenance to an unrelated milestone.

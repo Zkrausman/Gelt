@@ -2656,7 +2656,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/update-local-import.mjs",
-      "sha256": "f0d2d23a9edfaf63ea7198b3908714e8f13b38e36b8f9da5b7efe5da3e236554",
+      "sha256": "278392346eec01183e5d526dd813d1aa1cf3e6663c42ec0fec724d08f3e6d59f",
       "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger; ZAR-218 provenance preservation on rehash"
     },
     {
@@ -3640,7 +3640,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "tests/simulation-terminal/run.mjs",
-      "sha256": "16d1251a0c82263f0d755c2cf4ae561521ebc6e2d30ad848efa13dc476d77363",
+      "sha256": "a8429eff518fc45b7bc6638799ec307cfe814b053ee15d67b9c819e48fe8f056",
       "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
@@ -4347,15 +4347,15 @@
       "status": "added",
       "path": "provenance/terminal-dependency-removal.json",
       "sha256": "9531a34ea422089b47f56d3b25243d91d35c20b8d536da04c8017ada2742893a",
-      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation"
+      "reason": "Gelt UI stripdown: exact removed-dependency provenance and preceding lock reconstruction"
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "web/app/orders/page.tsx",
-      "sha256": "1e5bfaa097ded921c77dc37c752e9ff107892262f27d4a6f0f9a003eb3e8f81d",
-      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation"
+      "sha256": "64fd86c7193376a7b70bf03af52ba5cc4928f99fc5f9baa8a35af09f59ee662a",
+      "reason": "Gelt UI stripdown: relocated protected order/status workspace with credential/current-response guards"
     },
     {
       "upstreamPath": null,
@@ -4363,23 +4363,31 @@
       "status": "added",
       "path": "web/lib/gelt-home.test.ts",
       "sha256": "a622d719a916ef9cdc94c5fc0cf42b3c12076635967a86fcbf0613e18853d418",
-      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation"
+      "reason": "Gelt UI stripdown: truthful evidence-first home and unauthenticated recorded-view rendering regressions"
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/verify-dependency-removal.mjs",
-      "sha256": "ddbb62d0fa3efb67373833c076e853cae7b030059a069f8a4d871a4168332d87",
-      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation"
+      "sha256": "5ca6f824facadbf8bceaaa7528a95a69bf6acee8ed3174435e1e9dbd0c1ccb10",
+      "reason": "Gelt UI stripdown: bounded removal-only lock/provenance verification, no retained upgrades"
     },
     {
       "upstreamPath": null,
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/verify-dependency-removal.test.mjs",
-      "sha256": "2ff0751108d758d418d140fd04f270ade1df3ad1bc8d160ec36726bdf1abc1d5",
-      "reason": "Gelt M4 worker-owned durable ledger source, test or documentation"
+      "sha256": "d31c32b7c2aabd07ab234b1dd25cf025d4002d3477bf41907b23287ed70e8dd3",
+      "reason": "Gelt UI stripdown: coordinated proof-concealment and retained-dependency negative regressions"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "web/lib/orders-credential.test.ts",
+      "sha256": "c0f47797c3cf6eb1d7499cb10b98dde05d17e3c4e14675c5c0133d733c9907ef",
+      "reason": "Gelt UI stripdown: real component credential-change and delayed-response privacy regressions"
     }
   ],
   "retiredLocalEntries": []

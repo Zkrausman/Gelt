@@ -51,6 +51,50 @@ try {
       failureStage = 'synthetic-viewer-login'; await page.goto('http://127.0.0.1:3000/connect'); await page.getByLabel('One-use owner bootstrap').fill(grant);
       await page.getByRole('button', { name: 'Open owner session', exact: true }).click();
       await expect(page.getByText('Owner session opened. Read status; this does not enable an order.', { exact: true })).toBeVisible();
+      // Constructed CLIENT response fixtures only: exercise page state isolation,
+      // not private-worker auth or actual account/history evidence. Real protected
+      // recorded-fixture reads resume after every interception is removed.
+      failureStage = 'orders-credential-race'; await page.goto('http://127.0.0.1:3000/orders');
+      const credentialInput = page.getByLabel('Restore CSRF', { exact: true });
+      await expect(credentialInput).not.toHaveValue('');
+      const savedDraft = await credentialInput.inputValue(), accountHandle = 'a'.repeat(43);
+      const connectionFixture = label => ({ version: 'v1', state: 'connected', reason: 'ready', expiresAt: Date.now() + 30000,
+        accounts: [{ handle: accountHandle, label }], selected: accountHandle, execution: false });
+      let seenOld, releaseOld, deliveredOld, statusCalls = 0;
+      const oldSeen = new Promise(resolve => { seenOld = resolve; }), oldHeld = new Promise(resolve => { releaseOld = resolve; }), oldDelivered = new Promise(resolve => { deliveredOld = resolve; });
+      const statusRoute = '**/api/connection/status', surfaceRoute = '**/api/connection/order-status', piRoute = '**/api/connection/pi-status', historyRoute = '**/api/connection/history';
+      await page.route(statusRoute, async route => {
+        if (++statusCalls === 1) {
+          seenOld(); await oldHeld;
+          try { await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(connectionFixture('Account ••••1111')) }); }
+          catch { /* canceled old response is allowed; generation also fences abort-ignoring transports in unit tests */ }
+          finally { deliveredOld(); }
+        } else await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(connectionFixture('Account ••••2222')) });
+      });
+      await page.route(surfaceRoute, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ version: 'v1', mode: 'disabled', execution: false, preview: false, confirmation: false, dispatch: false, cancellation: false, reconciliation: false, reason: 'production_adapter_unsupported' }) }));
+      await page.route(piRoute, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ version: 'v1', source: 'synthetic-offline-pi-handoff', enabled: false, execution: false, preview: false, confirmation: false, dispatch: false, cancellation: false, accounts: [] }) }));
+      await page.route(historyRoute, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ version: 'v1', accountHandle, account: { ACCOUNT: 'CLIENT-FIXTURE', RHS: true, RHC: false }, items: [{ intentId: 'client-fixture-only', recordedAt: '2026-10-29T00:00:00Z', source: 'intercepted-client-test-only', instrumentId: 'PRIVATE-CLIENT-FIXTURE', side: 'buy', requestedQuantity: '1', requestedLimitPrice: '1', currency: 'USD', executionCount: 0 }], hasMore: false }) }));
+      try {
+        await page.getByRole('button', { name: 'Read protected status', exact: true }).click(); await oldSeen;
+        await credentialInput.fill('client-test-changed-context'); await credentialInput.fill(savedDraft);
+        await expect(page.getByText('Credential context changed. Protected results cleared; refresh before use.', { exact: true })).toBeVisible();
+        await page.getByRole('button', { name: 'Read protected status', exact: true }).click();
+        await expect(page.getByText('Account ••••2222', { exact: true })).toBeVisible();
+        releaseOld(); await oldDelivered;
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        await expect(page.getByText('Account ••••1111', { exact: true })).toHaveCount(0);
+        await expect(page.getByText('Account ••••2222', { exact: true })).toBeVisible();
+        await page.getByRole('button', { name: 'Load durable history', exact: true }).click();
+        await expect(page.getByText('PRIVATE-CLIENT-FIXTURE', { exact: true })).toBeVisible();
+        await credentialInput.fill('another-client-test-context');
+        await expect(page.getByText('PRIVATE-CLIENT-FIXTURE', { exact: true })).toHaveCount(0);
+        await expect(page.getByText('Account ••••2222', { exact: true })).toHaveCount(0);
+        for (const name of ['Request fresh exact preview — unavailable', 'Confirm exact terms — unavailable', 'Request cancel — unavailable']) await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
+      } finally {
+        releaseOld();
+        for (const pattern of [statusRoute, surfaceRoute, piRoute, historyRoute]) await page.unroute(pattern);
+      }
+      pass('intercepted CLIENT-ONLY orders credential ABA/late-response and data-clearing regression; no worker/account evidence claim');
       failureStage = 'protected-recorded-read'; await page.goto('http://127.0.0.1:3000/simulation');
       const load = page.getByRole('button', { name: 'Load recorded runs', exact: true }), select = page.getByLabel('Recorded run', { exact: true });
       await load.click(); await expect(select.locator('option')).toHaveCount(3);
