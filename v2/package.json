@@ -1,5 +1,5 @@
 {
-  "name": "openterminal",
+  "name": "gelt",
   "private": true,
   "workspaces": [
     "server",
@@ -20,8 +20,5 @@
     "test:windows-preflight": "vitest run --config worker/vitest.config.ts worker/src/windows-preflight.test.ts",
     "test:smoke": "node scripts/smoke.mjs",
     "verify:import": "node scripts/verify-import.mjs"
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2"
   }
 }

@@ -29,6 +29,20 @@ try {
     await context.route('**/*', async route => { const url = new URL(route.request().url()); if (url.origin !== 'http://127.0.0.1:3000' && !['data:', 'blob:'].includes(url.protocol)) { externalOrigins.push(url.origin); await route.abort(); } else await route.continue(); });
     const page = await context.newPage(); page.setDefaultTimeout(10000);
     try {
+      failureStage = 'gelt-home'; await page.goto('http://127.0.0.1:3000/');
+      await expect(page).toHaveTitle('Gelt — Evidence workspace');
+      await expect(page.getByRole('heading', { name: 'Evidence before execution.', exact: true })).toBeVisible();
+      await expect(page.getByText('SAFETY GATE — trading is disabled', { exact: true })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Inspect research evidence →', exact: true })).toHaveAttribute('href', '/research');
+      await expect(page.getByRole('link', { name: 'View recorded results →', exact: true })).toHaveAttribute('href', '/simulation');
+      await expect(page.locator('input')).toHaveCount(0);
+      await expect(page.getByText('OPENTERMINAL', { exact: true })).toHaveCount(0);
+      await page.screenshot({ path: join(screenshots, 'GELT-home-desktop.png'), fullPage: true });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.screenshot({ path: join(screenshots, 'GELT-home-narrow.png'), fullPage: true });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      await page.setViewportSize({ width: 1280, height: 900 });
+      pass('Gelt home explains source limits and links evidence/readiness/results without protected data');
       failureStage = 'unauthenticated-shell'; await page.goto('http://127.0.0.1:3000/simulation');
       await expect(page.getByRole('button', { name: 'Load recorded runs', exact: true })).toBeDisabled();
       await expect(page.locator('tbody tr')).toHaveCount(0);
@@ -48,15 +62,15 @@ try {
       await expect(page.locator('tbody tr').first()).toContainText(a.mock.executions[0].quantity.value);
       await expect(page.locator('tbody tr').first()).toContainText(a.mock.executions[0].fee.value);
       const layoutOnly = await page.evaluate(() => localStorage.getItem('openterminal-workspace') ?? '');
-      assert.equal(layoutOnly.includes(a.mock.dispatchId), false); assert.equal(layoutOnly.includes(a.id), false); assert.equal(layoutOnly.includes(grant), false);
+      assert.ok(layoutOnly.includes('old-ai'), 'retired preferences left untouched but never activated'); assert.equal(layoutOnly.includes(a.mock.dispatchId), false); assert.equal(layoutOnly.includes(a.id), false); assert.equal(layoutOnly.includes(grant), false);
       await page.screenshot({ path: join(screenshots, 'SYNTHETIC-orders-desktop.png'), fullPage: true });
       pass('real G01 login -> protected BFF -> recorded G02 independent partial fill and cancellation');
       // Old cached widgets never activate on the simulation route.
       failureStage = 'panel-whitelist'; await page.keyboard.press('Alt+9'); await expect(page.getByText('AI Assistant', { exact: true })).toHaveCount(0);
-      await page.keyboard.press('Control+k'); await expect(page.getByRole('dialog', { name: 'Simulation panel picker' })).toBeVisible();
-      await page.getByRole('dialog').getByRole('button', { name: 'results', exact: true }).click();
+      await page.keyboard.press('Control+k'); await expect(page.getByRole('dialog')).toHaveCount(0);
+      await page.getByRole('navigation', { name: 'Simulation panels' }).getByRole('button', { name: 'results', exact: true }).click();
       await expect(page.getByText('Cash, positions, P&L and strategy results are unavailable in this fixture view; no value is invented.', { exact: true })).toBeVisible();
-      pass('six-panel whitelist and local palette; no market or AI widget activation');
+      pass('six plain panels; retired shortcuts/cache cannot activate market or AI widgets');
       failureStage = 'late-run-response'; let release, observed, delayedFailed = false; const held = new Promise(r => { release = r; }), seen = new Promise(r => { observed = r; });
       const delayed = async route => { if (route.request().postDataJSON().runId !== a.id) return route.continue(); let response;
         try { response = await route.fetch(); } catch { delayedFailed = true; observed(); return; }

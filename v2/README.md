@@ -1,4 +1,4 @@
-# Gelt V2 — offline foundation and protected M3 connection boundary
+# Gelt V2 — focused evidence workspace
 
 Derived from [ErTasselli/OpenTerminal](https://github.com/ErTasselli/OpenTerminal),
 exact commit `6feb4869489c8ac9537b1405547983591e1d3263`.
@@ -9,6 +9,31 @@ M3 adds a protected, execution-disabled account API; see the
 [API contract](CONNECTION-API.md), [explicit owner setup](CONNECTION-OPERATIONS.md)
 and [ZAR-214 specification](../docs/specs/ZAR-214-Protected-Account-Boundary.md).
 Default startup remains offline. No live-provider or Windows connected-mode proof.
+
+
+## Gelt-owned UI stripdown (2026-10-29)
+
+The home view now focuses on candidate evidence, source readiness limits and
+recorded results. Protected research (`/research`), recorded fixtures
+(`/simulation`), ledger history (`/history`) and owner session (`/connect`) retain
+their existing contracts. The previous protected order/status workspace is at
+`/orders`; its controls remain execution-disabled. No candidate acquisition,
+assessor invocation, campaign or trading is added by navigation.
+
+The unused market widget shell, command palette, browser-persisted terminal store,
+generic terminal API/key helpers and ten exclusive dependency declarations are
+removed. The six recorded-result sections use local React state. Old terminal
+preferences are ignored and left untouched; no user records are migrated or
+removed. 122 unneeded lock entries are removed without upgrading any retained
+resolution. The [removal provenance](provenance/terminal-dependency-removal.json)
+reconstructs the exact preceding lock and original upstream identity.
+
+Next/React, Tailwind, the protected BFF/private worker, tests, retained analysis
+helpers, Go V1, data and required notices remain. The server's default health-only
+entrypoint is unchanged; retained analysis modules are not activated as a market
+terminal. See [the stripdown specification](../docs/specs/Gelt-Focused-Evidence-Workspace.md).
+Upstream attribution and historical dated sections below remain provenance,
+not current UI branding or a requirement to maintain a general terminal.
 
 ## Supported development platform (2026-10-13)
 

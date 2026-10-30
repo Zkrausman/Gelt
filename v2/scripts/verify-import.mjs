@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import { root } from './runtime.mjs';
+import { reconstructPreStripdownLock } from './verify-dependency-removal.mjs';
 const manifest = JSON.parse(readFileSync(resolve(root, 'IMPORT-MANIFEST.json')));
 assert.equal(manifest.commit, '6feb4869489c8ac9537b1405547983591e1d3263');
 const hash = path => createHash('sha256').update(readFileSync(resolve(root, path))).digest('hex');
@@ -27,9 +28,13 @@ function inventory(dir) {
 }
 assert.deepEqual(new Set(inventory(root)), expected, 'complete candidate path accounting');
 assert.equal(manifest.entries.find(e => e.path === 'LICENSE').status, 'retained');
-// The ONLY permitted lockfile change is worker workspace metadata. Reconstruct
-// upstream bytes and verify their original pinned hash: no dependency upgrades.
+// Reconstruct the exact pre-stripdown lock and then the original upstream lock.
+// Dependency removal is explicit provenance, not permission to change resolutions.
 const lock = JSON.parse(readFileSync(resolve(root, 'package-lock.json')));
+const removal = JSON.parse(readFileSync(resolve(root, 'provenance/terminal-dependency-removal.json')));
+const restored = reconstructPreStripdownLock(lock, removal);
+// The preceding baseline changed upstream only by the worker workspace metadata.
+Object.assign(lock, restored);
 assert.deepEqual(lock.packages[''].workspaces, ['server', 'web', 'worker']);
 assert.deepEqual(lock.packages.worker, { name: 'gelt-disabled-worker', dependencies: { 'better-sqlite3': '^13.0.3', zod: '^3.24.1' }, devDependencies: { '@types/better-sqlite3': '^7.6.12' } });
 assert.deepEqual(lock.packages['node_modules/gelt-disabled-worker'], { resolved: 'worker', link: true });
@@ -39,4 +44,4 @@ assert.equal(createHash('sha256').update(JSON.stringify(lock, null, 2) + '\n').d
 for (const entry of JSON.parse(readFileSync(resolve(root, 'DEPENDENCY-NOTICES.json'))).packages) {
   for (const notice of entry.notices) assert.equal(hash(notice.text), notice.sha256);
 }
-console.log(`PASS import inventory: ${upstream.size} upstream paths, ${expected.size} candidate files; MIT verbatim; lockfile resolved inventory unchanged`);
+console.log(`PASS import inventory: ${upstream.size} upstream paths, ${expected.size} candidate files; MIT verbatim; 122 terminal-only lock entries removed; retained resolutions and upstream reconstruction verified`);

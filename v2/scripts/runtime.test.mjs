@@ -52,7 +52,7 @@ test('readiness refuses stale baseline page and accepts the current safety banne
     : url.endsWith(':4100/v1/health') ? 'execution-worker' : home);
   try {
     await assert.rejects(ready(group, 250), /readiness timeout/);
-    home = 'GELT / LOCAL TRADING DESK — SAFETY GATE';
+    home = 'GELT WORKSPACE — SAFETY GATE';
     await ready(group, 1000);
   } finally { globalThis.fetch = originalFetch; }
 });
