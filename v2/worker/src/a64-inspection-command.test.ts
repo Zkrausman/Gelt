@@ -103,3 +103,75 @@ it('bounds a stalled output callback without retrying the response', async () =>
   await vi.advanceTimersByTimeAsync(a64InspectionTransportLimits.outputTimeoutMs);
   expect(await pending).toBe(74); expect(writes).toBe(1); expect(output.destroyed).toBe(true);
 });
+
+it('rejects successful write callback followed by an error before final completion', async () => {
+  let writes = 0;
+  const output = new Writable({
+    write(_c, _e, done) {
+      writes++; done();
+      queueMicrotask(() => output.emit('error', new Error('PRIVATE_SENTINEL')));
+    },
+    final() { /* Hold completion so the later error belongs to this lifecycle. */ },
+  });
+  const observe = () => {}; output.on('error', observe);
+  expect(await runA64InspectionCLI(['--describe'], new PassThrough(), output)).toBe(74);
+  expect(writes).toBe(1);
+  output.off('error', observe);
+  expect(() => output.emit('error', new Error('SECOND_PRIVATE_SENTINEL'))).not.toThrow();
+});
+
+it('rejects a destruction error after successful callback and finish, before owned close', async () => {
+  let writes = 0;
+  const output = new Writable({
+    write(_c, _e, done) { writes++; done(); },
+    destroy(_error, done) { setImmediate(() => done(new Error('PRIVATE_SENTINEL'))); },
+  });
+  const observe = () => {}; output.on('error', observe);
+  expect(await runA64InspectionCLI(['--describe'], new PassThrough(), output)).toBe(74);
+  expect(writes).toBe(1);
+  await new Promise(resolve => setImmediate(resolve)); output.off('error', observe);
+  expect(() => output.emit('error', new Error('SECOND_PRIVATE_SENTINEL'))).not.toThrow();
+});
+
+it('rejects premature output close after callback but before finish', async () => {
+  const output = new Writable({
+    write(_c, _e, done) { done(); queueMicrotask(() => output.destroy()); },
+    final() { /* No finish before the independently observed close. */ },
+  });
+  expect(await runA64InspectionCLI(['--describe'], new PassThrough(), output)).toBe(74);
+});
+
+it('times out incomplete finalization despite an already successful write callback', async () => {
+  vi.useFakeTimers(); let writes = 0;
+  const output = new Writable({ write(_c, _e, done) { writes++; done(); }, final() {} });
+  const pending = runA64InspectionCLI(['--describe'], new PassThrough(), output);
+  await vi.advanceTimersByTimeAsync(a64InspectionTransportLimits.outputTimeoutMs);
+  expect(await pending).toBe(74); expect(writes).toBe(1); expect(output.destroyed).toBe(true);
+});
+
+it('requires observed close and retains guarded handling after a timed-out late callback', async () => {
+  vi.useFakeTimers(); let release: (() => void) | undefined, writes = 0;
+  const output = new Writable({ write(_c, _e, done) { writes++; release = () => done(); } });
+  const pending = runA64InspectionCLI(['--describe'], new PassThrough(), output);
+  await vi.advanceTimersByTimeAsync(a64InspectionTransportLimits.outputTimeoutMs);
+  expect(await pending).toBe(74); release?.(); await vi.runAllTicks();
+  expect(() => output.emit('error', new Error('PRIVATE_SENTINEL'))).not.toThrow();
+  expect(() => output.emit('error', new Error('SECOND_PRIVATE_SENTINEL'))).not.toThrow();
+  expect(writes).toBe(1);
+});
+
+it('does not accept finish without an observable owned close', async () => {
+  vi.useFakeTimers();
+  const output = new Writable({ emitClose: false, write(_c, _e, done) { done(); } });
+  const pending = runA64InspectionCLI(['--describe'], new PassThrough(), output);
+  await vi.advanceTimersByTimeAsync(a64InspectionTransportLimits.outputTimeoutMs);
+  expect(await pending).toBe(74);
+});
+
+it('accepts one healthy output only after finish and close, guarding later errors', async () => {
+  let writes = 0;
+  const output = new Writable({ write(_c, _e, done) { writes++; done(); } });
+  expect(await runA64InspectionCLI(['--describe'], new PassThrough(), output)).toBe(0);
+  expect(output.writableFinished).toBe(true); expect(output.closed).toBe(true); expect(writes).toBe(1);
+  expect(() => output.emit('error', new Error('PRIVATE_SENTINEL'))).not.toThrow();
+});

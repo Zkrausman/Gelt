@@ -69,8 +69,21 @@ The CLI additionally bounds stdin to 4096 chunks and five seconds, and output
 completion to five seconds. These are local transport resource limits, not
 financial cadence, calendar availability or strategy-observation policy. Stalled,
 errored, prematurely closed or oversized input is stopped, owned stdin is closed,
-and a generic rejection is emitted. Output is attempted once; errors/timeouts
-return 74 and close the owned output without raw exception details or retries.
+and a generic rejection is emitted. Output is attempted once, then ended. Success
+requires the write callback, stream `finish` and observed owned `close` within
+the same five-second budget. The stream is explicitly destroyed after finish
+to include cleanup/destruction failures; premature close and errors/timeouts
+return 74 without raw exception details or retries. A guarded error listener
+remains on that owned stream after terminal close/timeout so delayed callbacks
+or repeated errors cannot expose a stack. Errors after observed terminal close
+are suppressed, not claimed to retroactively change an already returned exit
+status or prove permanent validity of a downstream consumer.
+Node's standard-output wrapper can reset its mutable stream flags during
+destruction. Completion therefore uses the recorded callback/finish/close event
+sequence, not flags re-read after close. A real retained-Node child/pipe probe
+observed that reset; compiled CLI discovery and generic rejection/usage checks
+passed after the correction. Observed close is a stream-lifecycle event, not an
+operating-data handling or OS-release attestation.
 No unowned process or file is stopped or removed. Ordinary stdin/stdout I/O is
 not described as absence of all I/O; the no-effect claim concerns acquisition,
 persistence and execution authority.
@@ -110,6 +123,29 @@ PR34, the local full-suite profile uses two workers with every original case,
 assertion and per-test deadline unchanged; hosted CI's normal command remains
 mandatory. The final specification receipt was added after that working run;
 exact reviewed-head and post-merge verification are still required.
+
+The first complete independent review approved the bounded source. The original
+distinct adversarial reviewer found one MEDIUM: removing the output error guard
+after a successful write callback could expose later exception details. Seven
+new lifecycle regressions failed against that original source, including async
+destruction error, premature close, stalled finalization, missing close and late
+callback/repeated error cases. The grouped correction above retains the guard
+and observes bounded finish/close. All 37 focused tests then passed with the real
+whole-input assessor and existing fixture; original reports, failures and prior
+byte-audits remain preserved. Bounded correction confirmation by the original
+reviewers, full corrected-head verification and ordinary delivery gates remain
+required. No previous source approval is silently carried over to this change.
+The first cleanup correction rejected a healthy compiled stdout pipe because it
+re-read reset flags; that failed check is retained. A private shell chain also
+started a working suite after that failure; the exact owned invocation and its
+children were stopped and recorded as cancelled, never a pass. Corrected checks
+run under failure-stopping orchestration. No other assignment was interrupted.
+The corrected working revision subsequently passed all nine local phases:
+1793 worker/web tests, 18 server and 53 script tests, worker compilation, Go
+race/vet/build, V2 build/offline smoke/import/diff checks. The same two-worker
+local profile, assertions and deadlines remain; normal hosted tests and exact
+post-confirmation and post-merge gates are still mandatory. This working receipt
+precedes final specification/commit and is not corrected-head acceptance.
 
 Mandatory remaining gates are complete applicable local tests, Go race/vet/build,
 worker types, V2 build/offline smoke/import accounting, fresh independent and

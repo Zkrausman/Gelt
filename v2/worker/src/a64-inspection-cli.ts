@@ -51,20 +51,39 @@ function readInput(input: Readable): Promise<string | A64CommandOutput> {
 
 function writeOutput(output: Writable, text: string): Promise<boolean> {
   return new Promise(resolveOutput => {
-    let settled = false;
+    let settled = false, writeSucceeded = false, finished = false;
     const finish = (ok: boolean) => {
       if (settled) return;
       settled = true; clearTimeout(timer);
-      // A failed write's callback can precede its error event. Retain the
-      // one-shot handler until that event rather than leaking an exception.
-      if (ok) output.off('error', error);
-      if (!ok) output.destroy();
+      output.off('finish', onFinish); output.off('close', onClose);
+      // Keep the owned stream's error guard even after terminal close/timeout:
+      // delayed callbacks or destruction errors must not expose exception text.
+      if (!ok) { try { output.destroy(); } catch { /* generic output failure */ } }
       resolveOutput(ok);
     };
     const error = () => finish(false);
+    // Node's stdio wrapper can reset stream flags during destruction. Bind
+    // completion to the observed callback -> finish -> close events instead of
+    // re-reading reset flags after close; this is not an OS-release guarantee.
+    const onClose = () => finish(writeSucceeded && finished);
+    const onFinish = () => {
+      if (!writeSucceeded || !output.writableFinished) return finish(false);
+      finished = true;
+      // Join this command's owned output lifecycle, including asynchronous
+      // destruction; a successful write callback alone is not completion.
+      try { output.destroy(); } catch { finish(false); }
+    };
     const timer = setTimeout(error, a64InspectionTransportLimits.outputTimeoutMs);
-    output.once('error', error);
-    try { output.write(text, error => finish(!error)); } catch { finish(false); }
+    output.on('error', error); output.once('finish', onFinish); output.once('close', onClose);
+    if (output.destroyed || output.writableEnded) return finish(false);
+    try {
+      output.write(text, failure => {
+        if (settled || writeSucceeded) return;
+        if (failure) return finish(false);
+        writeSucceeded = true;
+        try { output.end(); } catch { finish(false); }
+      });
+    } catch { finish(false); }
   });
 }
 

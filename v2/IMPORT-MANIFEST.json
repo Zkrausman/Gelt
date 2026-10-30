@@ -4394,7 +4394,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-inspection-cli.ts",
-      "sha256": "ef9c7b2e56907ddfce6a2554a6121588f43f9a7f710be8dec7865200383806c4",
+      "sha256": "557bdefc803002caaaab2f4ba233d6e486ae544b6ca340852f893fd4a234c820",
       "reason": "Gelt agent-first bounded read-only A64 assessment command/transport and synthetic boundary tests; no operating authority."
     },
     {
@@ -4402,7 +4402,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-inspection-command.test.ts",
-      "sha256": "db8c96427a62949dbf9dbf0db160c2b885956db977aa194c3e0135e6b7e2151d",
+      "sha256": "98261e37b12142a870e98a7ce144df9765d13dffdc7791df40e6c3bf64f80a60",
       "reason": "Gelt agent-first bounded read-only A64 assessment command/transport and synthetic boundary tests; no operating authority."
     },
     {
