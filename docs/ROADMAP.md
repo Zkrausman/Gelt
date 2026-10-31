@@ -408,7 +408,7 @@ does not retire existing backlog items or declare the execution-first MVP accept
 - [x] **Zero-Cost Sentiment Ingestion**: Local text sentiment scoring for financial headlines and market news.
 
 ## Phase 5: Strategy Backtesting & Portfolio Risk Governance (`pkg/backtest` / `pkg/portfolio` / `pkg/thesis`)
-- [ ] **Event-Driven Backtest Simulator**: Historical trade replay engine calculating Win Rate, Sharpe Ratio, Profit Factor, and Max Drawdown.
+- [ ] **Event-Driven Backtest Simulator**: Historical trade replay engine calculating Win Rate, Sharpe Ratio, Profit Factor, and Max Drawdown. The approved [TASK_010/ZAR-235 execution/accounting audit](specs/Legacy-Backtest-Execution-Accounting-Audit.md) prepares causal-fill, cost and close-mark metric corrections; TASK_010-A/B remain proposed source slices, not implemented or operating-ready work. Cost-aware rebalancing is deferred.
 - [x] **Portfolio Correlation Matrix**: Multi-ticker correlation guardrails preventing over-concentration in correlated sectors (`pkg/portfolio`).
 - [x] **ATR Trailing Stop Engine**: Dynamic trailing stops and mandatory >2:1 Risk-to-Reward ratio enforcement (`gelt monitor`).
 - [x] **Beads Brain Thesis Logger (`pkg/thesis`)**: Automatically log execution rationales directly to `GELT_BEADS_BRAIN_PATH` and local journal (`gelt thesis`).

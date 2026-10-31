@@ -84,3 +84,15 @@ The following checks passed in the original Squire candidate checkout, before in
 - `git diff --check`
 
 The candidate-local checks did not exercise the default CLI synthetic-data path. A subsequent independent review found that the old generator could create closes outside its high/low bounds; both unchanged A/B benchmark candidates failed an offline 100-bar CLI run. The CLI generator correction and regression test above were added **after** grading in a separate delivery branch, not credited to the candidate. On this branch, `GOPROXY=off go build ./...`, `GOPROXY=off go test -race ./...`, `GOPROXY=off go vet ./...`, `git diff --check`, and `GOPROXY=off go run ./cmd/gelt backtest IntradayAlphaPlan SPY 100` passed locally. Independent final review and hosted exact-head PR checks remain required before merge. No broker or MCP operation was invoked. Host worktrees, prompts and disabled extensions are not credential or network isolation.
+
+
+## Execution/accounting audit follow-up (2026-10-31; documentation only)
+
+The [bounded legacy execution/accounting audit](Legacy-Backtest-Execution-Accounting-Audit.md)
+records inherited same-close fills, intrabar trailing/gap assumptions, unmodeled
+costs and realized-exit drawdown. It recommends a versioned causal bar model and
+truthful accounting/metric semantics, with unexecuted synthetic counterexamples
+and proposed TASK_010-A/B correction slices. The input-validation/determinism
+delivery above remains complete; no engine behavior, tests or current V2/PAMR
+qualification path changes. Correction implementation is not released by this
+audit approval. Cost-aware rebalancing and all operating holds remain.
