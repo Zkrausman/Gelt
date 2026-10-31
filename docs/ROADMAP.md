@@ -21,7 +21,7 @@ delivered that focused UI; it is not a new implementation task.
 | **Delivered: agent inspection command, [PR35](https://github.com/Zkrausman/Gelt/pull/35)** | [One bounded stdin/JSON command](specs/Agent-A64-Inspection-Command.md) over the shipped whole-input assessor, including discovery, stable reasons/exit statuses and no effects. Reuses PR33 rather than another inference or engine. | Whole-input recomputation, exact limits and complete source/correction review; all local and hosted gates passed before and after merge. Original 8–14-hour human-equivalent estimate is historical, not ready depth or measured elapsed effort. |
 | **Delivered: bounded constructed proposal validation, [PR36](https://github.com/Zkrausman/Gelt/pull/36)** | [Fixed proposal and whole-input verification command](specs/Agent-Constructed-PAMR-Proposal-Command.md), reusing existing pure PAMR validation and neutral sizing math. Exact input/policy/units/fee/cap bindings; constructed hypotheses remain distinct from inspected SPY253 data and G05 receipts. No order, lifecycle or provider activation. | Full source and bounded inventory-correction reviews; exact-head and post-merge local/hosted/compiled-entry gates passed. Original 12–20-hour human-equivalent estimate is historical, not remaining ready depth. |
 | **Delivered: proposed prospective declaration preflight, [PR37](https://github.com/Zkrausman/Gelt/pull/37)** | [Fixed agent-facing declaration command](specs/Agent-Prospective-Declaration-Preflight.md): complete current/initial-predecessor consistency, date labels/declared UTC timing/revision bindings and missing evidence. Historical profiles remain unchanged; no dated future profile or actual operating case is admitted. | Two fresh source/privacy approvals, exact-head and post-merge local/hosted gates and seventeen compiled-pipe checks passed. The original conditional 12–20-hour estimate is historical, not remaining ready or observation depth. |
-| **In progress: compiled agent-command conformance** | [Bring actual compiled child-pipe checks into canonical offline smoke](specs/Agent-Data-CLI-Conformance.md) for the three fixed data commands. Check discovery/rejection/usage, constructed declaration/revision, cross-identity rejection, quiet complete output and preserved holds. Reuse existing build/smoke, child environment and offline guard, without another runner/framework. | A valid-body/exit-74 negative control must fail and restored source must pass; full source/privacy review, exact-head checks and normal CI/post-merge delivery. No product command, operating campaign or qualification. Full remaining effort is unknown, not invented 48-hour ready coverage. |
+| **Delivered: compiled agent-command conformance, [PR38](https://github.com/Zkrausman/Gelt/pull/38)** | [Seventeen actual compiled child-pipe cases in canonical offline smoke](specs/Agent-Data-CLI-Conformance.md) for the three fixed data commands: discovery/rejection/usage, constructed declaration/revision, cross-identity rejection, quiet complete output and preserved holds. Reuses existing build/smoke, child environment and offline guard. | Two fresh source/privacy approvals; the valid-body/exit-74 negative control failed as expected and restored source passed. Required exact-head and post-merge local/hosted gates passed; merge `0dd5452` was remotely verified. No product command, operating campaign or qualification was added. Remaining effort for this source increment is zero; actual operating effort remains unknown. |
 
 These are tentative full source-engineering estimates, including tests, review,
 fixes, integration and delivery—not measured agent elapsed time, a promise of
@@ -42,6 +42,42 @@ qualified availability/clock and completion/revision basis, plus exact accepted
 window/supplier/consumer/operating-policy bindings. It is not independently ready
 implementation or observation depth. No duplicate consumer proposal or new
 generic workflow/recovery engine is needed for this source preparation.
+
+## Current dependency reconciliation (2026-10-31; operations held)
+
+PR35–38 are delivered source capabilities, not pending implementation or ready
+work depth. One specifically approved technical request was submitted once through
+Alpaca's official support form; receipt was confirmed and a reply is pending.
+The request asks whether `1Day` inclusive end bounds at the final bar's New York
+midnight include the whole daily bar, and what supported completion,
+collected-version or revision evidence applies to historical IEX daily bars with
+`adjustment=all`. No answer or new provider evidence is established by submission.
+No additional contact, polling or acquisition is scheduled here.
+
+The source-linked private window/procedure planning was independently reviewed,
+and its pagination correction confirmed. Its proposed dates, finite budget and
+handling policy remain unaccepted and unscheduled; they are not an admitted case.
+The approved finite adaptation remains 253 closes inspected, newest 65 eligible
+chronological closes selected, then 64 adjacent exact relatives, with rejection
+of unsupported ratios. It does not claim full 252-step history fidelity.
+
+No further independently ready source/planning delivery was identified in the
+current approved queue. The next dated-profile scope needs the provider answers
+or an evidenced limitation, compatible calendar/eligible-bar mapping, qualified
+clock/availability and actual handling evidence for copies, lifetimes,
+cancellation/settlement, release and own acknowledgement, plus accepted exact
+window, supplier/consumer and finite operating-policy bindings. Existing source
+interfaces and constructed tests do not supply those deployed facts. Current
+source ownership suffices for technical preparation; no new human role or repeat
+engineering-objective decision is requested.
+
+Once those facts support one concrete scope, narrow and review that source delta
+with fail-closed identity, timing, revision and resource acceptance criteria.
+Until then, ready successor depth is zero; full remaining engineering effort and
+observation duration are unknown. Held acquisition, qualification and campaigns
+are excluded from ready depth. All sixteen actual checks, including C07/C13/C14,
+remain UNKNOWN; qualification NOT_READY, production CLOSED and operations DEFER.
+This section updates current status only; dated outcomes below remain historical.
 
 ## Focused Gelt workspace (2026-10-29; source delivery revision)
 
