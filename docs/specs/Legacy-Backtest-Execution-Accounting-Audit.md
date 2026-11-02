@@ -221,3 +221,18 @@ for the exact envelope, limited BreakoutVol CLI subset, preserved legacy path,
 known test-history qualifications and pending review/delivery gates. No original
 audit counterexample is retroactively reclassified as executed. B/accounting,
 fees/slippage, real-data acquisition, campaigns and trading remain excluded.
+
+
+## Additive TASK_010-B1 status (2026-11-02)
+
+Historical proposed/unapproved B statements above record the audit and A scope
+at those dates. A was delivered in PR41. The owner later specifically approved
+narrower B1: declared model cash, exact fixed8 debit/credit/basis accounting,
+unaffordable-entry nonfills and every-bar close equity/drawdown. B1 is a local
+candidate after independent contract review and scoped package checks; complete
+implementation reviews and normal exact local/hosted delivery gates remain.
+See the [B1 scope and evidence](TASK_010_Historical_Backtester.md#task_010-b1-funded-accounting-source-candidate-2026-11-02).
+This does not change legacy Run/Result/backtest or A defaults, execute the old
+audit counterexamples, or implement B2 fees/slippage/calibration. Historical toy
+arithmetic is not an assertion of B1's fixedUSD10 size or newly executed proof.
+All actual qualification and operating holds remain.

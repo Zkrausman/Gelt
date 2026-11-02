@@ -4,7 +4,7 @@ title: "TASK_010: Interactive Strategy Backtester & Historical Replay Suite"
 ticket: ZAR-235
 status: implemented
 baseline: "3b8b82e1514c341fce092b49e4bbfc8e29599c61"
-scope: "Offline V1 historical validation plus separate opt-in TASK_010-A causal replay"
+scope: "Offline V1 historical validation, opt-in A causal replay and separate B1 funded accounting"
 ---
 
 # TASK_010: Interactive Strategy Backtester & Historical Replay Suite
@@ -227,3 +227,140 @@ and missing-argument cases each have separately captured expected exit statuses.
 and hosted results must be recorded separately. V2/scientific/protected-browser
 paths are unchanged; the existing hosted V2 workflow path filter does not select
 this Go/docs-only change. No V2/browser pass is inferred from that exclusion.
+
+
+## TASK_010-B1 funded accounting source candidate (2026-11-02)
+
+The owner specifically approved B1 funded cash and close-mark accounting,
+synthetic tests, independent review and normal source delivery. Earlier blanket
+B/accounting exclusions record A's historical scope; B2 fees/slippage/calibration
+and cost-aware rebalancing remain excluded. B1 is a local implementation
+candidate, not a delivered or operating backtester. The refined contract passed
+independent accuracy/privacy review before authoring. Complete implementation
+independent and distinct adversarial source/privacy review, applicable exact-head
+local/hosted checks and ordinary merge/remote postmerge remain required.
+
+### API, identity and event integration
+
+```go
+func (e *Engine) RunFundedCausal(ctx context.Context, symbol string,
+    data []OHLCV, initialModelCash string) (FundedCausalResult, error)
+```
+
+RunCausal delegates to a private common loop with nil funded state, preserving
+its public behavior and defaults. B1 uses typed funded state and model
+`gelt.legacy-go.funded-close-next-open.v1`, cost
+`frictionless_funded_fixed8_diagnostic`, data/authority `unqualified_offline`.
+Nested replay carries the new IDs too; the A summary rejects them. Fresh exclusive
+trusted evaluators, copied bars/fresh prefixes, whole-input validation and exact
+name/symbol/time/EQUITY/plan membership checks remain. No new callback sandbox,
+authentication, reset, concurrent/reentrant use or preemption guarantee exists.
+
+Funding gates the eligible flat pending BUY before position/protection creation,
+not by filtering a completed A trace. Insufficient cash records a bounded
+`insufficient_model_cash` nonfill with bar/evaluation lineage and available versus
+required units, consumes the attempt and continues. It creates no debit, fill,
+position, protection, borrow or partial quantity. Active BUY and flat SELL retain
+no-op semantics. Signals still undergo identity/domain checks while unfunded;
+position-only enabled-to-zero checks do not apply to never-opened positions.
+A's gap/protective/queued-exit/intrabar/stop-first/no-same-bar-reentry rules and
+once-only eligible close evaluation remain. Pending final direction can be a
+no-op and is not an actual unfilled order.
+
+### Exact model accounting
+
+Mandatory initial cash is at most32 ASCII bytes, ordinary unsigned integer or
+integer plus dot and1..8 fractional digits, no sign/exponent/whitespace or
+leading-zero integer. Range0..1,000,000 modelUSD. Parsing uses exact integer units
+of10^-8, not ParseFloat or rounding excess precision. Output unit strings are
+canonical integers, signed only for accounting PnL; human display is exactly8
+fractional digits. This is an engineering model resolution, not actual cash or a
+broker currency policy.
+
+Entry quantity remains A's nominalUSD10/open float. Cash conversion forms the
+exact binary-rational price×quantity with math/big.Rat, scales by10^8 and rounds
+once, nearest ties-even. Debit, credit and close value share it; fill prices,
+quantities/touch predicates and A float arithmetic are unchanged. Required entry
+must equal1,000,000,000 units, otherwise fatal numeric failure without resizing.
+Funding is exact cash>=required, no epsilon. Initial/cash/position value each fit
+0..10^14 units; equity/peak fit0..2×10^14. Exact source product and rounded value
+are bounded. Checked int64 arithmetic and big.Int ratio cross-products avoid
+overflow. Unsupported range zeros the whole new result, without reducing A's
+old supported domain.
+
+Cash flows link actual FillIndex and bar/evaluation/entry lineage. Full exits
+credit rounded proceeds and release entry basis. Realized accounting PnL is
+credited units minus debit; unrealized is marked value minus retained debit.
+Every close satisfies exactly `equity = cash + position value = initial equity +
+realized PnL + unrealized PnL`. Float gross diagnostics remain separately labeled
+and can differ slightly due cash quantization; they are not net/cash PnL.
+No fees/slippage, tax, interest, dividend/split, leverage, shorts, reserve or
+partial-funding model is added.
+
+Every actual supplied bar has one close mark, including warmup before the20-close
+evaluation threshold. Initial equity is separate, without an invented timestamp.
+Close marking follows fills and any close evaluation/protection update; it does
+not select fills. Initial capital seeds the high-water mark, then close equity
+updates it. Strict exact loss/peak comparison keeps the earliest maximum on ties.
+No positive loss means numerator0 and maximum bar null. Zero capital/peak means
+null ratio/percent and `zero_initial_model_equity`; positive peak and zero equity
+means100%. No intrabar peak metric or forced terminal liquidation is implied.
+Final cash excludes open-position proceeds; final equity includes its close
+value, with quantity/basis/unrealized PnL retained.
+
+At most10,000 bars/evaluations/rejections/close marks and20,000 actual fills/cash
+flows, one position. Fixed labels/reasons, validated identities and typed bounded
+code/bar-index errors exclude raw callback rationale, AgentPrompt, private paths
+and errors. Fatal errors return zero FundedCausalResult; expected insufficient
+funding is nonfatal. Callback-internal state itself is not rollbackable.
+
+### CLI, files and current verification
+
+`gelt backtest-causal-funded <Target> <Symbol> <DataFile.csv> <InitialModelCash>`
+requires exactly4args and reuses the unchanged strict CSV/exact BreakoutVol-only
+fresh resolver. No provider/config/catalog/plan suite or account is initialized.
+The separate human formatter checks fixed/nested identities, bounded canonical
+units, accounting/DD and terminal consistency before formatting<=8192 UTF8 bytes.
+These are internal formatting checks, not imported-record authentication or a
+new general assessor. Fixed error codes never echo tokens/paths/private callback
+text. One output write: short/error returns nonzero `output_error`, no retry or
+atomic-output guarantee; a prefix may remain. No JSON command/export/persistence.
+
+Changed files: private common-loop seams in `pkg/backtest/causal.go`; new
+`causal_funded.go`, `causal_funded_test.go`,
+`cmd/gelt/backtest_causal_funded.go`, `backtest_causal_funded_test.go`; separate
+main.go dispatch; package README, this specification, audit and existing roadmap.
+Old A/legacy tests and strategy/plan/risk/config/dependency/security source stay
+unchanged.
+
+Synthetic evidence covers100 cash,10 entry,close50 equity95/DD5%,exit110 cash101;
+10 cash losing to9 then rejected later BUY before protection; zero/low/exact/
+one-unit-short capital; exact1/512 and3/512 ties-even helper oracles; accounting
+identities; warmup/final-open marks; DD ties/large exact products; A nonbinding
+fresh-evaluator equivalence; gap/collision/ratchet/no-op and fatal
+numeric/identity/membership/cancellation/resource cases; real BreakoutVol CSV
+route, bounded/sanitized summary and prefix-error writer behavior. These are
+constructed cases, not real-data coverage or operating observations.
+
+Fresh core package race tests passed. The first CLI package check failed because
+its successful controlled fixture always set AgentPrompt, correctly rejected by
+the unchanged core. Owner correction removed it only from the valid fixture and
+added a dedicated prompt-rejection case; production guards and old assertions
+remain unchanged. Corrected fresh CLI package race passed. Originals/failure
+outputs remain preserved. Full working/exact-review/hosted results must be
+recorded separately; these checks and contract approval are not implementation
+acceptance. Original A session66290 remains UNKNOWN permanently, separate from
+its authorized cached check and later fresh tests.
+
+No V2/PAMR lifecycle, market data/provider/acquisition, campaign/optimization,
+qualification, actual capital or trading effects. All16/C07/C13/C14 UNKNOWN;
+NOT_READY/CLOSED/DEFER. B2 costs and integration remain excluded.
+
+
+Working verification update (2026-11-02): fresh full `go test -race ./... -count=1`,
+`go vet ./...` and CLI build exited0 with source unchanged during each check.
+Seven actual built-command cases passed: zero/low/funded capital, invalid cash,
+unsupported target, missing arguments and the existing A command. Private owned
+synthetic CSV only; no market-data call. These are pre-review working results;
+V2/scientific, post-review exact-head and hosted/merge/postmerge gates remain
+pending and are not inferred from prior A checks or untriggered hosted jobs.

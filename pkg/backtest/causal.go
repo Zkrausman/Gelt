@@ -597,6 +597,22 @@ func causalAppendFill(
 	return ""
 }
 
+// causalRecordFill keeps accounting adjacent to actual modeled fills. A fatal
+// failure discards both traces; neither trace is published incrementally.
+func causalRecordFill(
+	res *CausalResult, funded *causalFundedState, p *causalPosition,
+	kind CausalFillKind, reason CausalFillReason, bar int, timestamp int64,
+	evaluationBar int, price float64, ambiguous bool,
+) CausalErrorCode {
+	if code := causalAppendFill(res, p, kind, reason, bar, timestamp, evaluationBar, price, ambiguous); code != "" {
+		return code
+	}
+	if funded != nil {
+		return funded.fill(res.Fills[len(res.Fills)-1], len(res.Fills)-1)
+	}
+	return ""
+}
+
 // RunCausal performs the fixed, opt-in, gross frictionless OHLC replay.
 // It does not call Init or reset an evaluator. Callers must exclusively own a
 // freshly initialized trusted evaluator and exclusively own input during
@@ -604,6 +620,15 @@ func causalAppendFill(
 // callback state or plan-child interactions. Concurrent/reentrant use is not
 // supported. Cancellation checks do not preempt an uncooperative callback.
 func (e *Engine) RunCausal(ctx context.Context, symbol string, data []OHLCV) (CausalResult, error) {
+	return e.runCausal(ctx, symbol, data, nil)
+}
+
+// runCausal is the single event loop for A and the explicitly funded model.
+// Accounting cannot select a price, change a touch predicate or reevaluate a
+// close. Only the pre-entry funding gate can decline a candidate entry.
+func (e *Engine) runCausal(
+	ctx context.Context, symbol string, data []OHLCV, funded *causalFundedState,
+) (CausalResult, error) {
 	if index, code := causalValidateBars(data); code != "" {
 		return causalFailure(code, index)
 	}
@@ -623,6 +648,9 @@ func (e *Engine) RunCausal(ctx context.Context, symbol string, data []OHLCV) (Ca
 		DataLabel: CausalOfflineLabel, AuthorityLabel: CausalOfflineLabel,
 		TargetName: evaluator.name, Symbol: symbol, TotalBars: len(bars),
 	}
+	if funded != nil {
+		res.ModelIdentity, res.CostIdentity = FundedCausalModelIdentity, FundedCausalCostIdentity
+	}
 	var position *causalPosition
 	var pending *CausalEvaluation
 
@@ -632,7 +660,7 @@ func (e *Engine) RunCausal(ctx context.Context, symbol string, data []OHLCV) (Ca
 		}
 		exited := false
 		closePosition := func(reason CausalFillReason, price float64, source int, ambiguous bool) CausalErrorCode {
-			code := causalAppendFill(&res, position, CausalExit, reason, i, bar.Timestamp, source, price, ambiguous)
+			code := causalRecordFill(&res, funded, position, CausalExit, reason, i, bar.Timestamp, source, price, ambiguous)
 			if code == "" {
 				position, exited = nil, true
 			}
@@ -656,16 +684,26 @@ func (e *Engine) RunCausal(ctx context.Context, symbol string, data []OHLCV) (Ca
 			}
 		}
 		if !exited && position == nil && pending != nil && pending.Signal == strategies.SignalBuy {
-			position, code = causalNewPosition(bar.Open, *pending, i)
-			if code != "" {
-				return causalFailure(code, i)
+			allowed := true
+			if funded != nil {
+				allowed, code = funded.entryGate(bar, i, *pending)
+				if code != "" {
+					return causalFailure(code, i)
+				}
 			}
-			if code = causalAppendFill(&res, position, CausalEntry, CausalNextOpenBuy,
-				i, bar.Timestamp, pending.BarIndex, bar.Open, false); code != "" {
-				return causalFailure(code, i)
+			if allowed {
+				position, code = causalNewPosition(bar.Open, *pending, i)
+				if code != "" {
+					return causalFailure(code, i)
+				}
+				if code = causalRecordFill(&res, funded, position, CausalEntry, CausalNextOpenBuy,
+					i, bar.Timestamp, pending.BarIndex, bar.Open, false); code != "" {
+					return causalFailure(code, i)
+				}
 			}
 		}
 		// BUY while active and SELL while flat are consumed no-ops.
+		// An unaffordable flat BUY is also consumed, with a separate nonfill record.
 		pending = nil
 
 		if position != nil {
@@ -683,6 +721,11 @@ func (e *Engine) RunCausal(ctx context.Context, symbol string, data []OHLCV) (Ca
 			}
 		}
 		if i < 19 {
+			if funded != nil {
+				if code = funded.mark(bar, i, position); code != "" {
+					return causalFailure(code, i)
+				}
+			}
 			continue
 		}
 
@@ -705,6 +748,11 @@ func (e *Engine) RunCausal(ctx context.Context, symbol string, data []OHLCV) (Ca
 			}
 		}
 		pending = &evaluation
+		if funded != nil {
+			if code = funded.mark(bar, i, position); code != "" {
+				return causalFailure(code, i)
+			}
+		}
 	}
 
 	// This flag records a final directional signal lacking a successor bar,
