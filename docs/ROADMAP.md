@@ -22,6 +22,7 @@ delivered that focused UI; it is not a new implementation task.
 | **Delivered: bounded constructed proposal validation, [PR36](https://github.com/Zkrausman/Gelt/pull/36)** | [Fixed proposal and whole-input verification command](specs/Agent-Constructed-PAMR-Proposal-Command.md), reusing existing pure PAMR validation and neutral sizing math. Exact input/policy/units/fee/cap bindings; constructed hypotheses remain distinct from inspected SPY253 data and G05 receipts. No order, lifecycle or provider activation. | Full source and bounded inventory-correction reviews; exact-head and post-merge local/hosted/compiled-entry gates passed. Original 12–20-hour human-equivalent estimate is historical, not remaining ready depth. |
 | **Delivered: proposed prospective declaration preflight, [PR37](https://github.com/Zkrausman/Gelt/pull/37)** | [Fixed agent-facing declaration command](specs/Agent-Prospective-Declaration-Preflight.md): complete current/initial-predecessor consistency, date labels/declared UTC timing/revision bindings and missing evidence. Historical profiles remain unchanged; no dated future profile or actual operating case is admitted. | Two fresh source/privacy approvals, exact-head and post-merge local/hosted gates and seventeen compiled-pipe checks passed. The original conditional 12–20-hour estimate is historical, not remaining ready or observation depth. |
 | **Delivered: compiled agent-command conformance, [PR38](https://github.com/Zkrausman/Gelt/pull/38)** | [Seventeen actual compiled child-pipe cases in canonical offline smoke](specs/Agent-Data-CLI-Conformance.md) for the three fixed data commands: discovery/rejection/usage, constructed declaration/revision, cross-identity rejection, quiet complete output and preserved holds. Reuses existing build/smoke, child environment and offline guard. | Two fresh source/privacy approvals; the valid-body/exit-74 negative control failed as expected and restored source passed. Required exact-head and post-merge local/hosted gates passed; merge `0dd5452` was remotely verified. No product command, operating campaign or qualification was added. Remaining effort for this source increment is zero; actual operating effort remains unknown. |
+| **Delivered: opt-in causal offline backtester, [PR41](https://github.com/Zkrausman/Gelt/pull/41)** | Separate `Engine.RunCausal` close-signal/next-open model and strict CSV `backtest-causal` command (exact `BreakoutVol` only). Legacy Run/Result/backtest remain unchanged; gross diagnostics and final open model position are explicit. | Independent/adversarial source approvals, pinned scientific/G04 verification, Go/V2/CLI checks and remote/postmerge verification completed at merge `e515ef45`. One postmerge parallel V2 timeout is retained; the unchanged file and complete serial pipeline passed with existing assertions/deadlines. No costs/equity/drawdown model or operating qualification is implied. Remaining source-delivery effort for A is zero. |
 
 These are tentative full source-engineering estimates, including tests, review,
 fixes, integration and delivery—not measured agent elapsed time, a promise of
@@ -42,6 +43,29 @@ qualified availability/clock and completion/revision basis, plus exact accepted
 window/supplier/consumer/operating-policy bindings. It is not independently ready
 implementation or observation depth. No duplicate consumer proposal or new
 generic workflow/recovery engine is needed for this source preparation.
+
+## Delivery reconciliation (2026-11-02; operations held)
+
+PR41 delivered the separately approved TASK_010-A source scope; it is not pending
+implementation, review, scientific setup approval or merge. Its merge tree
+matches the reviewed candidate, and exact-commit hosted Go CI passed before and
+after merge. Local pinned Python 3.12.14/uv 0.12.19 scientific source/fresh-package
+checks and parity passed. The original parallel postmerge V2 test timeout remains
+a failed historical outcome: the unchanged 45-test file and complete V2 pipeline
+subsequently passed with file parallelism disabled, without changing source,
+assertions, test timeouts or production deadlines. No parallel-performance
+qualification is inferred. Existing hosted V2/scientific path filters did not
+select this Go/docs-only change; those jobs are NOT_TRIGGERED, not passes.
+
+The completed source queue above does not establish more ready implementation
+hours. TASK_010-B costs/funded accounting/equity remains dependent and unapproved;
+no new implementation successor is released by this status correction. A proposed
+machine-readable causal summary would need its own bounded source contract and
+release; it is not a new engine, acquisition or trading task and is not counted
+as ready depth. No runtime, supplier, window or handling evidence is manufactured.
+The earlier provider-dependent reconciliation remains historical evidence of
+unresolved operating dependencies. All sixteen checks, including C07/C13/C14, remain UNKNOWN;
+qualification NOT_READY, production CLOSED and operations DEFER.
 
 ## Current dependency reconciliation (2026-10-31; operations held)
 
@@ -408,7 +432,7 @@ does not retire existing backlog items or declare the execution-first MVP accept
 - [x] **Zero-Cost Sentiment Ingestion**: Local text sentiment scoring for financial headlines and market news.
 
 ## Phase 5: Strategy Backtesting & Portfolio Risk Governance (`pkg/backtest` / `pkg/portfolio` / `pkg/thesis`)
-- [ ] **Event-Driven Backtest Simulator**: Historical trade replay engine calculating Win Rate, Sharpe Ratio, Profit Factor, and Max Drawdown. The approved [TASK_010/ZAR-235 execution/accounting audit](specs/Legacy-Backtest-Execution-Accounting-Audit.md) prepares causal-fill, cost and close-mark metric corrections; TASK_010-A is an owner-approved opt-in causal core/strict CSV local source candidate, pending final independent/adversarial review and delivery gates; legacy Run/backtest remain unchanged. [A source contract and verification limits](specs/TASK_010_Historical_Backtester.md#task_010-a-opt-in-causal-source-candidate-2026-11-01) distinguish source from operation. TASK_010-B costs/accounting remains dependent and unapproved; no operating readiness is established. Cost-aware rebalancing is deferred.
+- [ ] **Event-Driven Backtest Simulator**: Historical trade replay engine calculating Win Rate, Sharpe Ratio, Profit Factor, and Max Drawdown. The approved [TASK_010/ZAR-235 execution/accounting audit](specs/Legacy-Backtest-Execution-Accounting-Audit.md) prepares causal-fill, cost and close-mark metric corrections; TASK_010-A was delivered in [PR41](https://github.com/Zkrausman/Gelt/pull/41), merge `e515ef45`, with independent/adversarial source review, pinned scientific/G04 verification, Go/V2/CLI checks and remote/postmerge verification. The original parallel V2 timeout is retained; the unchanged file and complete serial pipeline passed with existing assertions/deadlines. Legacy Run/backtest remain unchanged; this is not operating readiness. [A source contract and verification limits](specs/TASK_010_Historical_Backtester.md#task_010-a-opt-in-causal-source-candidate-2026-11-01) distinguish source from operation. TASK_010-B costs/accounting remains dependent and unapproved; no operating readiness is established. Cost-aware rebalancing is deferred.
 - [x] **Portfolio Correlation Matrix**: Multi-ticker correlation guardrails preventing over-concentration in correlated sectors (`pkg/portfolio`).
 - [x] **ATR Trailing Stop Engine**: Dynamic trailing stops and mandatory >2:1 Risk-to-Reward ratio enforcement (`gelt monitor`).
 - [x] **Beads Brain Thesis Logger (`pkg/thesis`)**: Automatically log execution rationales directly to `GELT_BEADS_BRAIN_PATH` and local journal (`gelt thesis`).
