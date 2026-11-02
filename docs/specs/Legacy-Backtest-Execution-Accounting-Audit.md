@@ -236,3 +236,18 @@ This does not change legacy Run/Result/backtest or A defaults, execute the old
 audit counterexamples, or implement B2 fees/slippage/calibration. Historical toy
 arithmetic is not an assertion of B1's fixedUSD10 size or newly executed proof.
 All actual qualification and operating holds remain.
+
+
+## Additive TASK_010-B2a status (2026-11-02)
+
+B1 funded accounting was delivered in [PR43](https://github.com/Zkrausman/Gelt/pull/43),
+merge `805d6b31`. The owner separately approved an opt-in declared-fee-only mode,
+including the simulated10 modelUSD fee-inclusive cap, synthetic tests,
+independent review and ordinary source delivery. It is a local source candidate;
+complete implementation review and exact-source delivery gates remain. Earlier
+B2 exclusions are historical; slippage, calibration, acquisition, optimization,
+trading and cost-aware rebalancing remain excluded. See the
+[B2a contract and evidence](TASK_010_Historical_Backtester.md#task_010-b2a-declared-fee-source-candidate-2026-11-02).
+This adds no actual broker schedule, realistic-cost or economic adequacy claim,
+and does not retroactively execute the audit's toy counterexamples. Legacy/A/B1
+behavior and every actual qualification/operating hold remain preserved.

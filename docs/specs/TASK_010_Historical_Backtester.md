@@ -4,7 +4,7 @@ title: "TASK_010: Interactive Strategy Backtester & Historical Replay Suite"
 ticket: ZAR-235
 status: implemented
 baseline: "3b8b82e1514c341fce092b49e4bbfc8e29599c61"
-scope: "Offline V1 historical validation, opt-in A causal replay and separate B1 funded accounting"
+scope: "Offline V1 historical validation, opt-in A/B1 and separate B2a declared-fee replay"
 ---
 
 # TASK_010: Interactive Strategy Backtester & Historical Replay Suite
@@ -364,3 +364,154 @@ unsupported target, missing arguments and the existing A command. Private owned
 synthetic CSV only; no market-data call. These are pre-review working results;
 V2/scientific, post-review exact-head and hosted/merge/postmerge gates remain
 pending and are not inferred from prior A checks or untriggered hosted jobs.
+
+
+## TASK_010-B2a declared-fee source candidate (2026-11-02)
+
+B1 was delivered in [PR43](https://github.com/Zkrausman/Gelt/pull/43), merge
+`805d6b31d16dd4977e606ead1b6d0cb6f52378cd`. Its earlier local/pending text above
+is historical. The owner separately approved this opt-in declared-fee-only
+increment, synthetic tests, independent review and ordinary source delivery.
+Earlier B2 exclusions describe the previous scope; slippage, fee calibration,
+acquisition, trading and cost-aware rebalancing remain excluded. This is a source
+candidate, not an operating or profitability claim. No actual spending is needed:
+the fee-inclusive10 modelUSD cap is simulated capital.
+
+### Separate API and identities
+
+```go
+func (e *Engine) RunFeeScenarioCausal(ctx context.Context, symbol string,
+    data []OHLCV, initialModelCash string, scenario FeeScenario) (FeeScenarioCausalResult, error)
+type FeeScenario struct { FixedFee string; FeeBps string }
+```
+
+Model `gelt.legacy-go.fee-scenario-close-next-open.v1`, cost
+`declared_fixed8_per_side_fee_scenario`, and nested replay use separate identities;
+data/authority remain `unqualified_offline`. Declaration basis is
+`uncalibrated_declared`, application `per_filled_side`, fee basis
+`quantized_gross_notional`. No actual broker schedule or calibration is implied.
+Legacy Run/Result/backtest, A and B1 APIs/defaults/results/errors remain unchanged.
+The private common loop now accepts separate optional typed funded/fee state,
+rejecting simultaneous use. B1's only source adjustment supplies the new nil
+argument; its arithmetic, public result and tests are unchanged.
+
+Initial cash retains B1's exact unsigned ASCII decimal grammar, at most32 bytes,
+0..1,000,000 modelUSD with at most8 fractional digits. Fixed fee is mandatory,
+same grammar and resolution, 0 inclusive to10 exclusive. Rate is a mandatory
+canonical integer string, at most5 bytes, 0..10000 basis points inclusive. This
+100% engineering bound is not a realistic fee assumption. No omitted/default
+scenario, rounding excess precision, signs, whitespace or exponents. Invalid
+scenario rejects before callbacks with sanitized `invalid_fee_scenario`.
+
+### Fee-inclusive sizing and exact accounting
+
+Let scale S=10^8, B=10S, F=declared fixed fee units, b=declared rate. Each actual
+filled side charges `F + ceil(N*b/10000)`, where N is that side's gross notional
+quantized once using exact binary-rational price×quantity and nearest ties-even.
+No fees for rejected entries, no-ops, marks or pending terminal directions.
+
+Eligible entry principal is the maximal integer
+`T=floor((B-F)*10000/(10000+b))`. For a nonzero scenario the quantity is the
+float64 at or immediately below exact `T/(S*open)`; exact raw principal must not
+exceed T/S and its quantized value must equal T. Unsupported quantity/range fails,
+without clamping or widening the inherited0.00001..1000 quantity domain. Explicit
+F=0,b=0 uses B1's original10/open float, preserving zero-fee trace/accounting
+apart from new identities and fee fields. Funding requires exact cash>=T+fee,
+with total debit<=B. No loan, epsilon, fee waiver, partial funding or resizing to
+available cash. Insufficient cash is a nonfatal `insufficient_model_cash` nonfill.
+
+A valid scenario can yield T=0. If a flat eligible pending BUY reaches that
+condition, return `numeric_range` and a zero whole result before funding or
+position/protection creation, even with zero cash. HOLD/warmup/no eligible entry
+does not fail solely because T=0. For F=9.99999999,b=0 the positive one-unit
+principal still must pass the inherited quantity domain; b>=1 can yield T=0.
+
+Retain principal and filled entry fee separately, with basis=principal+entryfee.
+Exit cash delta is quantized gross minus the filled exit fee, including a
+negative delta if existing cash covers it. Otherwise fail
+`insufficient_exit_fee_cash`, zeroing the whole result; never waive fees or
+report a partial successful exit. Net realized PnL is exit delta minus entry
+basis. Net unrealized PnL is close value minus retained basis. Exact gross
+accounting PnL excludes fees, while closed attributed fees include closed entry
+and exit fees and open attributed fees contain only the retained entry fee.
+Aggregate fees equal closed plus open fees. No double subtraction from equity:
+`equity=cash+value=initial+net_realized+net_unrealized` at every supplied close.
+Float gross diagnostics remain separately labeled and can differ by quantization.
+
+Bounds remain10,000 bars/evaluations/rejections/marks,20,000 fills/cash flows and
+one position. Checked integer arithmetic bounds initial/cash/gross/value/aggregate
+fees to0..10^14 units, equity/peak to0..2×10^14, signed accounting PnL to±2×10^14,
+and entry principal/basis to10^9. Fee multiplication uses checked integer
+arithmetic and ceiling; quantity and quote conversion use exact rational math.
+Every bar is marked including warmup; initial equity has no invented timestamp.
+Strict exact loss/peak comparison preserves the first maximum on ties; zero
+initial equity remains null with `zero_initial_model_equity`. Terminal open
+positions retain basis/entry fee and close value, never assumed liquidation,
+proceeds or a hypothetical exit fee. A's event ordering and protection semantics
+are reused unchanged. Trusted fresh exclusive callbacks, identity checks and
+whole-input validation remain; callback sandboxing, rollback, concurrent use,
+authentication and preemption are not promised.
+
+### Command, formatting and changed files
+
+`gelt backtest-causal-fees <Target> <Symbol> <DataFile.csv> <InitialModelCash> <FixedPerSideFee> <FeeBps>`
+requires exactly6 arguments and the unchanged bounded strict CSV parser and exact
+BreakoutVol-only fresh resolver. No account/provider/config/catalog or plan suite
+is initialized. No input is fetched or synthesized by the product command.
+The separate <=8192 UTF8-byte human summary displays exact8 money, declared fee
+basis, fee-inclusive cap, gross versus net accounting, cash/basis/fees/close
+value/equity/drawdown and terminal/pending limitations. Formatting consistency
+checks fixed/nested identities, canonical bounded units, scenario/trace/accounting
+and nullable drawdown, with index checks before access. This internal typed-result
+formatter is not an imported-record authenticator or general assessor. A/B1
+formatters reject new identities. Errors are fixed safe code strings without raw
+input tokens, private paths, callback rationale/prompts/errors. One output attempt:
+short/error is nonzero `output_error`, may retain a prefix and is never retried.
+No JSON export, persistence or effects are added.
+
+Changed source: `pkg/backtest/causal.go` private integration and
+`causal_funded.go` nil-argument compatibility; new `causal_fee_scenario.go` and
+`causal_fee_scenario_test.go`; new `cmd/gelt/backtest_causal_fee_scenario.go` and
+`backtest_causal_fee_scenario_test.go`; one main dispatch. Documentation updates
+this specification, package README, cumulative roadmap and audit status. Old
+A/B1/legacy tests, strategy/plan/risk/config/dependencies/security stay unchanged.
+
+### Synthetic evidence and verification limits
+
+Independent arithmetic cases include flat100-price entry/exit with cash10,
+fixedfee1: principal9, entry cash0/equity9, final cash8, totalfees2, gross0,
+net-2 and close drawdown20%. Terminal open has only entryfee1. At b=100,F=0,
+T=990099009 and fee9900991 exactly exhaust the cap; T+1 violates it. At b=10000,
+T=500000000 and fee500000000. Ceil cases N=1/10000/10001,b=1 produce1/1/2 units.
+Exit price1/fixedfee1 fails with initial10 but succeeds with100 at final89.09,
+net-10.91 and fees2. Tests distinguish T=0 rejection before funding from successful
+HOLD/warmup, supported unfunded entries, explicit zero-fee B1 equivalence,
+quantization ties, gap/touch/queued-exit precedence, fatal identity/numeric/resource
+errors, malformed late CSV, bounded private-error handling and single-write
+prefix failures. These are constructed acceptance cases, not market coverage.
+
+The first core package race run failed two new fixture rows that queued a SELL
+while expecting an intrabar fill. The owner corrected only the new fixture to
+separate queued exits from intrabar cases and added explicit precedence coverage;
+production ordering and old tests were unchanged. Corrected fresh core package
+race passed. The first assembled CLI check failed compilation on an unused
+`strconv` import; the owner removed only that import. Original failures are
+retained. Later working, independent/adversarial implementation review, exact-head
+and hosted/merge/postmerge results must be recorded separately; contract review
+and these statements do not claim final implementation acceptance.
+
+Working full verification (2026-11-02): fresh `go test -race ./... -count=1`,
+`go vet ./...` and the CLI build exited0 with tested source unchanged. Twelve
+actual built-command cases passed using an owned synthetic CSV: fixed fee,
+zero/low capital,100bps, explicit zero fees, bad fixed fee/rate, zero target,
+missing arguments, unsupported target and retained B1/A commands. This build
+used the recorded working source snapshot, not a clean reviewed commit.
+Full implementation source/privacy reviews, exact-head postreview checks and
+hosted/merge/postmerge gates remain pending. V2/scientific checks have not yet
+been run for B2a and are not inferred from prior deliveries. Original A session
+66290 remains UNKNOWN, separate from later authorized gates. Author provenance,
+retained STOPs and nonadditive usage qualifications remain in private receipts.
+
+No V2/PAMR/provider/lifecycle activation, slippage, live data/acquisition,
+qualification, optimization campaign, actual capital or trading. All16 and
+C07/C13/C14 remain UNKNOWN; NOT_READY/CLOSED/DEFER unchanged.

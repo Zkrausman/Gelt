@@ -60,7 +60,8 @@ select this Go/docs-only change; those jobs are NOT_TRIGGERED, not passes.
 The completed source queue above does not establish more ready implementation
 hours. That correction did not release a successor. The owner subsequently
 approved narrower B1 funded accounting on November2; its local status follows.
-B2 fees/slippage remain unapproved. A proposed
+The separately approved B2a declared-fee-only source candidate follows below;
+slippage remains excluded. A proposed
 machine-readable causal summary would need its own bounded source contract and
 release; it is not a new engine, acquisition or trading task and is not counted
 as ready depth. No runtime, supplier, window or handling evidence is manufactured.
@@ -68,21 +69,33 @@ The earlier provider-dependent reconciliation remains historical evidence of
 unresolved operating dependencies. All sixteen checks, including C07/C13/C14, remain UNKNOWN;
 qualification NOT_READY, production CLOSED and operations DEFER.
 
-## TASK_010-B1 approved source work (2026-11-02; operations held)
+## TASK_010-B1 delivered source work (2026-11-02; operations held)
 
-B1 is specifically approved: separate opt-in funded model cash and close-mark
-accounting, synthetic tests, independent review and normal source delivery.
-The refined contract passed independent accuracy/privacy review. Core and CLI
-are locally applied; fresh core and corrected CLI package race checks passed.
-Complete-source independent/adversarial reviews, applicable exact-source
-Go/V2/scientific/built-CLI gates and normal hosted PR/merge/postmerge remain
-pending. This is implementation in progress, not delivered or operating use.
-See [exact B1 scope and test-history limits](specs/TASK_010_Historical_Backtester.md#task_010-b1-funded-accounting-source-candidate-2026-11-02).
-A/legacy behavior is preserved. B2 fees/slippage, acquisition, qualification,
-trading and rebalancing remain excluded. Prior24–48human-equivalent hours was a
-tentative unmeasured full estimate, not remaining effort, reserved capacity or
-ready depth. No filler successor or actual observation coverage is inferred.
-All16/C07/C13/C14 UNKNOWN; NOT_READY/CLOSED/DEFER remain.
+B1 was delivered in [PR43](https://github.com/Zkrausman/Gelt/pull/43), merge
+`805d6b31d16dd4977e606ead1b6d0cb6f52378cd`, after complete independent/adversarial
+source review, exact local Go/V2/scientific/CLI checks, hosted Go CI, ordinary
+merge and remote/postmerge verification. The28 unsupported Windows legacy skips
+remain skips; hosted V2/scientific were NOT_TRIGGERED for Go/docs-only paths.
+Source delivery is not operating readiness. Earlier local/pending text in dated
+specification sections is historical; [B1 scope/test history](specs/TASK_010_Historical_Backtester.md#task_010-b1-funded-accounting-source-candidate-2026-11-02)
+retains its limits. A/legacy behavior is preserved.
+
+## TASK_010-B2a approved source candidate (2026-11-02; operations held)
+
+The owner separately approved declared fees in offline replay: a separate opt-in
+mode, mandatory fixed-per-filled-side fee and integer bps, exact fee-inclusive
+simulated10 modelUSD entry cap, funded exit-fee handling and gross/net accounting
+labels. No actual spending is authorized or needed. The refined contract and
+zero-target clarification passed independent review. Core and CLI are applied
+locally; original test/author STOP outcomes and corrections are retained.
+Complete-source independent/adversarial reviews, applicable exact-source checks,
+CI and ordinary merge/remote verification remain pending. See the
+[B2a contract and evidence](specs/TASK_010_Historical_Backtester.md#task_010-b2a-declared-fee-source-candidate-2026-11-02).
+No new successor or ready-hour claim is manufactured while this delivery runs.
+Full remaining review/remediation/gate/delivery effort is unmeasured, not reserved
+capacity or an elapsed-time promise. Slippage, calibration, data acquisition,
+qualification, trading and rebalancing remain excluded. All16/C07/C13/C14 UNKNOWN;
+NOT_READY/CLOSED/DEFER unchanged.
 
 ## Current dependency reconciliation (2026-10-31; operations held)
 
@@ -449,7 +462,7 @@ does not retire existing backlog items or declare the execution-first MVP accept
 - [x] **Zero-Cost Sentiment Ingestion**: Local text sentiment scoring for financial headlines and market news.
 
 ## Phase 5: Strategy Backtesting & Portfolio Risk Governance (`pkg/backtest` / `pkg/portfolio` / `pkg/thesis`)
-- [ ] **Event-Driven Backtest Simulator**: Historical trade replay engine calculating Win Rate, Sharpe Ratio, Profit Factor, and Max Drawdown. The approved [TASK_010/ZAR-235 execution/accounting audit](specs/Legacy-Backtest-Execution-Accounting-Audit.md) prepares causal-fill, cost and close-mark metric corrections; TASK_010-A was delivered in [PR41](https://github.com/Zkrausman/Gelt/pull/41), merge `e515ef45`, with independent/adversarial source review, pinned scientific/G04 verification, Go/V2/CLI checks and remote/postmerge verification. The original parallel V2 timeout is retained; the unchanged file and complete serial pipeline passed with existing assertions/deadlines. Legacy Run/backtest remain unchanged; this is not operating readiness. [A source contract and verification limits](specs/TASK_010_Historical_Backtester.md#task_010-a-opt-in-causal-source-candidate-2026-11-01) distinguish source from operation. TASK_010-B1 funded cash and close-mark accounting is approved and locally in progress; complete-source review and delivery gates remain pending. B2 fees/slippage remain unapproved; no operating readiness is established. Cost-aware rebalancing is deferred.
+- [ ] **Event-Driven Backtest Simulator**: Historical trade replay engine calculating Win Rate, Sharpe Ratio, Profit Factor, and Max Drawdown. The approved [TASK_010/ZAR-235 execution/accounting audit](specs/Legacy-Backtest-Execution-Accounting-Audit.md) prepares causal-fill, cost and close-mark metric corrections; TASK_010-A was delivered in [PR41](https://github.com/Zkrausman/Gelt/pull/41), merge `e515ef45`, with independent/adversarial source review, pinned scientific/G04 verification, Go/V2/CLI checks and remote/postmerge verification. The original parallel V2 timeout is retained; the unchanged file and complete serial pipeline passed with existing assertions/deadlines. Legacy Run/backtest remain unchanged; this is not operating readiness. [A source contract and verification limits](specs/TASK_010_Historical_Backtester.md#task_010-a-opt-in-causal-source-candidate-2026-11-01) distinguish source from operation. TASK_010-B1 funded cash and close-mark accounting shipped in PR43; the separately approved B2a declared-fee-only candidate is locally in progress with complete-source review/delivery gates pending. Slippage remains excluded; no operating readiness is established. Cost-aware rebalancing is deferred.
 - [x] **Portfolio Correlation Matrix**: Multi-ticker correlation guardrails preventing over-concentration in correlated sectors (`pkg/portfolio`).
 - [x] **ATR Trailing Stop Engine**: Dynamic trailing stops and mandatory >2:1 Risk-to-Reward ratio enforcement (`gelt monitor`).
 - [x] **Beads Brain Thesis Logger (`pkg/thesis`)**: Automatically log execution rationales directly to `GELT_BEADS_BRAIN_PATH` and local journal (`gelt thesis`).
