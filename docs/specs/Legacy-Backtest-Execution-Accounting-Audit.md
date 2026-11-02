@@ -209,3 +209,15 @@ to V2/PAMR math, artifacts, lifecycle, security, credentials or operating policy
 All actual sixteen checks/C07/C13/C14 remain UNKNOWN, qualification NOT_READY,
 production CLOSED and operations DEFER. An honest finite model can support later
 research without proving strategy profitability, execution realism or promotion.
+
+
+## Additive TASK_010-A status (2026-11-01)
+
+The proposed/unapproved A status above records the audit at its original
+publication. The owner subsequently approved A; a separate opt-in causal core
+and strict CSV command are now a local source candidate. See the
+[TASK_010-A specification](TASK_010_Historical_Backtester.md#task_010-a-opt-in-causal-source-candidate-2026-11-01)
+for the exact envelope, limited BreakoutVol CLI subset, preserved legacy path,
+known test-history qualifications and pending review/delivery gates. No original
+audit counterexample is retroactively reclassified as executed. B/accounting,
+fees/slippage, real-data acquisition, campaigns and trading remain excluded.
