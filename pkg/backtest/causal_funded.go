@@ -484,7 +484,7 @@ func (e *Engine) RunFundedCausal(
 		return fundedFailure(FundedInvalidModelCash, causalNoBar)
 	}
 	state := newCausalFundedState(initial)
-	replay, err := e.runCausal(ctx, symbol, data, state)
+	replay, err := e.runCausal(ctx, symbol, data, state, nil)
 	if err != nil {
 		if bounded, ok := err.(*CausalError); ok {
 			return fundedFailure(bounded.Code, bounded.BarIndex)
