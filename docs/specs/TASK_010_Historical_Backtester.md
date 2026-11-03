@@ -203,7 +203,7 @@ boundaries and sanitized bounded output. No market dataset/campaign was run.
 The first core check failed and its full output is preserved privately. Grouped
 owner corrections repaired percentage-level arithmetic, clarified queued-exit
 fixtures, removed an unapproved unused-threshold restriction and avoided dynamic
-interface comparability panic. Session66290 later printed `ok` but its terminal
+interface comparability panic. The original recorded run later printed `ok` but its terminal
 status was lost; it remains UNKNOWN permanently. The one separately authorized
 November1 package command exited0 with Go **cached** success; fresh execution of
 its test bodies is not claimed. The initial new CLI targeted check found a test
@@ -349,7 +349,7 @@ added a dedicated prompt-rejection case; production guards and old assertions
 remain unchanged. Corrected fresh CLI package race passed. Originals/failure
 outputs remain preserved. Full working/exact-review/hosted results must be
 recorded separately; these checks and contract approval are not implementation
-acceptance. Original A session66290 remains UNKNOWN permanently, separate from
+acceptance. The original A run remains UNKNOWN permanently, separate from
 its authorized cached check and later fresh tests.
 
 No V2/PAMR lifecycle, market data/provider/acquisition, campaign/optimization,
@@ -508,8 +508,8 @@ missing arguments, unsupported target and retained B1/A commands. This build
 used the recorded working source snapshot, not a clean reviewed commit.
 Full implementation source/privacy reviews, exact-head postreview checks and
 hosted/merge/postmerge gates remain pending. V2/scientific checks have not yet
-been run for B2a and are not inferred from prior deliveries. Original A session
-66290 remains UNKNOWN, separate from later authorized gates. Author provenance,
+been run for B2a and are not inferred from prior deliveries. The original A run
+remains UNKNOWN, separate from later authorized gates. Author provenance,
 retained STOPs and nonadditive usage qualifications remain in private receipts.
 
 No V2/PAMR/provider/lifecycle activation, slippage, live data/acquisition,
