@@ -1179,6 +1179,7 @@ func main() {
 			os.Exit(1)
 		}
 
+		inputKind := legacyBacktestInputCSV
 		var data []backtest.OHLCV
 
 		if dataFile != "" {
@@ -1223,6 +1224,7 @@ func main() {
 				os.Exit(1)
 			}
 		} else {
+			inputKind = legacyBacktestInputSynthetic
 			// Generate synthetic OHLCV data fallback
 			basePrice := 150.0
 			if symbol == "SPY" {
@@ -1238,30 +1240,15 @@ func main() {
 			data = generateSyntheticBacktestBars(basePrice, days, rand.New(rand.NewSource(time.Now().UnixNano())), time.Now().Unix())
 		}
 
-		fmt.Printf("Running deterministic offline backtest for %s (%d bars)...\n", symbol, days)
+		fmt.Printf("Running legacy offline diagnostic for %s (%d input bars)...\n", symbol, days)
 		res, err := bEngine.Run(context.Background(), symbol, data)
 		if err != nil {
 			fmt.Printf("Backtest failed: %v\n", err)
 			os.Exit(1)
 		}
 
-		fmt.Println("\n================================================================================")
-		fmt.Printf("  GELT BACKTEST & HISTORICAL REPLAY SUMMARY (%s)\n", symbol)
-		fmt.Println("================================================================================")
-		fmt.Printf("Target Executed:      %s\n", targetName)
-		fmt.Printf("Historical Bars:      %d\n", res.TotalBars)
-		fmt.Printf("Total Simulated Trades: %d\n", res.TotalTrades)
-		fmt.Printf("Win Rate (%%):          %.2f%%\n", res.WinRate)
-		fmt.Printf("Net PnL ($):          $%.2f\n", res.NetPnL)
-
-		if math.IsInf(res.ProfitFactor, 0) || math.IsNaN(res.ProfitFactor) {
-			fmt.Printf("Profit Factor:        INF\n")
-		} else {
-			fmt.Printf("Profit Factor:        %.2f\n", res.ProfitFactor)
-		}
-
-		fmt.Printf("Max Drawdown (%%):     %.2f%%\n", res.MaxDrawdownPct)
-		fmt.Println("================================================================================")
+		fmt.Printf("\nTarget Executed: %s\nSymbol: %s\n", targetName, symbol)
+		fmt.Print(legacyBacktestSummary(res, inputKind))
 
 	case "config":
 		home, _ := os.UserHomeDir()
