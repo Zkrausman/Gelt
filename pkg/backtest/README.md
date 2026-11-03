@@ -113,3 +113,18 @@ with zero result. Explicit zero fees preserve B1 trace/accounting except new
 identities/fee fields. No slippage, acquisition, trading, actual spending,
 calibration, persistence or operating qualification. See the
 [B2a specification and retained verification limits](../../docs/specs/TASK_010_Historical_Backtester.md#task_010-b2a-declared-fee-source-candidate-2026-11-02).
+
+
+## Legacy command reporting
+
+The existing `gelt backtest` command remains the simplified legacy engine.
+Its human report now labels gross price PnL (the unchanged `Result.NetPnL` field),
+realized-exit drawdown on the legacy model10000 baseline, forced terminal close
+and excluded costs. It does not gain causal fills, close-mark equity or fees.
+Generated fallback input is explicitly `wallclock_seeded_synthetic`; supplied CSV
+is `user_supplied_csv_unqualified`. Neither establishes historical-data quality.
+Nonfinite or no-trade profit factors display undefined; finite legacy values do
+not establish a valid denominator or adequacy. Calculations and Result fields
+are unchanged; legacy text consumers need to migrate the intentionally changed
+labels. A/B1/B2a commands keep their existing output. See the
+[report boundary and verification limits](../../docs/specs/TASK_010_Historical_Backtester.md#legacy-cli-report-boundary-2026-11-03).

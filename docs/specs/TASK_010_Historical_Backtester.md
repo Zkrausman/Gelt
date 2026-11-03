@@ -4,7 +4,7 @@ title: "TASK_010: Interactive Strategy Backtester & Historical Replay Suite"
 ticket: ZAR-235
 status: implemented
 baseline: "3b8b82e1514c341fce092b49e4bbfc8e29599c61"
-scope: "Offline V1 historical validation, opt-in A/B1 and separate B2a declared-fee replay"
+scope: "Offline V1 historical validation, A/B1/B2a replay and truthful legacy CLI reporting"
 ---
 
 # TASK_010: Interactive Strategy Backtester & Historical Replay Suite
@@ -515,3 +515,73 @@ retained STOPs and nonadditive usage qualifications remain in private receipts.
 No V2/PAMR/provider/lifecycle activation, slippage, live data/acquisition,
 qualification, optimization campaign, actual capital or trading. All16 and
 C07/C13/C14 remain UNKNOWN; NOT_READY/CLOSED/DEFER unchanged.
+
+
+## Legacy CLI report boundary (2026-11-03)
+
+B2a shipped in [PR44](https://github.com/Zkrausman/Gelt/pull/44), merge
+`b2255ffe`, with source reviews, privacy closure, exact local/hosted checks and
+remote/postmerge verification. Earlier candidate/pending text is dated history.
+The owner subsequently approved this separate reporting-only correction, tests,
+independent review and normal source delivery. It intentionally changes legacy
+human-readable text; it does not change Engine.Run, Result fields or calculations,
+command arguments, evaluator selection, CSV acceptance, generated bars/seed/clock,
+error handling or A/B1/B2a source and output. Unknown external consumers of the old
+legacy labels may need text-parser migration; no byte-compatible legacy report
+claim is made.
+
+`legacyBacktestSummary(Result, legacyBacktestInputKind)` is pure. It accepts no
+symbol, target, path, callback or arbitrary string and performs no I/O. A fixed
+input enum describes the existing CSV or fallback branch. Supplied CSV becomes
+`user_supplied_csv_unqualified`, explicitly retaining permissive ingestion and
+unverified source/completeness. Generated input becomes `wallclock_seeded_synthetic`:
+it is not observed historical data and a complete CLI run is not reproducible
+from arguments alone. An unknown internal enum stays `unknown_legacy_input`;
+no source fact is inferred. The fixed display model is
+`legacy_same_close_frictionless_diagnostic`, authority `unqualified_offline`,
+not an A/B1/B2a model identity or an authenticated receipt.
+
+The same Result numeric fields are displayed with their existing two-decimal
+float/integer precision: input bars, closed simulated trades including forced
+terminal close, legacy gross win rate, gross realized price PnL from `NetPnL`,
+and realized-exit drawdown from `MaxDrawdownPct` on the legacy model10000 baseline.
+Labels disclose simplified same-close/intrabar fills, forced final-close
+liquidation, excluded fees/slippage and missing open-position close marks.
+The drawdown remains neither close-equity nor intrabar portfolio risk. No
+accounting, fee, fill, metric denominator or validity threshold is reconstructed.
+
+Profit-factor presentation is intentionally distinct from changing the stored
+Result: zero trades displays `undefined (no_closed_trades)`; otherwise NaN or
+positive/negative infinity displays `undefined (nonfinite_legacy_value)`.
+Other finite values remain raw legacy numbers, including zero. Result does not
+expose gross-loss denominator details, so finite zero is not reclassified as
+no-loss/no-trade evidence and no adequacy pass is inferred. Existing nonfinite
+values in other raw legacy fields are not repaired by this reporting slice.
+
+The fixed text, enum labels and bounded machine numeric types keep the pure
+helper output below8192 UTF8 bytes; tests cover float64/int extremes. This is
+not a whole-command privacy or output-atomicity guarantee. Existing legacy
+input/target/symbol/path/error logging and ignored writer errors remain unchanged;
+no new raw input enters the helper. No JSON/export/persistence, parser hardening,
+callback sandbox, authentication or broker/account interface is introduced.
+
+Changed files: `cmd/gelt/backtest_legacy_summary.go` and its dedicated test;
+`main.go` legacy reporting/provenance plumbing only; package README, existing
+specification/audit/roadmap. An owner inverse-diff check recovers the original
+whole main file when only the allowed metadata/status/print edits are reversed.
+All `pkg/backtest` files, existing test files and causal CLI files remain byte
+identical to PR44. That source check is evidence, not independent review.
+
+Working verification: fresh full `go test -race ./... -count=1`, vet and build
+passed. Actual legacy positive/no-trade CSV cases were run against delivered PR44
+and the new working binary: bars/trade count/win-rate/PnL/drawdown numeric text
+matched while provenance/metric labels changed. Three actual new-binary A/B1/B2a
+CSV routes retained their model identities. Seven command invocations cover five
+acceptance cases, using only owned synthetic CSVs; no new random-input campaign
+or real data acquisition occurred. Unit cases cover both input kinds/unknown
+enum, no-trade and nonfinite PF, finite zero without invented denominator reason,
+unchanged numeric precision/result values and helper bounds. These are working
+checks; contract and complete implementation independent/adversarial source/privacy
+review, postreview exact-head Go/V2/scientific/CLI, hosted and merge/postmerge gates
+remain pending. No engine performance or operating qualification is established.
+All16/C07/C13/C14 UNKNOWN; NOT_READY/CLOSED/DEFER unchanged.

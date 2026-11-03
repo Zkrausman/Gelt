@@ -251,3 +251,18 @@ trading and cost-aware rebalancing remain excluded. See the
 This adds no actual broker schedule, realistic-cost or economic adequacy claim,
 and does not retroactively execute the audit's toy counterexamples. Legacy/A/B1
 behavior and every actual qualification/operating hold remain preserved.
+
+
+## Legacy CLI label migration (2026-11-03)
+
+After delivered B2a [PR44](https://github.com/Zkrausman/Gelt/pull/44), the owner
+approved reporting-only migration of legacy CLI labels and input provenance.
+The local candidate describes `Result.NetPnL` as gross price PnL, drawdown as
+realized-exit on the legacy model10000 baseline, and generated fallback as
+wall-clock-seeded synthetic. Nonfinite/no-trade PF displays undefined without
+inventing missing denominator facts. Engine.Run/Result/calculations, permissive
+CSV input, generated data, event ordering and A/B1/B2a remain unchanged.
+This addresses reporting ambiguity only, not the inherited execution/accounting
+limitations above. Exact [scope and verification status](TASK_010_Historical_Backtester.md#legacy-cli-report-boundary-2026-11-03)
+retain intentional text compatibility changes and pending review/delivery gates.
+No original audit campaign, acquisition, slippage calibration or trading occurs.
