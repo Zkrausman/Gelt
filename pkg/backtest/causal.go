@@ -494,8 +494,16 @@ func causalLevels(stop, target float64) bool {
 }
 
 func causalNewPosition(price float64, evaluation CausalEvaluation, bar int) (*causalPosition, CausalErrorCode) {
+	return causalNewPositionWithQuantity(price, CausalEntryBudgetUSD/price, evaluation, bar)
+}
+
+// The original wrapper retains exactly 10/open. Only fee mode supplies a
+// different quantity; protection arithmetic and its supported domain are shared.
+func causalNewPositionWithQuantity(
+	price, quantity float64, evaluation CausalEvaluation, bar int,
+) (*causalPosition, CausalErrorCode) {
 	p := &causalPosition{
-		entry: price, quantity: CausalEntryBudgetUSD / price, peak: price,
+		entry: price, quantity: quantity, peak: price,
 		entrySignalBar: evaluation.BarIndex, entryBar: bar,
 		stopBar: causalNoBar, targetBar: causalNoBar,
 	}
@@ -597,10 +605,10 @@ func causalAppendFill(
 	return ""
 }
 
-// causalRecordFill keeps accounting adjacent to actual modeled fills. A fatal
-// failure discards both traces; neither trace is published incrementally.
+// Accounting stays adjacent to actual modeled fills. Fatal failure discards
+// both traces; neither trace is published incrementally.
 func causalRecordFill(
-	res *CausalResult, funded *causalFundedState, p *causalPosition,
+	res *CausalResult, funded *causalFundedState, fee *causalFeeScenarioState, p *causalPosition,
 	kind CausalFillKind, reason CausalFillReason, bar int, timestamp int64,
 	evaluationBar int, price float64, ambiguous bool,
 ) CausalErrorCode {
@@ -609,6 +617,9 @@ func causalRecordFill(
 	}
 	if funded != nil {
 		return funded.fill(res.Fills[len(res.Fills)-1], len(res.Fills)-1)
+	}
+	if fee != nil {
+		return fee.fill(res.Fills[len(res.Fills)-1], len(res.Fills)-1)
 	}
 	return ""
 }
@@ -620,15 +631,19 @@ func causalRecordFill(
 // callback state or plan-child interactions. Concurrent/reentrant use is not
 // supported. Cancellation checks do not preempt an uncooperative callback.
 func (e *Engine) RunCausal(ctx context.Context, symbol string, data []OHLCV) (CausalResult, error) {
-	return e.runCausal(ctx, symbol, data, nil)
+	return e.runCausal(ctx, symbol, data, nil, nil)
 }
 
-// runCausal is the single event loop for A and the explicitly funded model.
-// Accounting cannot select a price, change a touch predicate or reevaluate a
-// close. Only the pre-entry funding gate can decline a candidate entry.
+// runCausal is the single event loop. Accounting cannot select a price, change
+// a touch predicate or reevaluate a close. Fee mode alone supplies a quantity
+// at the pre-entry gate. The two private accounting states are exclusive.
 func (e *Engine) runCausal(
-	ctx context.Context, symbol string, data []OHLCV, funded *causalFundedState,
+	ctx context.Context, symbol string, data []OHLCV,
+	funded *causalFundedState, fee *causalFeeScenarioState,
 ) (CausalResult, error) {
+	if funded != nil && fee != nil {
+		return causalFailure(CausalInvalidInput, causalNoBar)
+	}
 	if index, code := causalValidateBars(data); code != "" {
 		return causalFailure(code, index)
 	}
@@ -651,6 +666,9 @@ func (e *Engine) runCausal(
 	if funded != nil {
 		res.ModelIdentity, res.CostIdentity = FundedCausalModelIdentity, FundedCausalCostIdentity
 	}
+	if fee != nil {
+		res.ModelIdentity, res.CostIdentity = FeeScenarioCausalModelIdentity, FeeScenarioCausalCostIdentity
+	}
 	var position *causalPosition
 	var pending *CausalEvaluation
 
@@ -660,7 +678,7 @@ func (e *Engine) runCausal(
 		}
 		exited := false
 		closePosition := func(reason CausalFillReason, price float64, source int, ambiguous bool) CausalErrorCode {
-			code := causalRecordFill(&res, funded, position, CausalExit, reason, i, bar.Timestamp, source, price, ambiguous)
+			code := causalRecordFill(&res, funded, fee, position, CausalExit, reason, i, bar.Timestamp, source, price, ambiguous)
 			if code == "" {
 				position, exited = nil, true
 			}
@@ -685,18 +703,29 @@ func (e *Engine) runCausal(
 		}
 		if !exited && position == nil && pending != nil && pending.Signal == strategies.SignalBuy {
 			allowed := true
+			var quantity float64
 			if funded != nil {
 				allowed, code = funded.entryGate(bar, i, *pending)
 				if code != "" {
 					return causalFailure(code, i)
 				}
 			}
-			if allowed {
-				position, code = causalNewPosition(bar.Open, *pending, i)
+			if fee != nil {
+				quantity, allowed, code = fee.entryGate(bar, i, *pending)
 				if code != "" {
 					return causalFailure(code, i)
 				}
-				if code = causalRecordFill(&res, funded, position, CausalEntry, CausalNextOpenBuy,
+			}
+			if allowed {
+				if fee != nil {
+					position, code = causalNewPositionWithQuantity(bar.Open, quantity, *pending, i)
+				} else {
+					position, code = causalNewPosition(bar.Open, *pending, i)
+				}
+				if code != "" {
+					return causalFailure(code, i)
+				}
+				if code = causalRecordFill(&res, funded, fee, position, CausalEntry, CausalNextOpenBuy,
 					i, bar.Timestamp, pending.BarIndex, bar.Open, false); code != "" {
 					return causalFailure(code, i)
 				}
@@ -726,6 +755,11 @@ func (e *Engine) runCausal(
 					return causalFailure(code, i)
 				}
 			}
+			if fee != nil {
+				if code = fee.mark(bar, i, position); code != "" {
+					return causalFailure(code, i)
+				}
+			}
 			continue
 		}
 
@@ -750,6 +784,11 @@ func (e *Engine) runCausal(
 		pending = &evaluation
 		if funded != nil {
 			if code = funded.mark(bar, i, position); code != "" {
+				return causalFailure(code, i)
+			}
+		}
+		if fee != nil {
+			if code = fee.mark(bar, i, position); code != "" {
 				return causalFailure(code, i)
 			}
 		}

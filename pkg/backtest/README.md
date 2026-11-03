@@ -86,3 +86,30 @@ nonzero and may retain a prefix. No JSON export, persistence, fees/slippage,
 actual capital, acquisition, trading or qualification is added. See the
 [B1 specification](../../docs/specs/TASK_010_Historical_Backtester.md#task_010-b1-funded-accounting-source-candidate-2026-11-02)
 for bounds, verification and delivery status.
+
+
+## Opt-in declared-fee replay (TASK_010-B2a)
+
+```text
+gelt backtest-causal-fees BreakoutVol TEST synthetic.csv 100.00000000 1.00000000 0
+```
+
+Exactly6 arguments; mandatory initial model cash, fixed fee per filled side and
+integer basis-point rate. `RunFeeScenarioCausal` is a separate versioned mode,
+not a change to legacy/A/B1. Model
+`gelt.legacy-go.fee-scenario-close-next-open.v1`, cost
+`declared_fixed8_per_side_fee_scenario`, `uncalibrated_declared` fee basis and
+`unqualified_offline` data/authority are explicit in the bounded human summary.
+Fixed fee is0<=fee<10 modelUSD with up to8 fractional digits; canonical bps is
+0..10000. These are engineering bounds, not actual broker pricing.
+
+The simulated10 modelUSD entry cap includes the entry fee. Principal is sized
+using exact integer/rational arithmetic; no partial funding, loan or fee waiver.
+Fees apply only to actual modeled filled sides. Close equity includes retained
+entry fees and marks open positions; there is no forced liquidation or assumed
+exit fee. Gross diagnostics and net accounting are separately labeled. A negative
+exit cash delta must be funded or the new mode returns a sanitized fatal error
+with zero result. Explicit zero fees preserve B1 trace/accounting except new
+identities/fee fields. No slippage, acquisition, trading, actual spending,
+calibration, persistence or operating qualification. See the
+[B2a specification and retained verification limits](../../docs/specs/TASK_010_Historical_Backtester.md#task_010-b2a-declared-fee-source-candidate-2026-11-02).
