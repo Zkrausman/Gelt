@@ -11,7 +11,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer as createProbe } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
-import { appendBoundedText, createBoundedTextBuffer, discoverBrowserPage, formatStartupFailure, readBoundedText } from './history-startup-diagnostics.mjs';
+import { appendBoundedText, createBoundedTextBuffer, diagnosticElapsedMs, discoverBrowserPage, formatBrowserStartupTiming, formatStartupFailure, readBoundedText } from './history-startup-diagnostics.mjs';
 
 const preflightStartedAt = Date.now();
 const preflightDeadline = preflightStartedAt + 180000;
@@ -34,6 +34,16 @@ const webStderr = createBoundedTextBuffer(), browserStderr = createBoundedTextBu
 let webSpawnError = null, browserSpawnError = null;
 const diagnosticSecrets = new Set();
 let lastStartupRequest = null;
+let browserSpawnedAt, portDiscoveryStartedAt, portObservedAt, browserRequestObservation;
+function browserTimingSnapshot() {
+  return {
+    portDiscoveryElapsedMs: diagnosticElapsedMs(portDiscoveryStartedAt, portObservedAt ?? performance.now()),
+    portObservedSinceSpawnMs: diagnosticElapsedMs(browserSpawnedAt, portObservedAt),
+    ...browserRequestObservation?.timing,
+    outcome: browserRequestObservation?.outcome,
+    status: browserRequestObservation?.status,
+  };
+}
 const completed = [];
 function noteStartupRequest(label, outcome, status, error) {
   const attempts = lastStartupRequest?.label === label ? lastStartupRequest.attempts + 1 : 1;
@@ -57,6 +67,7 @@ function diagnostics(error, diagnosticPhase = phase) {
       Next: { process: web, spawnError: webSpawnError, stderr: readBoundedText(webStderr, diagnosticSecrets) },
     },
     request: lastStartupRequest,
+    browserTiming: browserTimingSnapshot(),
     secrets: [...diagnosticSecrets],
   });
 }
@@ -99,7 +110,13 @@ async function stopChild(child) {
 }
 async function browserPage(port) {
   const page = await discoverBrowserPage(port, {
-    onRequest: request => noteStartupRequest(request.label, request.outcome, request.status, request.error),
+    browserSpawnedAt,
+    onRequest: request => {
+      browserRequestObservation = request;
+      noteStartupRequest(request.label, request.outcome, request.status, request.error);
+      // Emitted on success or failure; timing is not a passing acceptance stage.
+      console.log(formatBrowserStartupTiming(browserTimingSnapshot(), request));
+    },
   });
   const socket = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise((resolveSocket, reject) => {
@@ -253,16 +270,19 @@ try {
   console.log(`Browser: ${version.stdout.trim()}; default security sandbox required (no bypass flags); fixture-only synthetic records`);
   // Fail on unsupported browser hosts before claiming any running-UI evidence.
   profile = mkdtempSync(join(tmpdir(), 'gelt-history-browser-'));
+  browserSpawnedAt = performance.now();
   browser = spawn(browserPath, ['--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', '--disable-extensions', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
   browser.stdout.on('data', () => {});
   browser.stderr.on('data', data => { appendBoundedText(browserStderr, data, diagnosticSecrets); });
   browser.on('error', error => { browserSpawnError = error; });
   phase = 'browser readiness';
+  portDiscoveryStartedAt = performance.now();
   const debugPort = await wait(() => {
     if (browser.signalCode) throw Error(`Browser exited on ${browser.signalCode}`);
     const path = join(profile, 'DevToolsActivePort');
     return existsSync(path) && Number(readFileSync(path, 'utf8').split('\n')[0]);
   }, 'sandboxed browser readiness', 10000);
+  portObservedAt = performance.now();
   phase = 'browser target discovery';
   cdp = await browserPage(debugPort);
   await cdp.send('Page.enable'); await cdp.send('Runtime.enable'); await cdp.send('Network.enable');

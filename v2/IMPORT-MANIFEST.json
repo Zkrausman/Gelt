@@ -3352,7 +3352,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/running-next-history-acceptance.mjs",
-      "sha256": "11de44394dbdfbdab71eeafa4bbb7b4048514b903e26bad69bfec008d45973ed",
+      "sha256": "c8a8101e0667e87cce0e0057d7e785c21ad5c304769cb42096378cb434528639",
       "reason": "Gelt ZAR-218 synthetic offline running browser history acceptance with bounded startup diagnostics"
     },
     {
@@ -3528,7 +3528,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/history-startup-diagnostics.mjs",
-      "sha256": "96545333d4e0f663d798aba53af552da32c2c7c6056740058bf0aeb20828c78f",
+      "sha256": "49b6e4d58e25c13f87d9e53d204f1428c29db530518cd84e34064225782bcdc7",
       "reason": "Gelt ZAR-218 bounded startup diagnostics and importable browser target discovery"
     },
     {
@@ -3536,7 +3536,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/history-startup-diagnostics.test.mjs",
-      "sha256": "ff72f4a401341517788f09b4eea224dfb6d6ecae684054bd1496842169960582",
+      "sha256": "c2f72d475e8ea6cf2cbc981e9ab75c2cd9f35f78c4f8243e594aecc38a1ecfcc",
       "reason": "Gelt ZAR-218 deterministic startup diagnostics and browser discovery tests"
     },
     {
@@ -4500,6 +4500,38 @@
       "path": "scripts/agent-data-response-fixtures.json",
       "sha256": "0d7fff371d9a9f13ce427c2cb48dca2596f488c54c6aa94ef4adaa54687101e9",
       "reason": "Gelt offline compiled agent-data command conformance and response fixtures; no product execution or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-evidence-receipt-contract.ts",
+      "sha256": "28bef98a4c3bd27b4a1039c9eaff0c67ad0c2832865723455d6bf7a43bc19c2b",
+      "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-evidence-receipt.ts",
+      "sha256": "921d5a09cce360ec396f67d524242e178ef2cf721f299317564ff012e96de29e",
+      "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-evidence-receipt-contract.test.ts",
+      "sha256": "242851016342d46d66dc4d4262ab1761efe5bf06cc17c2befe4fe7d73ee3a140",
+      "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-evidence-receipt.test.ts",
+      "sha256": "1bb58c5c8fe208e9cc1a22cbd1864069ee2556de8580d72283c255b0b9972e4d",
+      "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
     }
   ],
   "retiredLocalEntries": []
