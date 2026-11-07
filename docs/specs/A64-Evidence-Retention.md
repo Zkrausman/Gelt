@@ -61,17 +61,26 @@ poison another owner's writer. Invalid input is rejected before retention
 mutation; malformed/damaged existing storage is not reported as a benign duplicate.
 
 The existing storage helper owns the exclusive persistent marker, SQLite WAL
-transaction, FULL synchronization and clean-close checkpoint. Initialization,
+transaction, FULL synchronization and clean-close checkpoint. The new receipt
+component does not assume the helper always retains its marker after close errors. Initialization,
 write, read-validation or close failure fences that instance. Post-mutation
-uncertainty retains the existing ownership marker and cannot be cleared by
-this component. Closing an empty writer is uncertain, not a reusable clean store.
+uncertainty retains a receipt-local pending fence and cannot be cleared by
+this component. That fence is durably created before receipt mutation, separately
+from the inherited SQLite ownership marker. It remains if helper close unlinks
+its marker and then fails directory synchronization. Closing an empty writer is uncertain, not a reusable clean store.
 Callers must distinguish `retain` returning from a successful `close`; a receipt
 is not proof of clean shutdown, own acknowledgement or operating settlement.
 External deletion, copying or same-user hostile tampering is not prevented by
 this data contract and is never an authorized recovery method.
 
+After successful helper close, the last fallible operation is a direct unlink
+of the receipt-local pending fence. No synchronization or other fallible work
+follows that unlink. A failed unlink retains the fence under the supported local
+Linux syscall contract. A crash can restore the unsynchronized fence, causing
+conservative rejection; durable release is not claimed and no repair is provided.
+
 `A64EvidenceReceiptStore.reopen(root, binding)` is read-only. It requires the
-expected complete binding, no marker/journal/WAL/SHM sidecar, a valid private
+expected complete binding, no pending fence or marker/journal/WAL/SHM sidecar, a valid private
 checkpoint and exactly the two expected table definitions. It recomputes the
 entire stored input and assessment and compares all receipt bindings. It creates
 no lock or sidecar and performs no checkpoint, schema creation or repair.
@@ -101,7 +110,11 @@ namespace within its separately accepted handling budget.
 
 Linux private directories/files, supported local filesystem semantics, exact UID,
 0700/0600 modes, no symlinks/hardlinks, bounded file inventory and stable identities
-are required. Windows, network filesystems and unknown locking semantics reject.
+are required. Local candidate reads reject nonregular metadata before opening,
+then use nonblocking/no-follow descriptor validation and identity comparison to
+reject FIFO replacement between those checks. Existing helper internals remain
+unchanged and assume the trusted exclusive namespace; hostile same-UID changes
+outside that ownership contract are not newly qualified. Windows, network filesystems and unknown locking semantics reject.
 No packages, global configuration, permissions on existing files, credentials or
 access controls are changed by this source increment.
 
@@ -132,6 +145,18 @@ memory-only header workaround fixed it. A later test fault-injection attempt
 could not spy on a native module export; it was replaced by injection through the
 existing storage instance/prototype. Original failed receipts are retained.
 Working verification is not independent review or final-head acceptance.
+
+Both original reviewers required correction of a close-uncertainty hole: the
+inherited helper can unlink its marker before a failed directory sync. A new
+regression reproduced that hole and another reproduced blocking FIFO inspection.
+The receipt-local fence and nonblocking local reads above address those groups
+without changing shared storage. The independent reviewer also requested an
+exact-length digest guard. Trailing-terminator acceptance did not reproduce
+against the original non-m JavaScript regex on pinnedNode22; an explicit length64
+check now makes the contract unambiguous. This is not claimed as a reproduced
+LOW defect. Initial working checks used PATHNode24 and retain that qualification;
+corrected and final checks use the existing pinnedNode22.23.3. Original-reviewer
+closure and post-correction verification remain pending.
 
 Fresh independent and distinct adversarial accuracy/privacy review of the full
 diff and named storage/assessor seams, final-head Linux tests/types/Go race/vet/

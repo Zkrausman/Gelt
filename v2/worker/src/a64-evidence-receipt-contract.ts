@@ -6,7 +6,7 @@ export const a64ReceiptLimits = Object.freeze({
   input: 262144, artifact: 180000, context: 8192,
   assessment: 8192, receipt: 8192, store: 8388608, records: 1,
 });
-const hash = z.string().regex(/^[a-f0-9]{64}$/);
+const hash = z.string().length(64).regex(/^[a-f0-9]{64}$/);
 export const a64ReceiptBindingSchema = z.object({
   schema: z.literal('gelt.a64-evidence-retention-binding.v1'),
   ownerNamespaceSha256: hash,

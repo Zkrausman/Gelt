@@ -4506,7 +4506,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-evidence-receipt-contract.ts",
-      "sha256": "5daa0c63acce703c065928b099e2d66d1d6e30bdeb96eb7570dcb840cce77274",
+      "sha256": "28bef98a4c3bd27b4a1039c9eaff0c67ad0c2832865723455d6bf7a43bc19c2b",
       "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
     },
     {
@@ -4514,7 +4514,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-evidence-receipt.ts",
-      "sha256": "45a9b06b4096528395a1d515ee735dda23aafb9e90179b2a809d7edec7662b28",
+      "sha256": "921d5a09cce360ec396f67d524242e178ef2cf721f299317564ff012e96de29e",
       "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
     },
     {
@@ -4522,7 +4522,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-evidence-receipt-contract.test.ts",
-      "sha256": "0825cc4922553be329127879005d9812d96366f26d972938da97d2ac0af2847b",
+      "sha256": "242851016342d46d66dc4d4262ab1761efe5bf06cc17c2befe4fe7d73ee3a140",
       "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
     },
     {
@@ -4530,7 +4530,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-evidence-receipt.test.ts",
-      "sha256": "382c59010988364e6653403cb7129479a7e14d5f45325acb6875a98aa936b24a",
+      "sha256": "18c24aa660036ee75a4219c30950563791e49353a88c94fe5f8d515fef5b7fb4",
       "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
     }
   ],

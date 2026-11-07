@@ -42,3 +42,13 @@ it('accepts only the bounded binding domain, never an authority object or raw ow
     expect(a64ReceiptBindingSchema.safeParse({...b,...change}).success).toBe(false);
   }
 });
+
+it('rejects every trailing line terminator in exact owner and receipt digests',()=> {
+  for(const suffix of ['\n','\r','\r\n','\u2028','\u2029']) {
+    expect(a64ReceiptBindingSchema.safeParse({...value().binding,ownerNamespaceSha256:h+suffix}).success).toBe(false);
+    expect(a64ReceiptBindingSchema.safeParse({...value().binding,caseEpochSha256:h+suffix}).success).toBe(false);
+    const {receiptSha256,...body}=value();
+    const forged={...body,rawInputSha256:h+suffix};
+    expect(a64ReceiptSchema.safeParse({...forged,receiptSha256:a64ReceiptHash(forged)}).success).toBe(false);
+  }
+});

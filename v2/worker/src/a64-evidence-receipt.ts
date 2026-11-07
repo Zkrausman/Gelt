@@ -4,8 +4,8 @@ import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import Database from 'better-sqlite3';
 import { canonical, digest } from './ledger-canonical.js';
-import { LedgerStorage, validateSQLiteFile } from './ledger-storage.js';
-import { privateDirectory } from './private-files.js';
+import { LedgerStorage } from './ledger-storage.js';
+import { privateDirectory, writePrivateNew } from './private-files.js';
 import { assessA64InspectionEvidence } from './pamr-a64-inspection-evidence.js';
 import {
   type A64InspectionEvidenceAssessmentV1,
@@ -17,6 +17,7 @@ import {
 } from './a64-evidence-receipt-contract.js';
 
 const filename = 'a64-evidence-receipt.sqlite';
+const pendingName = 'a64-evidence-receipt.pending';
 const schema = [
   'CREATE TABLE binding (id INTEGER PRIMARY KEY CHECK(id=1), body TEXT NOT NULL) STRICT',
   'CREATE TABLE receipt (id INTEGER PRIMARY KEY CHECK(id=1), input TEXT NOT NULL, assessment TEXT NOT NULL, body TEXT NOT NULL) STRICT',
@@ -29,6 +30,20 @@ function absent(path: string): boolean {
   try { fs.lstatSync(path); return false; }
   catch (e) { if ((e as NodeJS.ErrnoException).code === 'ENOENT') return true; throw e; }
 }
+function regularDescriptor(path: string): number {
+  const before = fs.lstatSync(path);
+  if (!before.isFile() || before.isSymbolicLink() || before.nlink !== 1
+    || before.uid !== process.getuid!() || (before.mode & 0o777) !== 0o600) throw new Error();
+  // NONBLOCK also covers replacement by a FIFO between lstat and open.
+  const fd = fs.openSync(path, fs.constants.O_RDONLY | fs.constants.O_NONBLOCK | fs.constants.O_NOFOLLOW);
+  try {
+    const current = fs.fstatSync(fd);
+    if (!current.isFile() || current.nlink !== 1 || current.uid !== before.uid || current.mode !== before.mode
+      || !same(current, before) || !same(current, identity(path))) throw new Error();
+    return fd;
+  } catch (error) { fs.closeSync(fd); throw error; }
+}
+function regularFile(path: string): void { fs.closeSync(regularDescriptor(path)); }
 function binding(raw: unknown): A64ReceiptBinding {
   try { return a64ReceiptBindingSchema.parse(raw); }
   catch { throw new A64EvidenceReceiptError('invalid_input'); }
@@ -38,22 +53,21 @@ function snapshot(root: string, allowLock: boolean): void {
   privateDirectory(root);
   if (![0xef53, 0x58465342, 0x9123683e, 0x794c7630].includes(fs.statfsSync(root).type)) throw new Error();
   const allowed = new Set([filename,
-    ...(allowLock ? [filename + '-wal', filename + '-shm', filename + '-journal', filename + '.lock'] : [])]);
+    ...(allowLock ? [filename + '-wal', filename + '-shm', filename + '-journal', filename + '.lock', pendingName] : [])]);
   let bytes = 0, count = 0;
   const directory = fs.opendirSync(root);
   try {
     for (let entry = directory.readSync(); entry; entry = directory.readSync()) {
       if (++count > allowed.size || !allowed.has(entry.name)) throw new Error();
       const path = join(root, entry.name);
-      validateSQLiteFile(path);
+      regularFile(path);
       bytes += fs.lstatSync(path).size;
       if (bytes > a64ReceiptLimits.store) throw new Error();
     }
   } finally { directory.closeSync(); }
 }
 function databaseSnapshot(path: string): Buffer {
-  validateSQLiteFile(path);
-  const fd = fs.openSync(path, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  const fd = regularDescriptor(path);
   try {
     const before = fs.fstatSync(fd);
     if (before.size > a64ReceiptLimits.store) throw new Error();
@@ -116,7 +130,7 @@ export class A64EvidenceReceiptStore {
       if (readonlyReopen) {
         // No LedgerStorage constructor on reopen: no lock/schema/checkpoint writes.
         if (!absent(this.path + '.lock')) throw new Error();
-        validateSQLiteFile(this.path);
+        regularFile(this.path);
         this.fileIdentity = identity(this.path);
         // Deserialize the clean checkpoint into memory. Opening a WAL-mode file
         // even with SQLite readonly can create sidecars; this route never does.
@@ -139,6 +153,9 @@ export class A64EvidenceReceiptStore {
         this.storage = new LedgerStorage(this.path);
         this.db = this.storage.db;
         this.fileIdentity = identity(this.path);
+        // Independent, durably-created close fence. LedgerStorage may unlink
+        // its own lock before a directory-sync error; it never removes this one.
+        writePrivateNew(join(this.root, pendingName), canonical(this.owner));
         // One input <=256KiB plus bounded evidence: this database cannot grow
         // into an additional 8MiB allocation, even through SQLite page growth.
         if (this.db.pragma('page_size', { simple: true }) !== 4096) throw new Error();
@@ -167,6 +184,10 @@ export class A64EvidenceReceiptStore {
     snapshot(this.root, !this.readonlyReopen);
     if (!same(identity(this.root), this.rootIdentity) || !same(identity(this.path), this.fileIdentity)) throw new Error();
     this.storage?.validate();
+    if (!this.readonlyReopen) {
+      const guard = databaseSnapshot(join(this.root, pendingName));
+      if (guard.toString('utf8') !== canonical(this.owner)) throw new Error();
+    }
     if (this.readonlyReopen && !absent(this.path + '.lock')) throw new Error();
     if (this.readonlyReopen && byteHash(databaseSnapshot(this.path)) !== this.checkpointSha256) throw new Error();
     const actualSchema = this.db.prepare('SELECT sql FROM sqlite_master ORDER BY name').all() as {sql: string}[];
@@ -220,6 +241,13 @@ export class A64EvidenceReceiptStore {
     try {
       this.read(); // Empty, damaged or uncertain writers retain their existing lock.
       if (this.storage) this.storage.close(); else this.db.close();
+      if (this.storage) {
+        // Last fallible operation. Unlike removePrivate, this does not unlink
+        // and THEN perform a sync that could turn absence into an uncertain close.
+        // No fallible work follows successful unlink. A crash may restore this
+        // un-synced fence (conservative rejection), never authorize repair/retry.
+        fs.unlinkSync(join(this.root, pendingName));
+      }
       this.closed = true;
     } catch {
       this.poisoned = true;
