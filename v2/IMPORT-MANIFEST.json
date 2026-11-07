@@ -4500,6 +4500,38 @@
       "path": "scripts/agent-data-response-fixtures.json",
       "sha256": "0d7fff371d9a9f13ce427c2cb48dca2596f488c54c6aa94ef4adaa54687101e9",
       "reason": "Gelt offline compiled agent-data command conformance and response fixtures; no product execution or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-evidence-receipt-contract.ts",
+      "sha256": "5daa0c63acce703c065928b099e2d66d1d6e30bdeb96eb7570dcb840cce77274",
+      "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-evidence-receipt.ts",
+      "sha256": "45a9b06b4096528395a1d515ee735dda23aafb9e90179b2a809d7edec7662b28",
+      "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-evidence-receipt-contract.test.ts",
+      "sha256": "0825cc4922553be329127879005d9812d96366f26d972938da97d2ac0af2847b",
+      "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/a64-evidence-receipt.test.ts",
+      "sha256": "382c59010988364e6653403cb7129479a7e14d5f45325acb6875a98aa936b24a",
+      "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
     }
   ],
   "retiredLocalEntries": []
