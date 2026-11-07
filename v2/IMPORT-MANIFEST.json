@@ -3352,7 +3352,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/running-next-history-acceptance.mjs",
-      "sha256": "11de44394dbdfbdab71eeafa4bbb7b4048514b903e26bad69bfec008d45973ed",
+      "sha256": "c8a8101e0667e87cce0e0057d7e785c21ad5c304769cb42096378cb434528639",
       "reason": "Gelt ZAR-218 synthetic offline running browser history acceptance with bounded startup diagnostics"
     },
     {
@@ -3528,7 +3528,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/history-startup-diagnostics.mjs",
-      "sha256": "96545333d4e0f663d798aba53af552da32c2c7c6056740058bf0aeb20828c78f",
+      "sha256": "49b6e4d58e25c13f87d9e53d204f1428c29db530518cd84e34064225782bcdc7",
       "reason": "Gelt ZAR-218 bounded startup diagnostics and importable browser target discovery"
     },
     {
@@ -3536,7 +3536,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/history-startup-diagnostics.test.mjs",
-      "sha256": "ff72f4a401341517788f09b4eea224dfb6d6ecae684054bd1496842169960582",
+      "sha256": "c2f72d475e8ea6cf2cbc981e9ab75c2cd9f35f78c4f8243e594aecc38a1ecfcc",
       "reason": "Gelt ZAR-218 deterministic startup diagnostics and browser discovery tests"
     },
     {

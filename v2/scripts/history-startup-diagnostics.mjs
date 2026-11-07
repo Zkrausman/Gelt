@@ -104,7 +104,43 @@ function childState(child) {
   if (process.exitCode !== null && process.exitCode !== undefined) return `exited(code=${process.exitCode})`;
   if (process.signalCode !== null && process.signalCode !== undefined) return `exited(signal=${process.signalCode})`;
   const pid = Number.isSafeInteger(process.pid) ? process.pid : 'unknown';
-  return `running(pid=${pid}, connected=${Boolean(process.connected)})`;
+  const ipc = typeof process.connected === 'boolean' ? process.connected : 'unknown';
+  return `running(pid=${pid}, ipcConnected=${ipc})`;
+}
+
+// Observations only: these helpers never decide readiness, retry or budgets.
+export function diagnosticElapsedMs(start, end) {
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return 'unknown';
+  const elapsed = Math.floor(end - start);
+  return Number.isSafeInteger(elapsed) ? elapsed : 'unknown';
+}
+
+function observedClock(now) {
+  try { const value = now(); return Number.isFinite(value) ? value : undefined; }
+  catch { return undefined; }
+}
+
+function abortObservation(signal) {
+  try {
+    if (signal?.aborted === false) return { signalAborted: false, abortReason: 'none' };
+    if (signal?.aborted === true) {
+      const name = signal.reason?.name;
+      return { signalAborted: true, abortReason: name === 'TimeoutError' ? 'timeout' : name === 'AbortError' ? 'abort' : 'other' };
+    }
+  } catch { /* Diagnostic access must not replace the original fetch outcome. */ }
+  return { signalAborted: 'unknown', abortReason: 'unknown' };
+}
+
+export function formatBrowserStartupTiming(timing = {}, request = {}) {
+  timing ??= {};
+  request ??= {};
+  const ms = value => Number.isSafeInteger(value) && value >= 0 ? value : 'unknown';
+  const aborted = typeof timing.signalAborted === 'boolean' ? timing.signalAborted : 'unknown';
+  const reason = ['none', 'timeout', 'abort', 'other', 'unknown'].includes(timing.abortReason) ? timing.abortReason : 'unknown';
+  const outcome = ['http-ok', 'http-error', 'network-error'].includes(request.outcome) ? request.outcome : 'unknown';
+  const status = Number.isInteger(request.status) && request.status >= 100 && request.status <= 599 ? request.status : 'none';
+  // Fixed fields, bounded integers and closed enums only. No URL/body/reason text.
+  return `Browser startup timing: portDiscoveryElapsedMs=${ms(timing.portDiscoveryElapsedMs)} portObservedSinceSpawnMs=${ms(timing.portObservedSinceSpawnMs)} fetchStartedSinceSpawnMs=${ms(timing.fetchStartedSinceSpawnMs)} fetchEndedSinceSpawnMs=${ms(timing.fetchEndedSinceSpawnMs)} fetchElapsedMs=${ms(timing.fetchElapsedMs)} configuredTimeoutMs=${ms(timing.configuredTimeoutMs)} signalAborted=${aborted} abortReason=${reason} outcome=${outcome} status=${status}`;
 }
 
 function requestState(request, secrets) {
@@ -121,15 +157,32 @@ export async function discoverBrowserPage(port, {
   fetchImpl = globalThis.fetch,
   timeoutSignal = milliseconds => AbortSignal.timeout(milliseconds),
   onRequest,
+  now = () => performance.now(),
+  browserSpawnedAt,
 } = {}) {
+  const fetchStartedAt = observedClock(now);
+  let signal;
+  // Snapshot fetch settlement (headers or rejection), not JSON/body completion
+  // or browser acceptance. A later body failure does not rewrite this snapshot.
+  const timing = () => {
+    const endedAt = observedClock(now);
+    return {
+      fetchStartedSinceSpawnMs: diagnosticElapsedMs(browserSpawnedAt, fetchStartedAt),
+      fetchEndedSinceSpawnMs: diagnosticElapsedMs(browserSpawnedAt, endedAt),
+      fetchElapsedMs: diagnosticElapsedMs(fetchStartedAt, endedAt),
+      configuredTimeoutMs: BROWSER_DISCOVERY_TIMEOUT_MS,
+      ...abortObservation(signal),
+    };
+  };
   let response;
   try {
-    response = await fetchImpl(`http://127.0.0.1:${port}/json/list`, { signal: timeoutSignal(BROWSER_DISCOVERY_TIMEOUT_MS) });
+    signal = timeoutSignal(BROWSER_DISCOVERY_TIMEOUT_MS);
+    response = await fetchImpl(`http://127.0.0.1:${port}/json/list`, { signal });
   } catch (error) {
-    onRequest?.({ label: 'Browser DevTools target list', outcome: 'network-error', status: null, attempts: 1, error });
+    onRequest?.({ label: 'Browser DevTools target list', outcome: 'network-error', status: null, attempts: 1, error, timing: timing() });
     throw error;
   }
-  onRequest?.({ label: 'Browser DevTools target list', outcome: response.ok ? 'http-ok' : 'http-error', status: response.status, attempts: 1 });
+  onRequest?.({ label: 'Browser DevTools target list', outcome: response.ok ? 'http-ok' : 'http-error', status: response.status, attempts: 1, timing: timing() });
   const pages = await response.json();
   const page = Array.isArray(pages) ? pages.find(item => item.type === 'page') : null;
   if (!page?.webSocketDebuggerUrl) throw Error('owned browser page must expose CDP');
@@ -145,6 +198,7 @@ export function formatStartupFailure({
   deadlineAt,
   children = {},
   request,
+  browserTiming,
   secrets = [],
 }) {
   const elapsedMs = Number.isFinite(startedAt) && Number.isFinite(now) ? Math.max(0, Math.floor(now - startedAt)) : 0;
@@ -155,6 +209,7 @@ export function formatStartupFailure({
     `Error: ${errorText(error, secrets)}`,
     `Owned children: ${Object.entries(children).map(([name, value]) => `${redact(name, secrets, 80)}=${childState(value)}`).join('; ') || 'none'}`,
     `Last startup request: ${requestState(request, secrets)}`,
+    ...(browserTiming || request?.timing ? [formatBrowserStartupTiming(browserTiming ?? request.timing, browserTiming ?? request)] : []),
   ];
   for (const [name, value] of Object.entries(children)) {
     const stderr = redact(value?.stderr ?? '', secrets, MAX_DIAGNOSTIC_CHARS);

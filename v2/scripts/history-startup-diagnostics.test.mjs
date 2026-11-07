@@ -6,7 +6,9 @@ import {
   BROWSER_DISCOVERY_TIMEOUT_MS,
   createBoundedTextBuffer,
   diagnosticLimits,
+  diagnosticElapsedMs,
   discoverBrowserPage,
+  formatBrowserStartupTiming,
   formatStartupFailure,
   readBoundedText,
 } from './history-startup-diagnostics.mjs';
@@ -93,7 +95,7 @@ test('failure diagnostics redact secrets and omit exception messages, response b
 
   assert.match(output, /phase=browser target discovery elapsed=175ms globalDeadlineRemaining=29825ms/);
   assert.match(output, /Error: Error/);
-  assert.match(output, /browser=running\(pid=101, connected=false\)/);
+  assert.match(output, /browser=running\(pid=101, ipcConnected=false\)/);
   assert.match(output, /outcome=http-error attempts=1 status=503/);
   assert.match(output, /stderr browser \(bounded to 1200 chars\)/);
   assert.doesNotMatch(output, /synthetic-bootstrap-secret|local\.invalid|Bearer/);
@@ -375,4 +377,94 @@ test('acceptance retains its exact deadline, owned-child join, and sandbox preco
   assert.match(source, /await Promise\.race\(\[new Promise\(resolveChild => child\.once\('exit', resolveChild\)\), delay\(2000\)\]\)/);
   assert.match(source, /owned child must be joined before cleanup completes/);
   assert.match(source, /browser security sandbox enabled/);
+});
+
+
+test('timeout abort observations keep the single 3000ms fetch and original rejection', async () => {
+  let now = 8000, calls = 0, request;
+  const signal = { aborted: false, reason: undefined };
+  const timeout = Object.assign(new Error('private-timeout-detail'), { name: 'TimeoutError' });
+  const failure = discoverBrowserPage(45678, {
+    now: () => now, browserSpawnedAt: 100,
+    timeoutSignal: ms => { assert.equal(ms, 3000); return signal; },
+    fetchImpl: async (url, options) => {
+      calls++; assert.equal(options.signal, signal);
+      now = 11002; signal.aborted = true; signal.reason = timeout; throw timeout;
+    },
+    onRequest: value => { request = value; },
+  });
+  await assert.rejects(failure, error => error === timeout);
+  assert.equal(calls, 1); assert.equal(request.attempts, 1);
+  assert.deepEqual(request.timing, { fetchStartedSinceSpawnMs: 7900, fetchEndedSinceSpawnMs: 10902, fetchElapsedMs: 3002, configuredTimeoutMs: 3000, signalAborted: true, abortReason: 'timeout' });
+  const output = formatBrowserStartupTiming({ portDiscoveryElapsedMs: 7800, portObservedSinceSpawnMs: 7890, ...request.timing }, request);
+  assert.match(output, /configuredTimeoutMs=3000 signalAborted=true abortReason=timeout outcome=network-error status=none/);
+  assert.doesNotMatch(output, /private-timeout|45678|http:/);
+});
+
+test('network failure without signal abort is reported separately without retry or new exception', async () => {
+  let now = 100, calls = 0, request;
+  const failure = Error('https://private.invalid/?token=opaque network detail');
+  await assert.rejects(discoverBrowserPage(45678, {
+    now: () => now, browserSpawnedAt: 0,
+    timeoutSignal: ms => { assert.equal(ms, 3000); return { aborted: false }; },
+    fetchImpl: async () => { calls++; now = 107; throw failure; },
+    onRequest: value => { request = value; },
+  }), error => error === failure);
+  assert.equal(calls, 1); assert.equal(request.timing.fetchElapsedMs, 7);
+  assert.equal(request.timing.signalAborted, false); assert.equal(request.timing.abortReason, 'none');
+  assert.doesNotMatch(formatBrowserStartupTiming(request.timing, request), /private|opaque|token|https:/);
+});
+
+test('success timing observes fetch headers, not JSON body or browser acceptance', async () => {
+  let now = 40, request, calls = 0;
+  const page = { type: 'page', webSocketDebuggerUrl: 'ws://127.0.0.1/fixture' };
+  const result = await discoverBrowserPage(45678, {
+    now: () => now, browserSpawnedAt: 10,
+    timeoutSignal: () => ({ aborted: false }),
+    fetchImpl: async () => { calls++; now = 50; return { ok: true, status: 200, json: async () => { now = 70; return [page]; } }; },
+    onRequest: value => { request = value; },
+  });
+  assert.equal(result, page); assert.equal(calls, 1); assert.equal(request.timing.fetchElapsedMs, 10);
+  assert.equal(request.timing.fetchEndedSinceSpawnMs, 40); assert.equal(now, 70);
+  assert.equal(request.outcome, 'http-ok');
+  assert.doesNotMatch(formatBrowserStartupTiming(request.timing, request), /PASS|accepted|fixture|webSocket/);
+});
+
+test('diagnostic clock and abort inspection failures never replace the fetch error', async () => {
+  const original = Error('fetch failed'), signal = { get aborted() { throw Error('private getter'); } };
+  let request;
+  await assert.rejects(discoverBrowserPage(45678, {
+    now: () => { throw Error('private clock'); }, timeoutSignal: () => signal,
+    fetchImpl: async () => { throw original; }, onRequest: value => { request = value; },
+  }), error => error === original);
+  assert.equal(request.timing.fetchElapsedMs, 'unknown'); assert.equal(request.timing.signalAborted, 'unknown');
+  assert.equal(diagnosticElapsedMs(10, 9), 'unknown'); assert.equal(diagnosticElapsedMs(0, Infinity), 'unknown');
+  assert.equal(diagnosticElapsedMs(0, Number.MAX_SAFE_INTEGER + 2), 'unknown');
+});
+
+test('abort names, numeric observations and missing IPC are closed and bounded', async () => {
+  for (const [reason, expected] of [[{ name: 'AbortError' }, 'abort'], [{ name: 'secret-user-name' }, 'other'], ['secret-string', 'other']]) {
+    let request;
+    await assert.rejects(discoverBrowserPage(45678, { now: () => 1, timeoutSignal: () => ({ aborted: true, reason }), fetchImpl: async () => { throw Error('private'); }, onRequest: value => { request = value; } }));
+    assert.equal(request.timing.abortReason, expected);
+  }
+  const output = formatBrowserStartupTiming({ portDiscoveryElapsedMs: 'secret', fetchElapsedMs: -1, configuredTimeoutMs: Infinity, signalAborted: 'secret', abortReason: 'secret' }, { outcome: 'private-url', status: 'private-body' });
+  assert.doesNotMatch(output, /secret|private/); assert.ok(output.length < 512);
+  const biggest = formatBrowserStartupTiming(Object.fromEntries(['portDiscoveryElapsedMs', 'portObservedSinceSpawnMs', 'fetchStartedSinceSpawnMs', 'fetchEndedSinceSpawnMs', 'fetchElapsedMs', 'configuredTimeoutMs'].map(key => [key, Number.MAX_SAFE_INTEGER])));
+  assert.ok(biggest.length < 512);
+  const failure = formatStartupFailure({ error: Error('private'), phase: 'startup', startedAt: 0, now: 1, deadlineAt: 180000, request: null, browserTiming: {}, children: { browser: { process: { pid: 12, exitCode: null, signalCode: null } } } });
+  assert.match(failure, /ipcConnected=unknown/); assert.doesNotMatch(failure, /private/);
+});
+
+test('browser timing stays distinct from a later Next request and retains the existing text cap', () => {
+  const output = formatStartupFailure({
+    error: Error('private exception'), phase: 'Next startup', startedAt: 0, now: 500, deadlineAt: 180000,
+    request: { label: 'Next HTTP readiness', outcome: 'http-error', status: 503, attempts: 2 },
+    browserTiming: { portDiscoveryElapsedMs: 80, portObservedSinceSpawnMs: 90, fetchElapsedMs: 10, configuredTimeoutMs: 3000, signalAborted: false, abortReason: 'none', outcome: 'http-ok', status: 200 },
+    children: { browser: { process: { pid: 1, exitCode: null, signalCode: null, connected: false }, stderr: 'x'.repeat(4000) } },
+  });
+  assert.match(output, /Last startup request: Next HTTP readiness outcome=http-error attempts=2 status=503/);
+  assert.match(output, /Browser startup timing: .*outcome=http-ok status=200/);
+  assert.match(output, /ipcConnected=false/); assert.equal(diagnosticLimits.maxChars, 1200);
+  assert.ok(output.length < 3000); assert.doesNotMatch(output, /private exception/);
 });

@@ -181,3 +181,45 @@ workflow, product file, assertion or deadline changes are included. The original
 failed hosted result remains retained; prior passing results do not verify this
 new test-only candidate. Independent correction confirmation and final-head
 verification remain required before updating the draft PR or merging.
+
+## Approved startup timing instrumentation — one attempt pending
+
+The corrected receipt source passed local verification and hosted unit/build/
+offline smoke, Go and scientific checks. The remaining hosted history-browser
+acceptance stopped at its first DevTools HTTP request: Chrome156 was running,
+fetch rejected with TimeoutError before a response, Next had not started and
+zero acceptance stages completed. The remaining whole-run budget was168682ms.
+The underlying reason remains unknown; D-Bus stderr is not a demonstrated cause.
+
+The owner separately approved diagnostic instrumentation in the shared history
+startup helper/tests and necessary caller wiring. This is not a functional fix.
+The patch records monotonic elapsed port discovery/observation and fetch start,
+settlement and duration, configured3000ms timeout and a closed abort-state/reason
+snapshot. Fetch settlement means headers or rejection; it does not time JSON/body
+completion or establish browser acceptance. Safe unknown values replace invalid
+clock or abort observations without changing the original fetch outcome.
+
+One fixed-field timing line is emitted when the existing fetch settles, even on
+success, with no PASS marker or URL/body/error text. Failure snapshots retain that
+browser observation independently of a later Next request. Numeric fields are
+nonnegative safe integers or unknown; reason/outcome fields use closed enums.
+The new line is under512 characters; existing1200-character stderr/redaction
+limits remain unchanged. The child label is now ipcConnected: it describes Node
+IPC only, not CDP. Browser startup uses no Node IPC channel.
+
+Exactly one fetch and its3000ms signal remain. The180000ms global budget,
+10000ms browser readiness wait,5000ms WebSocket wait, acceptance assertions,
+default sandbox flags, offline confinement, ownership and cleanup are unchanged.
+A mechanical caller inverse proof removes only diagnostic wiring and reproduces
+its entire prior source byte-for-byte. Controlled-clock/signal tests distinguish
+a timeout-aborted fetch, a network failure without abort and HTTP success without
+claiming body/browser completion, while preserving rejection identity and privacy.
+No browser, provider or held runtime is launched by these unit tests.
+
+After required independent accuracy/privacy review and local verification,
+exactly one instrumented hosted CI attempt is authorized. The push automatically
+starts the existing workflows; no duplicate manual rerun or retry policy is
+released. An uncertain push/run outcome must be reconciled before further action;
+a failed attempt consumes this authority. The original failures remain preserved.
+No merge, auto-merge, deployment, package/dependency, sandbox/security, credential,
+operating or trading changes are authorized by this diagnostics approval.
