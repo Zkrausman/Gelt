@@ -389,22 +389,22 @@ it('fences uncertain close after the inherited marker unlink, including director
 it('rejects FIFO candidates within a bounded child instead of blocking filesystem inspection',()=> {
   const p=root(),b=owner();
   execFileSync('/usr/bin/mkfifo',['-m','600',join(p,'a64-evidence-receipt.sqlite')]);
-  const moduleURL=pathToFileURL(resolve('worker/dist/a64-evidence-receipt.js')).href;
+  const moduleURL=pathToFileURL(resolve('worker/src/a64-evidence-receipt.ts')).href;
   const source=`import { A64EvidenceReceiptStore } from ${JSON.stringify(moduleURL)}; let s='';for await(const c of process.stdin)s+=c;const {root,binding}=JSON.parse(s);for(const method of ['create','reopen']){let rejected=false;try{A64EvidenceReceiptStore[method](root,binding)}catch(e){rejected=e.message==='A64 evidence retention unavailable';}if(!rejected)process.exit(1);}process.stdout.write('rejected\\n');`;
-  const output=execFileSync(process.execPath,['--input-type=module','-e',source],{input:JSON.stringify({root:p,binding:b}),encoding:'utf8',timeout:2000});
+  const output=execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',source],{input:JSON.stringify({root:p,binding:b}),encoding:'utf8',timeout:2000});
   expect(output).toBe('rejected\n');
 });
 
 it('rejects FIFO replacement between metadata check and open without blocking',()=> {
   const p=root(),b=owner(),file=join(p,'a64-evidence-receipt.sqlite');fs.writeFileSync(file,'not a database',{mode:0o600});
-  const moduleURL=pathToFileURL(resolve('worker/dist/a64-evidence-receipt.js')).href;
+  const moduleURL=pathToFileURL(resolve('worker/src/a64-evidence-receipt.ts')).href;
   const source=`import fs from 'node:fs';import {syncBuiltinESMExports} from 'node:module';import {execFileSync} from 'node:child_process';import {A64EvidenceReceiptStore} from ${JSON.stringify(moduleURL)};let s='';for await(const c of process.stdin)s+=c;const x=JSON.parse(s);let swapped=false;const stat=fs.lstatSync;fs.lstatSync=function(path,...args){const result=stat(path,...args);if(!swapped&&String(path)===x.file){swapped=true;fs.unlinkSync(path);execFileSync('/usr/bin/mkfifo',['-m','600',path]);}return result;};syncBuiltinESMExports();try{A64EvidenceReceiptStore.reopen(x.root,x.binding);process.exit(1);}catch(e){if(!swapped||e.message!=='A64 evidence retention unavailable')process.exit(1);}process.stdout.write('rejected\\n');`;
-  expect(execFileSync(process.execPath,['--input-type=module','-e',source],{input:JSON.stringify({root:p,binding:b,file}),encoding:'utf8',timeout:2000})).toBe('rejected\n');
+  expect(execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',source],{input:JSON.stringify({root:p,binding:b,file}),encoding:'utf8',timeout:2000})).toBe('rejected\n');
 });
 
 it('keeps the independent pending fence when its final unlink fails before effect',()=> {
   const f=fixture(),p=root(),b=owner(f);
-  const moduleURL=pathToFileURL(resolve('worker/dist/a64-evidence-receipt.js')).href;
+  const moduleURL=pathToFileURL(resolve('worker/src/a64-evidence-receipt.ts')).href;
   const source=`import fs from 'node:fs';import {syncBuiltinESMExports} from 'node:module';import {join} from 'node:path';import {A64EvidenceReceiptStore} from ${JSON.stringify(moduleURL)};let s='';for await(const c of process.stdin)s+=c;const x=JSON.parse(s);const store=A64EvidenceReceiptStore.create(x.root,x.binding);store.retain(x.input);const pending=join(x.root,'a64-evidence-receipt.pending');const original=fs.unlinkSync;fs.unlinkSync=function(path){if(path===pending)throw new Error('SYNTHETIC_FINAL_UNLINK_FAILURE');return original(path);};syncBuiltinESMExports();let failed=false;try{store.close();}catch(e){failed=e.reason==='uncertain';}fs.unlinkSync=original;syncBuiltinESMExports();if(!failed||!fs.existsSync(pending)||fs.existsSync(join(x.root,'a64-evidence-receipt.sqlite.lock')))process.exit(1);let blocked=false;try{A64EvidenceReceiptStore.reopen(x.root,x.binding);}catch(e){blocked=e.message==='A64 evidence retention unavailable';}if(!blocked)process.exit(1);process.stdout.write('fenced\\n');`;
-  expect(execFileSync(process.execPath,['--input-type=module','-e',source],{input:JSON.stringify({root:p,binding:b,input:f.text}),encoding:'utf8',timeout:2000})).toBe('fenced\n');
+  expect(execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',source],{input:JSON.stringify({root:p,binding:b,input:f.text}),encoding:'utf8',timeout:2000})).toBe('fenced\n');
 });

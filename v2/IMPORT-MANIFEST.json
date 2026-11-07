@@ -4530,7 +4530,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/a64-evidence-receipt.test.ts",
-      "sha256": "18c24aa660036ee75a4219c30950563791e49353a88c94fe5f8d515fef5b7fb4",
+      "sha256": "1bb58c5c8fe208e9cc1a22cbd1864069ee2556de8580d72283c255b0b9972e4d",
       "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
     }
   ],

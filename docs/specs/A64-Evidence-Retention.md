@@ -170,3 +170,14 @@ financial transaction is performed or admitted. This source API reduces the
 future durable evidence-consumer implementation gap. It does not satisfy R5,
 admit the selected prospective case, or reopen H-WALKTHROUGH. Full remaining
 operational effort and observation duration remain unknown.
+
+## Clean-checkout test harness correction
+
+The first draft PR's Node CI found three subprocess tests importing ignored
+`worker/dist` output before the workflow's build step. The build-first local
+verification had masked that dependency. These tests now load the actual
+TypeScript source through the already installed `tsx` test tooling. No dependency,
+workflow, product file, assertion or deadline changes are included. The original
+failed hosted result remains retained; prior passing results do not verify this
+new test-only candidate. Independent correction confirmation and final-head
+verification remain required before updating the draft PR or merging.
