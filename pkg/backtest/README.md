@@ -128,3 +128,22 @@ not establish a valid denominator or adequacy. Calculations and Result fields
 are unchanged; legacy text consumers need to migrate the intentionally changed
 labels. A/B1/B2a commands keep their existing output. See the
 [report boundary and verification limits](../../docs/specs/TASK_010_Historical_Backtester.md#legacy-cli-report-boundary-2026-11-03).
+
+
+## Opt-in declared adverse execution prices (TASK_010 follow-on)
+
+```text
+gelt backtest-causal-execution BreakoutVol TEST synthetic.csv 100 0 0 100 100
+```
+
+Separate offline model: initial simulated cash, fixed per-side fee, fee bps,
+BUY adverse bps and SELL adverse bps are explicit. Rates are uncalibrated stress
+assumptions, not observed or realistic execution. Existing commands are unchanged.
+Reference trigger/protection geometry remains separate from modeled execution
+prices; targets are not guaranteed limit fills and quotes are not clamped to OHLC.
+Entry sizing keeps the simulated $10 cap fee-inclusive. Cash/equity include the
+execution-price effect once, with fees on actual modeled notional. Close marks
+and terminal open positions do not assume liquidation or hypothetical exit costs.
+See the [execution-price contract](../../docs/specs/TASK_010_Historical_Backtester.md#declared-adverse-execution-price-scenario-2026-11-08)
+for rounding, bounds, output limitations and required review/delivery gates.
+No live data, broker calls, money, calibration, trading or qualification.

@@ -4,7 +4,7 @@ title: "TASK_010: Interactive Strategy Backtester & Historical Replay Suite"
 ticket: ZAR-235
 status: implemented
 baseline: "3b8b82e1514c341fce092b49e4bbfc8e29599c61"
-scope: "Offline V1 historical validation, A/B1/B2a replay and truthful legacy CLI reporting"
+scope: "Offline V1 historical validation, causal/funded/fee/execution scenarios and truthful legacy CLI reporting"
 ---
 
 # TASK_010: Interactive Strategy Backtester & Historical Replay Suite
@@ -585,3 +585,130 @@ checks; contract and complete implementation independent/adversarial source/priv
 review, postreview exact-head Go/V2/scientific/CLI, hosted and merge/postmerge gates
 remain pending. No engine performance or operating qualification is established.
 All16/C07/C13/C14 UNKNOWN; NOT_READY/CLOSED/DEFER unchanged.
+
+
+## Declared adverse execution-price scenario (2026-11-08)
+
+This separately approved opt-in source increment adds
+`Engine.RunExecutionScenarioCausal` and `gelt backtest-causal-execution`.
+The existing legacy Run/Result/backtest, A, B1 and B2a public interfaces,
+calculations, errors, defaults and tests remain unchanged. It does not activate
+slippage in any existing mode. No A64/provider/receipt/lifecycle path changes.
+
+The model is `gelt.legacy-go.execution-scenario-close-next-open.v1`, with cost
+identity `declared_fixed8_fees_and_adverse_execution_price_scenario` and
+`unqualified_offline` data/authority. Rates are **uncalibrated declared stress
+assumptions**, not observed spreads, liquidity, realistic fills, profitability or
+qualification evidence. A supplied CSV is unqualified, not automatically synthetic;
+acceptance fixtures are explicitly synthetic. No network or actual money is used.
+
+### Reference events and modeled execution prices
+
+Reference OHLC predicates and protection remain A's existing policy: previous
+close signal, next open; opening stop-gap then target-gap before pending sell;
+stop first on ambiguous intrabar touches; prior-close protection changes apply
+on the next bar. Reference entry/high/stop/target geometry is unchanged. This
+model treats targets as trigger events, **not guaranteed exchange limit fills**.
+An adverse execution can be below a target or outside last-trade OHLC; prices
+are not clamped to bars and no physical order-book claim follows.
+
+Both mandatory adverse rates are canonical integer strings, 0..9999 bps
+inclusive, at most four ASCII digits with no leading zeros except `0`. Fixed fee
+and fee-rate declarations retain B2a's grammar and engineering bounds. No omitted
+scenario or inferred actual fee/rate exists. For exact binary-rational reference
+price p, BUY quote is p*(10000+buyBps)/10000; SELL quote is
+p*(10000-sellBps)/10000. Convert once to the least float64 at or above the exact
+BUY quote, or greatest float64 at or below the SELL quote. A zero side rate
+preserves original price bits. This is not tick-size rounding.
+
+Generic quote helpers retain the positive..11000000 modeled-price domain.
+Public reference fills remain within validated raw bars' 0.01..1000000 bounds;
+a stored target above 1000000 cannot be reached by bounded Open/High. Tests
+separate that unfilled public target from constructed wider helper inputs.
+Positive adverse SELL prices may be below 0.01 if generic quote/accounting bounds
+allow. Entry quantity still requires execution price within the existing
+0.01..1000000 entry-sizing domain; an adjusted BUY outside it rejects.
+
+With S=10^8, B=10S, fixed fee F and declared fee rate b, retain
+T=floor((B-F)*10000/(10000+b)). Quantity uses **execution BUY price**, not
+reference open. Nonzero BUY adjustment or nonzero fees use the exact downward
+quantity rule, raw principal<=T/S and independently quantized principal=T. With
+zero fees and zero BUY adjustment, preserve the original 10/open float, even
+when the SELL rate is nonzero. Zero target remains valid until an eligible entry,
+where it fails before funding or position creation, including with zero cash.
+
+Each actual modeled filled side charges F+ceil(N*b/10000), using the single
+ties-even fixed8 quote of execution price times quantity. Entry debit remains
+at most **10 simulated modelUSD, including fees**. Insufficient cash is a nonfill,
+not partial funding, resizing or a loan. Exit fee deficit is fatal with a zero
+whole result. All inherited money, quantity, bar/fill and checked-integer bounds
+remain; no capacity increase. Slippage is already embedded in execution notional
+and is never subtracted again as an additional fee or cash charge.
+
+### Evidence and accounting
+
+`ReferenceReplay` is explicitly `reference_trigger_diagnostic_only_not_execution_pnl`.
+It contains reference-price events for the execution-derived quantity, not a
+counterfactual no-slippage strategy result. Fill-linked `CashFlows` separately
+record reference/execution prices, applied side rate, both fixed8 notionals,
+nonnegative quote difference, fees, cash, basis and exact accounting PnL. The
+aggregate quote difference is a diagnostic for the same quantity, not another
+charge or a full strategy-performance attribution.
+
+Cash and equity use actual modeled execution principal and fees. At every close,
+`equity=cash+value=initial+net_realized+net_unrealized` exactly. Close value uses
+the supplied reference close, not hypothetical liquidation. Open basis retains
+only the filled entry fee; no exit fee/adverse exit is assumed. First-maximum
+close-mark drawdown and undefined zero-initial-equity semantics stay explicit.
+A terminal directional signal remains unfilled without a successor bar.
+
+The shared private loop admits one closed optional execution state, mutually
+exclusive with funded/fee states. Old callers need no signature or test changes.
+It is not a caller-supplied policy/plugin interface. New accounting is separate;
+reference price/protection state and old accounting helpers are not rewritten.
+Fatal failure returns a zero entire result and sanitized typed error, without
+resetting an evaluator or retrying. Fresh trusted exclusive evaluator/input
+ownership and cooperative cancellation limitations of A remain.
+
+### Offline command and bounded display
+
+```text
+gelt backtest-causal-execution BreakoutVol TEST synthetic.csv 100 0 0 100 100
+```
+
+Arguments after CSV are initial simulated cash, fixed per-filled-side fee,
+fee bps, BUY adverse bps and SELL adverse bps. The existing strict CSV parser and
+fresh BreakoutVol-only resolver are reused. No generated input, data fetch or
+plan/catalog expansion. Complete parse and file close precede callbacks. Summary
+is at most 8192 UTF8 bytes with fixed labels and validated canonical numeric
+fields, reference versus last execution price, cash/equity, fees, close-mark
+drawdown and open position. One output attempt only; a short/error write may
+retain a prefix, is an error, and is not retried. Raw paths, callback prose,
+input records and secrets are not echoed.
+
+### Changed files and verification boundary
+
+- New `pkg/backtest/causal_execution_scenario.go` and dedicated tests.
+- New `cmd/gelt/backtest_causal_execution_scenario.go` and dedicated tests.
+- Closed private mode wiring in `causal.go`; one explicit main command dispatch.
+- This specification and backtest README; historical outcomes preserved.
+
+The refined contract received independent accuracy/privacy review. Its one
+acceptance correction distinguishes wider helper inputs from unreachable public
+exits; it changes no production predicate. Working focused tests cover independent
+rational/one-ulp price and fixed8/fee oracles, zero-rate B2a equivalence, all exit
+reasons, unreachable target, sub-cent adverse SELL, funding/deficit/zero-target,
+terminal state, mutually exclusive modes, CLI input/privacy/forged summary and
+write-once failures. Existing backtest and CLI compatibility tests also passed.
+Working Go race/vet/build checks passed, and eleven actual built-command cases
+covered the new command plus existing A/B1/B2a routes using one owned synthetic
+CSV. No provider data or general benchmark was used. These working checks are
+not final reviewed-head verification. Complete independent
+and adversarial source/privacy reviews, remediation and required final-head
+Go/V2/scientific/protected-browser checks precede normal draft PR and exact-head
+CI delivery. New PR merge authority is separate from PR46's earlier grant.
+
+No calibration/optimization campaign, provider acquisition, account/broker
+connection, trading decision, actual capital, runtime qualification or security
+change occurs. All sixteen actual checks and C07/C13/C14 remain UNKNOWN;
+qualification NOT_READY, production CLOSED and operations DEFER.
