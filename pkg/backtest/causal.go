@@ -608,7 +608,7 @@ func causalAppendFill(
 // Accounting stays adjacent to actual modeled fills. Fatal failure discards
 // both traces; neither trace is published incrementally.
 func causalRecordFill(
-	res *CausalResult, funded *causalFundedState, fee *causalFeeScenarioState, p *causalPosition,
+	res *CausalResult, funded *causalFundedState, fee *causalFeeScenarioState, execution *causalExecutionScenarioState, p *causalPosition,
 	kind CausalFillKind, reason CausalFillReason, bar int, timestamp int64,
 	evaluationBar int, price float64, ambiguous bool,
 ) CausalErrorCode {
@@ -620,6 +620,9 @@ func causalRecordFill(
 	}
 	if fee != nil {
 		return fee.fill(res.Fills[len(res.Fills)-1], len(res.Fills)-1)
+	}
+	if execution != nil {
+		return execution.fill(res.Fills[len(res.Fills)-1], len(res.Fills)-1)
 	}
 	return ""
 }
@@ -635,13 +638,21 @@ func (e *Engine) RunCausal(ctx context.Context, symbol string, data []OHLCV) (Ca
 }
 
 // runCausal is the single event loop. Accounting cannot select a price, change
-// a touch predicate or reevaluate a close. Fee mode alone supplies a quantity
-// at the pre-entry gate. The two private accounting states are exclusive.
+// a touch predicate or reevaluate a close. Fee/execution modes supply quantity
+// at the pre-entry gate. The three closed private accounting states are exclusive.
+// Execution prices affect only the new accounting trace, never reference triggers.
 func (e *Engine) runCausal(
 	ctx context.Context, symbol string, data []OHLCV,
-	funded *causalFundedState, fee *causalFeeScenarioState,
+	funded *causalFundedState, fee *causalFeeScenarioState, executionMode ...*causalExecutionScenarioState,
 ) (CausalResult, error) {
-	if funded != nil && fee != nil {
+	var execution *causalExecutionScenarioState
+	if len(executionMode) > 1 {
+		return causalFailure(CausalInvalidInput, causalNoBar)
+	}
+	if len(executionMode) == 1 {
+		execution = executionMode[0]
+	}
+	if funded != nil && fee != nil || execution != nil && (funded != nil || fee != nil) {
 		return causalFailure(CausalInvalidInput, causalNoBar)
 	}
 	if index, code := causalValidateBars(data); code != "" {
@@ -669,6 +680,9 @@ func (e *Engine) runCausal(
 	if fee != nil {
 		res.ModelIdentity, res.CostIdentity = FeeScenarioCausalModelIdentity, FeeScenarioCausalCostIdentity
 	}
+	if execution != nil {
+		res.ModelIdentity, res.CostIdentity = ExecutionScenarioCausalModelIdentity, ExecutionScenarioCausalCostIdentity
+	}
 	var position *causalPosition
 	var pending *CausalEvaluation
 
@@ -678,7 +692,7 @@ func (e *Engine) runCausal(
 		}
 		exited := false
 		closePosition := func(reason CausalFillReason, price float64, source int, ambiguous bool) CausalErrorCode {
-			code := causalRecordFill(&res, funded, fee, position, CausalExit, reason, i, bar.Timestamp, source, price, ambiguous)
+			code := causalRecordFill(&res, funded, fee, execution, position, CausalExit, reason, i, bar.Timestamp, source, price, ambiguous)
 			if code == "" {
 				position, exited = nil, true
 			}
@@ -716,8 +730,14 @@ func (e *Engine) runCausal(
 					return causalFailure(code, i)
 				}
 			}
+			if execution != nil {
+				quantity, allowed, code = execution.entryGate(bar, i, *pending)
+				if code != "" {
+					return causalFailure(code, i)
+				}
+			}
 			if allowed {
-				if fee != nil {
+				if fee != nil || execution != nil {
 					position, code = causalNewPositionWithQuantity(bar.Open, quantity, *pending, i)
 				} else {
 					position, code = causalNewPosition(bar.Open, *pending, i)
@@ -725,7 +745,7 @@ func (e *Engine) runCausal(
 				if code != "" {
 					return causalFailure(code, i)
 				}
-				if code = causalRecordFill(&res, funded, fee, position, CausalEntry, CausalNextOpenBuy,
+				if code = causalRecordFill(&res, funded, fee, execution, position, CausalEntry, CausalNextOpenBuy,
 					i, bar.Timestamp, pending.BarIndex, bar.Open, false); code != "" {
 					return causalFailure(code, i)
 				}
@@ -760,6 +780,11 @@ func (e *Engine) runCausal(
 					return causalFailure(code, i)
 				}
 			}
+			if execution != nil {
+				if code = execution.mark(bar, i, position); code != "" {
+					return causalFailure(code, i)
+				}
+			}
 			continue
 		}
 
@@ -789,6 +814,11 @@ func (e *Engine) runCausal(
 		}
 		if fee != nil {
 			if code = fee.mark(bar, i, position); code != "" {
+				return causalFailure(code, i)
+			}
+		}
+		if execution != nil {
+			if code = execution.mark(bar, i, position); code != "" {
 				return causalFailure(code, i)
 			}
 		}

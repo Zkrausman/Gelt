@@ -1137,6 +1137,8 @@ func main() {
 		fmt.Println(ev)
 		fmt.Println("================================================================================")
 
+	case "backtest-causal-execution":
+		os.Exit(runBacktestCausalExecution(context.Background(), os.Args[2:], os.Stdout, os.Stderr))
 	case "backtest-causal-fees":
 		os.Exit(runBacktestCausalFees(context.Background(), os.Args[2:], os.Stdout, os.Stderr))
 	case "backtest-causal-funded":
