@@ -712,3 +712,22 @@ No calibration/optimization campaign, provider acquisition, account/broker
 connection, trading decision, actual capital, runtime qualification or security
 change occurs. All sixteen actual checks and C07/C13/C14 remain UNKNOWN;
 qualification NOT_READY, production CLOSED and operations DEFER.
+
+
+### Reference-summary consistency correction
+
+The first full independent and adversarial implementation reviews identified the
+same formatting-consistency gap: reference aggregate diagnostic values could
+contradict reference fills even though their numeric domains were valid. No public
+imported-result attack surface or execution-accounting defect was established.
+The new formatter now independently reconstructs reference notionals, entry/exit
+PnL, closed/winning counts, gross realized PnL, profit and loss from the reference
+fill sequence. It exactly reconciles the displayed aggregates and the computed
+profit factor or its required nil/reason state, separately from execution cash.
+This is an internally computed-result consistency check, not authentication.
+Synthetic tests preserve genuine HOLD, flat, profit, loss and mixed-trade states;
+scalar, one-ulp, per-fill and coordinated aggregate/profit-factor mutations must
+reject without producing a summary. A retained negative control failed against
+the prior validator, and the corrected focused tests passed. Source/core/mode
+semantics remain unchanged. Original-pair correction confirmation and required
+final-head verification still precede draft PR/CI delivery.

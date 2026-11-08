@@ -493,6 +493,9 @@ func executionScenarioCLIResultValid(r backtest.ExecutionScenarioCausalResult) b
 	if _, valid := backtestCausalSummary(diagnostic); !valid {
 		return false
 	}
+	if !executionCLIReferenceDiagnosticsValid(replay) {
+		return false
+	}
 	total := replay.TotalBars
 	expectedEvaluations := total - 19
 	if expectedEvaluations < 0 {
@@ -671,10 +674,6 @@ func executionScenarioCLIResultValid(r backtest.ExecutionScenarioCausalResult) b
 	if fillIndex != len(replay.Fills) || rejectedIndex != len(r.RejectedEntries) || replay.ClosedTradeCount != account.closed || !executionScenarioCLIMatches(r.AggregateAdverseDifferenceUnits, adverseSum, fundedCLIMaxUnits) {
 		return false
 	}
-	if replay.GrossProfitFactor != nil &&
-		!fundedCLINear(*replay.GrossProfitFactor, replay.GrossProfit/replay.GrossLoss) {
-		return false
-	}
 
 	// total >= 1 and len(CloseMarks) == total were established above.
 	last := r.CloseMarks[total-1]
@@ -851,4 +850,65 @@ func executionCLIPrice(p float64, rate int64, side backtest.CausalFillKind) (flo
 		v = math.Nextafter(v, 0)
 	}
 	return v, causalCLIFinite(v, math.SmallestNonzeroFloat64, 11000000)
+}
+
+// Reconstruct reference diagnostics independently of execution-price cash
+// accounting. This validates an internally computed display result, not imported
+// authority. Match the core's ordered float operations exactly, with no tolerance
+// allowing a fabricated reference aggregate to reach the human summary.
+func executionCLIReferenceDiagnosticsValid(r backtest.CausalResult) bool {
+	if len(r.Fills) > backtest.CausalMaxFills {
+		return false
+	}
+	var entry backtest.CausalFill
+	open := false
+	closed, wins := 0, 0
+	gross, profit, loss := 0.0, 0.0, 0.0
+	for _, f := range r.Fills {
+		if !causalCLIFinite(f.Price, math.SmallestNonzeroFloat64, 11000000) || !causalCLIFinite(f.Quantity, 0.00001, 1000) || !causalCLIFinite(f.Notional, 0, 1000000) || f.Notional != f.Price*f.Quantity {
+			return false
+		}
+		switch f.Kind {
+		case backtest.CausalEntry:
+			if open || f.GrossRealizedPnL != 0 {
+				return false
+			}
+			entry = f
+			open = true
+		case backtest.CausalExit:
+			if !open || f.Quantity != entry.Quantity {
+				return false
+			}
+			pnl := (f.Price - entry.Price) * f.Quantity
+			if !causalCLIFinite(pnl, -1000000, 1000000) || f.GrossRealizedPnL != pnl {
+				return false
+			}
+			gross += pnl
+			closed++
+			if pnl > 0 {
+				profit += pnl
+				wins++
+			} else {
+				loss -= pnl
+			}
+			if !causalCLIFinite(gross, -1000000, 1000000) || !causalCLIFinite(profit, 0, 1000000) || !causalCLIFinite(loss, 0, 1000000) {
+				return false
+			}
+			open = false
+		default:
+			return false
+		}
+	}
+	if open != (r.TerminalPosition != nil) || r.ClosedTradeCount != closed || r.WinningClosedTradeCount != wins || r.GrossRealizedPnL != gross || r.GrossProfit != profit || r.GrossLoss != loss {
+		return false
+	}
+	switch {
+	case closed == 0:
+		return r.GrossProfitFactor == nil && r.GrossProfitFactorReason == backtest.CausalNoClosedTrades
+	case loss == 0:
+		return r.GrossProfitFactor == nil && r.GrossProfitFactorReason == backtest.CausalNoLosingClosedTrades
+	default:
+		expected := profit / loss
+		return causalCLIFinite(expected, 0, math.MaxFloat64) && r.GrossProfitFactor != nil && *r.GrossProfitFactor == expected && r.GrossProfitFactorReason == ""
+	}
 }

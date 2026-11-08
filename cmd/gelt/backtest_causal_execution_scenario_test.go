@@ -3,10 +3,13 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"gelt/pkg/backtest"
+	"gelt/pkg/strategies"
 	"math"
 	"strings"
 	"testing"
+	"time"
 )
 
 func executionCLIResult(t *testing.T, n int, mode string, s backtest.ExecutionScenario) backtest.ExecutionScenarioCausalResult {
@@ -105,4 +108,140 @@ func TestExecutionCLIWholeInputAndOutputOnce(t *testing.T) {
 			t.Fatal("output retried/hidden")
 		}
 	}
+}
+
+// Two reference roundtrips make both positive and negative reference PnL
+// visible while execution prices/fees remain separate model facts.
+type executionReferenceStrategy struct{ *feeScenarioCLIStrategy }
+
+func (s *executionReferenceStrategy) Evaluate(ctx context.Context, at time.Time, symbol string, closes, volumes []float64) (strategies.StrategySignal, error) {
+	signal, err := s.feeScenarioCLIStrategy.Evaluate(ctx, at, symbol, closes, volumes)
+	switch len(closes) - 1 {
+	case 23:
+		signal.Signal = strategies.SignalBuy
+	case 25:
+		signal.Signal = strategies.SignalSell
+	}
+	return signal, err
+}
+func executionReferenceFixture(t *testing.T, kind string) backtest.ExecutionScenarioCausalResult {
+	t.Helper()
+	e, s := feeScenarioCLIEngine("roundtrip")
+	bars := feeScenarioCLIBars(24, 100)
+	switch kind {
+	case "hold":
+		e, _ = feeScenarioCLIEngine("hold")
+	case "profit":
+		bars[22].Open = 110
+		bars[22].High = 110
+		bars[22].Low = 110
+		bars[22].Close = 110
+	case "loss":
+		bars[22].Open = 90
+		bars[22].High = 90
+		bars[22].Low = 90
+		bars[22].Close = 90
+	case "mixed":
+		bars = feeScenarioCLIBars(28, 100)
+		bars[22].Open = 110
+		bars[22].High = 110
+		bars[22].Low = 110
+		bars[22].Close = 110
+		bars[26].Open = 90
+		bars[26].High = 90
+		bars[26].Low = 90
+		bars[26].Close = 90
+		e = backtest.NewStrategyEngine(&executionReferenceStrategy{s})
+	}
+	r, err := e.RunExecutionScenarioCausal(context.Background(), "TEST", bars, "100", backtest.ExecutionScenario{FixedFee: "0", FeeBps: "0", BuyAdverseBps: "100", SellAdverseBps: "100"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return r
+}
+func TestExecutionCLIReferenceDiagnosticsPositiveStates(t *testing.T) {
+	for _, kind := range []string{"hold", "flat", "profit", "loss", "mixed"} {
+		t.Run(kind, func(t *testing.T) {
+			r := executionReferenceFixture(t, kind)
+			if out, ok := backtestCausalExecutionSummary(r); !ok || out == "" {
+				t.Fatal("genuine reference result rejected")
+			}
+		})
+	}
+}
+func TestExecutionCLIReferenceAggregateMutations(t *testing.T) {
+	cases := []struct {
+		name   string
+		change func(*backtest.CausalResult)
+	}{
+		{"realized", func(r *backtest.CausalResult) { r.GrossRealizedPnL += 1 }},
+		{"realized tiny", func(r *backtest.CausalResult) { r.GrossRealizedPnL = math.Nextafter(r.GrossRealizedPnL, math.Inf(1)) }},
+		{"winning", func(r *backtest.CausalResult) {
+			if r.WinningClosedTradeCount > 0 {
+				r.WinningClosedTradeCount--
+			} else {
+				r.WinningClosedTradeCount++
+			}
+		}},
+		{"profit", func(r *backtest.CausalResult) { r.GrossProfit += 1 }},
+		{"loss", func(r *backtest.CausalResult) { r.GrossLoss += 1 }},
+		{"profitfactor value", func(r *backtest.CausalResult) { v := 7.0; r.GrossProfitFactor = &v; r.GrossProfitFactorReason = "" }},
+		{"profitfactor tiny", func(r *backtest.CausalResult) {
+			v := math.SmallestNonzeroFloat64
+			if r.GrossProfitFactor != nil {
+				v = math.Nextafter(*r.GrossProfitFactor, math.Inf(1))
+			}
+			r.GrossProfitFactor = &v
+			r.GrossProfitFactorReason = ""
+		}},
+		{"profitfactor nil", func(r *backtest.CausalResult) {
+			r.GrossProfitFactor = nil
+			r.GrossProfitFactorReason = backtest.CausalNoLosingClosedTrades
+		}},
+		{"profitfactor reason", func(r *backtest.CausalResult) { r.GrossProfitFactorReason = backtest.CausalNoClosedTrades }},
+	}
+	for _, kind := range []string{"hold", "flat", "profit", "loss", "mixed"} {
+		for _, tc := range cases {
+			t.Run(kind+"/"+tc.name, func(t *testing.T) {
+				r := executionReferenceFixture(t, kind)
+				// Mutations that would preserve the already-correct nil state are not counterexamples.
+				if tc.name == "profitfactor nil" && r.ReferenceReplay.GrossProfitFactor == nil {
+					return
+				}
+				if tc.name == "profitfactor reason" && r.ReferenceReplay.GrossProfitFactorReason == backtest.CausalNoClosedTrades {
+					return
+				}
+				tc.change(&r.ReferenceReplay)
+				if out, ok := backtestCausalExecutionSummary(r); ok || out != "" {
+					t.Fatal("forged reference aggregate accepted")
+				}
+			})
+		}
+	}
+	for _, index := range []int{0, 1} {
+		t.Run(fmt.Sprintf("per-fill-pnl-%d", index), func(t *testing.T) {
+			r := executionReferenceFixture(t, "flat")
+			r.ReferenceReplay.Fills[index].GrossRealizedPnL = 1
+			if out, ok := backtestCausalExecutionSummary(r); ok || out != "" {
+				t.Fatal("forged reference fill PnL accepted")
+			}
+		})
+	}
+	t.Run("reference notional", func(t *testing.T) {
+		r := executionReferenceFixture(t, "flat")
+		r.ReferenceReplay.Fills[0].Notional += 1
+		if out, ok := backtestCausalExecutionSummary(r); ok || out != "" {
+			t.Fatal("forged reference notional accepted")
+		}
+	})
+	t.Run("coordinated aggregates and profitfactor", func(t *testing.T) {
+		r := executionReferenceFixture(t, "mixed")
+		r.ReferenceReplay.GrossProfit *= 2
+		r.ReferenceReplay.GrossLoss *= 2
+		pf := r.ReferenceReplay.GrossProfit / r.ReferenceReplay.GrossLoss
+		r.ReferenceReplay.GrossProfitFactor = &pf
+		if out, ok := backtestCausalExecutionSummary(r); ok || out != "" {
+			t.Fatal("self-consistent forged aggregates accepted")
+		}
+	})
 }
