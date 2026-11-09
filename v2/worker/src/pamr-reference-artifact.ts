@@ -248,3 +248,20 @@ export function verifySpy253PAMRInspectionData(text: unknown) {
     return Object.freeze({ status: 'rejected' as const, reason: 'artifact_mismatch' as const });
   }
 }
+
+// Fixed observed-data domain. Pure replay cannot restore original issuance.
+import { observedMathRequestSchema, parseObservedText, observedLimits, observedHash,
+  observedClaims, ObservedSnapshotError } from './alpaca-observed-snapshot-contract.js';
+export function replayObservedSnapshotMath(text: unknown) {
+  try {
+    const request = observedMathRequestSchema.parse(parseObservedText(text, observedLimits.request));
+    const math = trace(request, request, (domain, value) => observedHash('math/' + domain, value));
+    const body = { schema: 'gelt.spy253-pamr-observed-inspection.v2', request, recipe: pamrRecipe,
+      ...math, updates: 64, discardedCount: 188, ...observedClaims,
+      fidelity: 'selected_64_intervals_only_not_full_252_history', initialization: 'equal_weights_at_selected_history_start',
+      reserveConvention: 'declared_mathematical_unit_relative_1_not_cash_return_evidence' } as const;
+    const artifact = { ...body, artifactSha256: observedHash('artifact', body) };
+    parseObservedText(canonical(artifact), observedLimits.artifact);
+    return freeze(artifact);
+  } catch (e) { if (e instanceof Limit) throw new ObservedSnapshotError('resource_limit'); if (e instanceof ObservedSnapshotError) throw e; throw new ObservedSnapshotError('invalid_input'); }
+}

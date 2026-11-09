@@ -193,3 +193,16 @@ fresh independent and distinct adversarial accuracy/privacy review, exact-head
 verification and ordinary docs PR/CI/merge/remote proof remain delivery gates.
 Unchanged V2 workflow filters do not select these docs-only paths. Publishing
 the proposal does not accept the case or authorize a formal GitHub approve action.
+
+
+## Separate observed-snapshot source scope
+
+The separately approved [v2 observed-snapshot evidence library](A64-Observed-Snapshot-Evidence.md)
+adds a compatible data-only acquisition/inspection/assessment/retention/reopen
+chain under distinct identities. It preserves the historical contracts above;
+local collected bytes are not provider-atomic vintage, completion, finality or
+actual operating admission. Synthetic transport tests and source delivery do not
+supply acquisition rights, qualified clocks/handling, a trading consumer or R0–R5
+acceptance. Existing production CLOSED, qualification NOT_READY and operations
+DEFER remain. The detailed specification records the bounded scope and review
+and verification requirements; historical outcomes are retained.

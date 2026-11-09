@@ -238,3 +238,16 @@ link; no code, test, dependency, workflow or operating record is changed.
 Focused scope/history/link/privacy/source-pin checks, required Go race/vet,
 whitespace/status, fresh independent/adversarial review and normal docs
 publication gates apply. No public review result is asserted before it exists.
+
+
+## Separate observed-snapshot source scope
+
+The separately approved [v2 observed-snapshot evidence library](A64-Observed-Snapshot-Evidence.md)
+adds a compatible data-only acquisition/inspection/assessment/retention/reopen
+chain under distinct identities. It preserves the historical contracts above;
+local collected bytes are not provider-atomic vintage, completion, finality or
+actual operating admission. Synthetic transport tests and source delivery do not
+supply acquisition rights, qualified clocks/handling, a trading consumer or R0–R5
+acceptance. Existing production CLOSED, qualification NOT_READY and operations
+DEFER remain. The detailed specification records the bounded scope and review
+and verification requirements; historical outcomes are retained.

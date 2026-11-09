@@ -2736,8 +2736,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/private-files.ts",
-      "sha256": "f18243fb0dac42012117935323b6a3f89ac574c3995efa2b46ddc7403477de62",
-      "reason": "Gelt local M2 foundation plus M3 protected account boundary"
+      "sha256": "6beba0d38a1d73f8c6cec4faaf8712f9928891b72492dd53298f913a16818433",
+      "reason": "Preserved shared foundations with an explicit opt-in nonblocking file-validation path for observed evidence; legacy defaults unchanged."
     },
     {
       "upstreamPath": null,
@@ -3040,8 +3040,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/ledger-storage.ts",
-      "sha256": "8ec82269c217a7097c7511ab6cade139b29c1d65a996ae978a5281d735c57e5a",
-      "reason": "Gelt M4 closed-vocabulary internal native diagnostics and real-file regression/operations contract; no storage-policy relaxation"
+      "sha256": "ff3a31a12e20feda5a893321f14229747e1a734eeeae837c7dc706f9dfa55673",
+      "reason": "Preserved shared foundations with an explicit opt-in nonblocking file-validation path for observed evidence; legacy defaults unchanged."
     },
     {
       "upstreamPath": null,
@@ -3848,7 +3848,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-iex-connector.ts",
-      "sha256": "461d8a389d40502420437355e493bb964973092867dc567e8d4b0ca33bd1bf76",
+      "sha256": "4149363bc46b60b796518e82f1daeb1d261b9cad3286d2b285bb283bcc18b44e",
       "reason": "Owner-approved standalone read-only Alpaca IEX historical bars, strict exact-token parsing, private key-pair support, and synthetic offline tests; no provider call or application activation."
     },
     {
@@ -4178,7 +4178,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/pamr-reference-artifact.ts",
-      "sha256": "8eb55448af0f8c66c9f9519c3105ae7ebfe72f4e1bef05e0b682c037345eaace",
+      "sha256": "98d84b6de18ed805404c8b79ea72d1ce0a6b14c3940fbf438339cc6421a82747",
       "reason": "Gelt selected PAMR mathematical conversion/inert artifact; constructed only, no operating or dispatch authority"
     },
     {
@@ -4532,6 +4532,78 @@
       "path": "worker/src/a64-evidence-receipt.test.ts",
       "sha256": "1bb58c5c8fe208e9cc1a22cbd1864069ee2556de8580d72283c255b0b9972e4d",
       "reason": "Owner-approved offline A64 evidence-only retention and read-only reopen; no lifecycle or runtime admission"
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/a64-observed-snapshot-chain.test.ts",
+      "status": "added",
+      "sha256": "6272c0f6c838a6d5a57c7545bc69e9b909ac5288c2f4d22f27eb6facde6b1c07",
+      "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/a64-observed-snapshot-chain.ts",
+      "status": "added",
+      "sha256": "1ec206deb961fda343655c2f28d1edc8893c1093b3a143e2e342c77398f0393e",
+      "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/a64-observed-snapshot-evidence.test.ts",
+      "status": "added",
+      "sha256": "a55735daec0d27d5c996513cccbbeb58da4277f41ff5a5e5f63040b7070d1e42",
+      "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/a64-observed-snapshot-evidence.ts",
+      "status": "added",
+      "sha256": "20b38f01f3b698efdd301123243570f27587a31b441d68188f6571f6fe03d3f0",
+      "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/a64-observed-snapshot-receipt.test.ts",
+      "status": "added",
+      "sha256": "af3e881e6abb4b992ccedc3122f1fa369d8626543951fe0c69c122c5114f18f4",
+      "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/a64-observed-snapshot-receipt.ts",
+      "status": "added",
+      "sha256": "8a471ce109de0b07347b94d3ddc6e1fcb3b1e5bf142a0cc4f18d43a55a6ccb20",
+      "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/a64-observed-snapshot.test-support.ts",
+      "status": "added",
+      "sha256": "e4a6058406fdc048b99cca1f69cd87b7b35d6510e5052a786c1301a51c1e208f",
+      "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/alpaca-observed-snapshot-contract.test.ts",
+      "status": "added",
+      "sha256": "a5a9c18fe84b60623a2d46d77d2376da38d1362e0f8a1a14217f3ab2a84ee170",
+      "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/alpaca-observed-snapshot-contract.ts",
+      "status": "added",
+      "sha256": "4122762a3f7a6b9502f22f26e0f7389da4596178477ae0c4ebbc394799c4a0f9",
+      "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
     }
   ],
   "retiredLocalEntries": []
