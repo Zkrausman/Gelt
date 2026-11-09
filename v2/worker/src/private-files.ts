@@ -17,29 +17,50 @@ export function privateDirectory(path: string) {
     p = dirname(p);
   }
 }
-export function readPrivate(path: string, max = 65536): Buffer {
+export function readPrivate(path: string, max = 65536, nonblocking = false): Buffer {
+  if (nonblocking && process.platform !== 'linux') throw new Error('secure storage unavailable');
   if (process.platform === 'win32') return windowsStorage('read', path, Buffer.alloc(0), max);
   privateDirectory(dirname(path));
-  const fd = fs.openSync(path, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  const fd = fs.openSync(path, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | (nonblocking ? fs.constants.O_NONBLOCK : 0));
   try {
     const st = fs.fstatSync(fd);
     if (!st.isFile() || st.nlink !== 1 || st.uid !== process.getuid!() || (st.mode & 0o777) !== 0o600 || st.size > max) throw new Error('unsafe file');
-    return fs.readFileSync(fd);
+    if (!nonblocking) return fs.readFileSync(fd);
+    const named = fs.lstatSync(path);
+    if (named.dev !== st.dev || named.ino !== st.ino || !Number.isSafeInteger(max) || max < 0) throw new Error('unsafe file');
+    const bytes = Buffer.alloc(Math.min(st.size, max) + 1);
+    let size = 0;
+    while (size < bytes.length) { const n = fs.readSync(fd, bytes, size, bytes.length - size, size); if (!n) break; size += n; }
+    const after = fs.fstatSync(fd), current = fs.lstatSync(path);
+    if (size !== st.size || after.size !== st.size || after.mtimeMs !== st.mtimeMs || after.nlink !== 1
+      || current.dev !== st.dev || current.ino !== st.ino) throw new Error('unsafe file');
+    return bytes.subarray(0, size);
   } finally { fs.closeSync(fd); }
 }
-export function syncDirectory(path: string) { if (process.platform === 'win32') throw new Error('POSIX directory sync unsupported'); const fd = fs.openSync(path, 'r'); try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); } }
+export function syncDirectory(path: string, nonblocking = false) {
+  if (process.platform === 'win32') throw new Error('POSIX directory sync unsupported');
+  const fd = fs.openSync(path, nonblocking ? fs.constants.O_RDONLY | fs.constants.O_DIRECTORY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK : 'r');
+  try {
+    if (nonblocking) {
+      privateDirectory(path);
+      const st = fs.fstatSync(fd), named = fs.lstatSync(path);
+      if (!st.isDirectory() || st.dev !== named.dev || st.ino !== named.ino) throw new Error('unsafe directory');
+    }
+    fs.fsyncSync(fd);
+  } finally { fs.closeSync(fd); }
+}
 
 // All private creation/mutation goes through these primitives on both platforms.
 export function createPrivateDirectory(path: string) {
   if (process.platform === 'win32') { windowsStorage('mkdir', path); return; }
   fs.mkdirSync(path, { mode: 0o700 }); privateDirectory(path);
 }
-export function writePrivateNew(path: string, value: string | Buffer) {
+export function writePrivateNew(path: string, value: string | Buffer, nonblocking = false) {
   if (process.platform === 'win32') { windowsStorage('new', path, Buffer.from(value)); return; }
   privateDirectory(dirname(path));
   const fd = fs.openSync(path, 'wx', 0o600);
   try { fs.writeFileSync(fd, value); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
-  syncDirectory(dirname(path));
+  syncDirectory(dirname(path), nonblocking);
 }
 export function replacePrivate(path: string, value: string | Buffer) {
   if (process.platform === 'win32') { windowsStorage('replace', path, Buffer.from(value)); return; }
@@ -49,9 +70,9 @@ export function replacePrivate(path: string, value: string | Buffer) {
   try { writePrivateNew(tmp, value); fs.renameSync(tmp, path); syncDirectory(dirname(path)); }
   finally { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); }
 }
-export function removePrivate(path: string) {
+export function removePrivate(path: string, nonblocking = false) {
   if (process.platform === 'win32') { windowsStorage('remove', path); return; }
-  readPrivate(path, 150000); fs.unlinkSync(path); syncDirectory(dirname(path));
+  readPrivate(path, 150000, nonblocking); fs.unlinkSync(path); syncDirectory(dirname(path), nonblocking);
 }
 export function separateDirectories(a: string, b: string) {
   const normalize = (p: string) => process.platform === 'win32' ? resolve(p).toLowerCase() : resolve(p);

@@ -9,10 +9,10 @@ export function createLedgerDirectory(path: string) {
   if (process.platform === 'win32') windowsStorage('sqlite-mkdir', path);
   else createPrivateDirectory(path);
 }
-export function validateSQLiteFile(path: string) {
+export function validateSQLiteFile(path: string, nonblocking = false) {
   if (process.platform === 'win32') { windowsStorage('sqlite-file', path); return; }
   privateDirectory(dirname(path));
-  const fd = fs.openSync(path, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  const fd = fs.openSync(path, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | (nonblocking ? fs.constants.O_NONBLOCK : 0));
   try {
     const st = fs.fstatSync(fd);
     if (!st.isFile() || st.nlink !== 1 || st.uid !== process.getuid!() || (st.mode & 0o777) !== 0o600) throw new Error();
@@ -24,7 +24,9 @@ export class LedgerStorage {
   private closed = false;
   private identity?: { dev: number; ino: number };
   poisoned = false;
-  constructor(readonly path: string, options: { createIfMissing?: boolean } = {}) {
+  private readonly nonblocking: boolean;
+  constructor(readonly path: string, options: { createIfMissing?: boolean; nonblockingValidation?: true } = {}) {
+    this.nonblocking = options.nonblockingValidation === true;
     let db: Database.Database | undefined;
     const createIfMissing = options.createIfMissing !== false;
     try {
@@ -33,11 +35,11 @@ export class LedgerStorage {
       // Local ext4/xfs/btrfs or container overlay only. Network and unknown locking semantics fail closed.
       if (process.platform === 'linux' && ![0xef53, 0x58465342, 0x9123683e, 0x794c7630].includes(fs.statfsSync(dirname(path)).type)) throw new Error();
       this.validate();
-      storageBoundary('marker', () => writePrivateNew(path + '.lock', this.token));
+      storageBoundary('marker', () => writePrivateNew(path + '.lock', this.token, this.nonblocking));
       storageBoundary('main', () => {
         if (!fs.existsSync(path)) {
           if (!createIfMissing) throw new Error();
-          writePrivateNew(path, Buffer.alloc(0));
+          writePrivateNew(path, Buffer.alloc(0), this.nonblocking);
         }
       });
       this.validate();
@@ -53,7 +55,7 @@ export class LedgerStorage {
     if (this.identity) {
       const st = storageBoundary('identity', () => fs.lstatSync(this.path));
       if (st.dev !== this.identity.dev || st.ino !== this.identity.ino) storageInvariant('IDENTITY', 'identity');
-      const marker = storageBoundary('marker', () => readPrivate(this.path + '.lock').toString());
+      const marker = storageBoundary('marker', () => readPrivate(this.path + '.lock', 65536, this.nonblocking).toString());
       if (marker !== this.token) storageInvariant('MARKER', 'marker');
     }
     if (process.platform === 'win32') { windowsStorage('sqlite-set', this.path); return; }
@@ -61,7 +63,7 @@ export class LedgerStorage {
       storageBoundary(kind, () => {
         const path = this.path + suffix;
         try { fs.lstatSync(path); } catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return; throw error; }
-        validateSQLiteFile(path);
+        validateSQLiteFile(path, this.nonblocking);
       });
     }
   }
@@ -74,8 +76,8 @@ export class LedgerStorage {
       const result = this.db.pragma('wal_checkpoint(TRUNCATE)') as {busy: number}[];
       if (result.length !== 1 || result[0].busy !== 0) throw new Error();
       this.db.close(); this.validate();
-      if (storageBoundary('marker', () => readPrivate(this.path + '.lock').toString()) !== this.token) storageInvariant('MARKER', 'marker');
-      storageBoundary('marker', () => removePrivate(this.path + '.lock'));
+      if (storageBoundary('marker', () => readPrivate(this.path + '.lock', 65536, this.nonblocking).toString()) !== this.token) storageInvariant('MARKER', 'marker');
+      storageBoundary('marker', () => removePrivate(this.path + '.lock', this.nonblocking));
     } catch (error) { this.poisoned = true; try { if (this.db.open) this.db.close(); } catch {} throw ledgerStorageError(error); }
   }
 }

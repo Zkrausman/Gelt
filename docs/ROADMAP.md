@@ -530,3 +530,19 @@ does not retire existing backlog items or declare the execution-first MVP accept
 ## Phase 13: Shadow-to-Live Auto-Promotion Engine (`docs/specs/EPIC_Shadow_Promotion_Engine.md`)
 - [ ] **Shadow Performance Evaluator (`ZAR-84`)**: Tracking Win Rate, Profit Factor, and Drawdown of shadow strategies against quantitative promotion thresholds.
 - [ ] **Hot-Swap Engine & Demotion Circuit Breaker (`ZAR-85`)**: Autonomously promoting high-performing shadow strategies to live capital and demoting decaying plans back to shadow.
+
+
+## Separately approved A64 observed-snapshot source scope
+
+The [versioned offline evidence library](specs/A64-Observed-Snapshot-Evidence.md)
+is the current bounded implementation for the selected engineering-integrity
+case: complete observed bytes through inspection, whole-input assessment, one
+owner-bound receipt and read-only reopen. Tests use synthetic transport only;
+completion/vintage/finality remain explicitly unknown. Historical schemas and
+operating gates are unchanged. Its contract review and nonblocking transitive
+storage correction are accepted; source reviews, fresh final-head verification
+and ordinary draft PR/CI remain source-delivery gates. New PR merge is separate.
+No remaining-hour or observation-depth claim is supported. This section concerns
+this newly approved source scope only; it does not replay, resolve or replace any
+uncertain historical closeout or acquisition handoff. No actual provider run,
+qualified runtime, trading consumer or operating admission is scheduled.

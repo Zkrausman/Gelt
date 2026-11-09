@@ -110,7 +110,7 @@ function parsePage(bytes: Buffer, symbol: string, limit: number) {
   return { observations, nextPageToken: token as string | null };
 }
 
-function pageUrl(request: AlpacaIexRequest, limit: number, token: string | null): string {
+function pageUrl(request: Pick<AlpacaIexRequest, 'symbol' | 'adjustment' | 'start' | 'end' | 'asof'>, limit: number, token: string | null): string {
   const url = new URL(alpacaIexEndpoint);
   url.searchParams.set('symbols', request.symbol);
   url.searchParams.set('timeframe', '1Day');
@@ -234,6 +234,12 @@ export async function acquireAlpacaIexDailyBars(input: unknown, credentialInput:
 export function verifyAlpacaIexAcquisition(input: unknown): boolean {
   try {
     const acquisition = alpacaIexAcquisitionSchema.parse(input);
+    return verifyDecodedAcquisition(acquisition);
+  } catch { return false; }
+}
+function verifyDecodedAcquisition(acquisition: Pick<AlpacaIexAcquisition,
+  'request' | 'pages' | 'observations' | 'symbol' | 'feed' | 'adjustment' | 'asof'>): boolean {
+  try {
     const request = acquisition.request;
     if (request.symbol !== acquisition.symbol || request.feed !== acquisition.feed
       || request.adjustment !== acquisition.adjustment || request.asof !== acquisition.asof
@@ -268,4 +274,121 @@ export function verifyAlpacaIexAcquisition(input: unknown): boolean {
     }
     return offset === acquisition.observations.length;
   } catch { return false; }
+}
+
+// Closed v2 lane. Mandatory injection; no global-fetch or v1 issuance fallback.
+import { observedAcquisitionSchema, observedOrdered, observedStampSchema, observedFreeze,
+  parseObservedProfile, ObservedSnapshotError, type ObservedAcquisition, type ObservedProfile,
+  type ObservedClock, type ObservedStamp } from './alpaca-observed-snapshot-contract.js';
+const observedIssued = new WeakMap<object, { profile: string; reserved: boolean }>();
+export function reserveObservedOriginal(input: unknown, profile: unknown): void {
+  if (!input || typeof input !== 'object') throw new ObservedSnapshotError('invalid_source');
+  const state = observedIssued.get(input);
+  if (!state || state.reserved) throw new ObservedSnapshotError('invalid_source');
+  state.reserved = true;
+  let bound: ObservedProfile;
+  try { bound = parseObservedProfile(profile); } catch { throw new ObservedSnapshotError('invalid_source'); }
+  if (state.profile !== bound.profileSha256) throw new ObservedSnapshotError('invalid_source');
+}
+export function verifyObservedAcquisitionData(input: unknown): boolean {
+  try {
+    const a = observedAcquisitionSchema.parse(input), p = parseObservedProfile(a.profile), request = a.request;
+    if (request.symbol !== p.symbol || request.feed !== p.feed || request.adjustment !== p.adjustment
+      || request.asof !== p.asof || request.start !== p.start || request.end !== p.end
+      || a.pages.length !== a.timing.pages.length
+      || a.timing.pages.some(page => page.bodyComplete.mono - page.start.mono > alpacaIexRequestTimeoutMs) || a.pages.some(page => {
+        const b = Buffer.from(page.bodyBase64, 'base64'); return b.toString('base64') !== page.bodyBase64;
+      }) || !a.observations.every((o, i) => o.providerTimestamp === p.sessions[252 - i].providerTimestamp)) return false;
+    return observedOrdered(a.timing.collectionStart, ...a.timing.pages.flatMap(t => [t.start, t.bodyComplete]), a.timing.collectionEnd)
+      && verifyDecodedAcquisition({ ...a, symbol: p.symbol, feed: p.feed, adjustment: p.adjustment, asof: p.asof });
+  } catch { return false; }
+}
+export function observedClockReader(clock: ObservedClock, previous?: ObservedStamp) {
+  let last = previous;
+  return (): ObservedStamp => {
+    try {
+      const now = observedStampSchema.parse({ utc: clock.utcNow(), mono: clock.monotonicNow() });
+      if (last && !observedOrdered(last, now)) throw new Error();
+      last = now; return Object.freeze(now);
+    } catch { throw new ObservedSnapshotError('uncertain'); }
+  };
+}
+async function fetchObservedPage(fetcher: typeof fetch, url: string, credentials: AlpacaCredentialPair,
+  complete: () => ObservedStamp): Promise<Readonly<{ bytes: Buffer; bodyComplete: ObservedStamp }>> {
+  const controller = new AbortController(); let active = true, knownComplete = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => { active = false; controller.abort(); reject(new ObservedSnapshotError('uncertain')); }, alpacaIexRequestTimeoutMs);
+    timer.unref?.();
+  });
+  const operation = (async () => {
+    try {
+      const response = await fetcher(url, { method: 'GET', redirect: 'error', signal: controller.signal,
+        headers: { Accept: 'application/json', 'APCA-API-KEY-ID': credentials.keyId, 'APCA-API-SECRET-KEY': credentials.secretKey } });
+      if (!active) { try { await response.body?.cancel(); } catch {} throw new ObservedSnapshotError('uncertain'); }
+      if (response.status !== 200 || !response.ok || !/^application\/json(?:\s*;|$)/i.test(response.headers.get('content-type') ?? '')
+        || (response.url && response.url !== url)) {
+        await response.body?.cancel();
+        if (!active) throw new ObservedSnapshotError('uncertain');
+        complete(); // Settled cancellation still needs a valid, in-budget completion observation.
+        knownComplete = true;
+        throw new ObservedSnapshotError('invalid_source');
+      }
+      const bytes = await boundedBody(response);
+      if (!active) throw new ObservedSnapshotError('uncertain');
+      const bodyComplete = complete(); // Gate even credential-echo rejections after a complete body.
+      knownComplete = true;
+      if (bytes.includes(Buffer.from(credentials.keyId)) || bytes.includes(Buffer.from(credentials.secretKey))) throw new ObservedSnapshotError('invalid_source');
+      return { bytes, bodyComplete };
+    } catch (e) { if (active && knownComplete && e instanceof ObservedSnapshotError) throw e; throw new ObservedSnapshotError('uncertain'); }
+  })();
+  try { return await Promise.race([operation, timeout]); }
+  catch (e) { active = false; controller.abort(); throw e; }
+  finally { if (timer) clearTimeout(timer); }
+}
+export async function acquireObservedSnapshot(input: unknown, credentialInput: unknown,
+  options: Readonly<{ fetcher: typeof fetch; clock: ObservedClock }>): Promise<ObservedAcquisition> {
+  const profile = parseObservedProfile(input);
+  let credentials: AlpacaCredentialPair;
+  try {
+    credentials = alpacaCredentialPairSchema.parse(credentialInput);
+    if (typeof options.fetcher !== 'function' || typeof options.clock.utcNow !== 'function'
+      || typeof options.clock.monotonicNow !== 'function') throw new Error();
+  } catch { throw new ObservedSnapshotError('invalid_input'); }
+  const stamp = observedClockReader(options.clock), collectionStart = stamp();
+  const pages: AlpacaIexRawPage[] = [], pageRequests: {page:number;limit:number;pageTokenSha256:string|null}[] = [];
+  const observations: {providerTimestamp:string;close:AlpacaIexDecimal}[] = [];
+  const timing: {start:ObservedStamp;bodyComplete:ObservedStamp}[] = [];
+  let token: string | null = null; const seen = new Set<string>();
+  for (let page = 1; observations.length < 253; page++) {
+    if (page > 3 || (token !== null && seen.has(token))) throw new ObservedSnapshotError('invalid_source');
+    if (token !== null) seen.add(token);
+    const limit = Math.min(100, 253 - observations.length), start = stamp();
+    const { bytes, bodyComplete } = await fetchObservedPage(options.fetcher, pageUrl(profile, limit, token), credentials, () => {
+      const end = stamp();
+      // Injected monotonic observations are milliseconds. Timer callbacks may lag.
+      if (end.mono - start.mono > alpacaIexRequestTimeoutMs) throw new ObservedSnapshotError('uncertain');
+      return end;
+    });
+    let decoded: ReturnType<typeof parsePage>;
+    try { decoded = parsePage(bytes, 'SPY', limit); } catch { throw new ObservedSnapshotError('invalid_source'); }
+    if (decoded.nextPageToken?.includes(credentials.keyId) || decoded.nextPageToken?.includes(credentials.secretKey)) throw new ObservedSnapshotError('invalid_source');
+    for (const o of decoded.observations) {
+      if (o.providerTimestamp !== profile.sessions[252 - observations.length].providerTimestamp) throw new ObservedSnapshotError('invalid_source');
+      observations.push(o);
+    }
+    pages.push({ page, byteLength: bytes.length, sha256: sha256(bytes), bodyBase64: bytes.toString('base64') });
+    pageRequests.push({ page, limit, pageTokenSha256: token === null ? null : sha256(Buffer.from(token)) });
+    timing.push({ start, bodyComplete }); token = decoded.nextPageToken;
+    if ((token !== null && seen.has(token)) || (observations.length === 253 && token !== null)
+      || (observations.length < 253 && token === null)) throw new ObservedSnapshotError('invalid_source');
+  }
+  const result = observedAcquisitionSchema.parse({ schema: 'gelt.alpaca-iex-observed-acquisition.v2', profile,
+    request: { symbol: profile.symbol, feed: profile.feed, adjustment: profile.adjustment, asof: profile.asof,
+      start: profile.start, end: profile.end, timeframe: profile.timeframe, currency: profile.currency, sort: profile.sort, pageRequests },
+    pages, observations, timing: { collectionStart, pages: timing, collectionEnd: stamp() },
+    completion: 'unknown', vintage: 'unknown', collectionAtomicity: 'not_established', asofMeaning: 'symbol_identity_only', clockTrust: 'not_established' });
+  if (!verifyObservedAcquisitionData(result)) throw new ObservedSnapshotError('invalid_source');
+  observedFreeze(result); observedIssued.set(result, { profile: profile.profileSha256, reserved: false });
+  return result;
 }
