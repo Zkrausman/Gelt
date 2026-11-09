@@ -560,3 +560,18 @@ Implementation and focused synthetic checks are source work; complete independen
 source/privacy reviews, fresh final-head verification and draft PR/CI remain
 pending. The scope stops before ready/merge or actual use. No provider acquisition,
 repair, trading, qualification, deferred wrapper or uncertain closeout is released.
+
+
+## Approved offline causal comparison (source candidate)
+
+The separately approved [comparison](specs/TASK_010_Causal_Comparison.md) adds
+one strict-CSV BreakoutVol strategy replay beside cash and a single passive lot,
+using existing declared fee/execution-price accounting. It serves the offline
+owner/assistant consumer; it does not consume A64 receipts or operate a runner.
+Implementation and synthetic source checks precede complete independent and
+adversarial artifact review, fresh final-head verification, then draft PR/CI.
+Ready/merge authority remains separate. Existing historical entries and uncertain
+closeout/acquisition handoffs are not resolved by this new scope. No provider
+calls, live inputs, trading, promotion or qualification are released; operational
+state remains NOT_READY / CLOSED / DEFER. Further window/catalog proposals are
+not part of this approval.
