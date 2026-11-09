@@ -280,3 +280,14 @@ success. Linux verification cannot execute DPAPI/NTFS/PowerShell. Parent-owned
 published exact-head Windows tests/build/smoke and Linux CI, plus fresh independent
 and adversarial review, are still required before PR458 leaves draft. No live
 OAuth/browser/broker acceptance, merge or deployment is claimed.
+
+## Offline A64 observed-receipt inspection
+
+After `npm run build:worker`, the separate opt-in
+`node worker/dist/a64-observed-receipt-inspection-cli.js --describe` documents the
+bounded stdin/JSON read-only inspection of an existing PR48 store. It reopens and
+recomputes retained evidence; it does not acquire, write, repair or trade. See
+[the command specification](../docs/specs/A64-Observed-Receipt-Inspection-Command.md)
+for identities, limits, exits and explicit unknowns. Historical data commands and
+application defaults are unchanged. Source delivery/CI and operating acceptance
+remain distinct; NOT_READY/CLOSED/DEFER persist.

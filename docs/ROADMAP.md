@@ -546,3 +546,17 @@ No remaining-hour or observation-depth claim is supported. This section concerns
 this newly approved source scope only; it does not replay, resolve or replace any
 uncertain historical closeout or acquisition handoff. No actual provider run,
 qualified runtime, trading consumer or operating admission is scheduled.
+
+
+## Approved read-only A64 receipt command (source candidate)
+
+PR48 delivered the separate observed-snapshot evidence library at merge
+`1c2ac4e2`, with ordinary merge and green Go/V2/browser/scientific postmerge CI.
+The owner separately approved a finite offline agent command to inspect an
+existing receipt through that library's read-only reopen and recomputation.
+The [new command specification](specs/A64-Observed-Receipt-Inspection-Command.md)
+preserves historical schemas, explicit unknowns and every operating hold.
+Implementation and focused synthetic checks are source work; complete independent
+source/privacy reviews, fresh final-head verification and draft PR/CI remain
+pending. The scope stops before ready/merge or actual use. No provider acquisition,
+repair, trading, qualification, deferred wrapper or uncertain closeout is released.

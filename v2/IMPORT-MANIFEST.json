@@ -40,7 +40,7 @@
       "upstreamSha256": "badaa00acc49135a2c1654b02f3c2956905dc170d9a9182fc2cc2001dde8a83f",
       "status": "modified",
       "path": "README.md",
-      "sha256": "9fd77cbce424780256a8aae9eb80c85a07e0a0ad86acfad18e7363eeb1edd776",
+      "sha256": "cf0051a0e9f72a69da7b105c3defa977cf3bee31ec9a2aeacd99aeeae1286e25",
       "reason": "Gelt focused evidence workspace; owner-approved simplification, provenance retained"
     },
     {
@@ -2560,7 +2560,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "scripts/smoke.mjs",
-      "sha256": "cead410741a5d5bfa0e1c8d296e1f561880f8a7718b35f329a98d9a3b843dd2f",
+      "sha256": "4d3510682ea50c417aa7171e78efde02004b506f8dad36474a0d7f548d0d384b",
       "reason": "Gelt local M2/M3 foundation plus M4 durable execution ledger"
     },
     {
@@ -4604,6 +4604,30 @@
       "status": "added",
       "sha256": "4122762a3f7a6b9502f22f26e0f7389da4596178477ae0c4ebbc394799c4a0f9",
       "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/a64-observed-receipt-inspection-cli.ts",
+      "status": "added",
+      "sha256": "b0635ef0b1055378e1f1f6c5ed9e79752d5cafc6a69fde056500d8da44e88539",
+      "reason": "Owner-approved read-only agent inspection of existing A64 receipts; no acquisition, writes or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/a64-observed-receipt-inspection-cli.test.ts",
+      "status": "added",
+      "sha256": "ebeee7c1866c917ad019d55a70ea1b6d4143b799e407c2065870957281736abd",
+      "reason": "Owner-approved read-only agent inspection of existing A64 receipts; no acquisition, writes or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "scripts/a64-observed-receipt-conformance.mjs",
+      "status": "added",
+      "sha256": "b71ac101f7172feace675376c24ff6b35661e5362b398a311efcac976c6b7a7d",
+      "reason": "Owner-approved read-only agent inspection of existing A64 receipts; no acquisition, writes or operating authority."
     }
   ],
   "retiredLocalEntries": []
