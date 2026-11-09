@@ -137,9 +137,9 @@ try{
 `;
 for (const mode of ['create-main1', 'create-main2', 'create-sync1', 'create-sync2', 'create-sync3', 'validate-main', 'validate-wal', 'validate-shm', 'validate-journal', 'validate-marker', 'close-marker1', 'close-marker2', 'close-final', 'close-remove', 'close-sync', 'sibling-snapshot-main', 'sibling-snapshot-wal', 'sibling-snapshot-shm', 'sibling-snapshot-journal', 'sibling-snapshot-lock', 'sibling-snapshot-pending', 'sibling-pending-read', 'reopen-snapshot', 'reopen-checkpoint', 'readonly-checkpoint'])
     it('rejects post-prevalidation FIFO at ' + mode, async () => {
-        const parent = root(), b = owner(), input = { mode, binding: b, text: negative(), root: join(parent, 'store'), backup: join(parent, 'backup'), module: new URL('../dist/a64-observed-snapshot-receipt.js', import.meta.url).href };
+        const parent = root(), b = owner(), input = { mode, binding: b, text: negative(), root: join(parent, 'store'), backup: join(parent, 'backup'), module: new URL('./a64-observed-snapshot-receipt.ts', import.meta.url).href };
         await new Promise<void>((resolve, reject) => {
-            const c = spawn(process.execPath, ['--input-type=module', '-e', fifoChild], { stdio: ['pipe', 'pipe', 'pipe'] });
+            const c = spawn(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', fifoChild], { stdio: ['pipe', 'pipe', 'pipe'] });
             let output = '', errors = '', timer: ReturnType<typeof setTimeout> | undefined;
             const startup = setTimeout(() => { c.kill('SIGKILL'); reject(Error('FIFO oracle startup deadline')); }, 4000);
             c.stdout.on('data', b => {
@@ -169,7 +169,7 @@ assert.equal(accepted,!q.reject);console.log(JSON.stringify({accepted}));
 `;
 function probeGeometry(p: string, b: ReturnType<typeof owner>, reject: boolean) {
     const before = files(p);
-    const output = execFileSync(process.execPath, ['--input-type=module', '-e', geometryChild], { input: JSON.stringify({ module: new URL('../dist/a64-observed-snapshot-receipt.js', import.meta.url).href, root: p, binding: b, reject }), encoding: 'utf8', timeout: 3000 });
+    const output = execFileSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', geometryChild], { input: JSON.stringify({ module: new URL('./a64-observed-snapshot-receipt.ts', import.meta.url).href, root: p, binding: b, reject }), encoding: 'utf8', timeout: 3000 });
     expect(JSON.parse(output)).toEqual({ accepted: !reject });
     expect(files(p)).toEqual(before);
 }

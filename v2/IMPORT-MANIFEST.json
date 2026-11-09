@@ -4570,7 +4570,7 @@
       "upstreamSha256": null,
       "path": "worker/src/a64-observed-snapshot-receipt.test.ts",
       "status": "added",
-      "sha256": "9b9ad4af190d80a171bd4df8779e8ccf1ef07887687305369981cd7a0b014290",
+      "sha256": "1a2cf8363a53f71fd46b24753c8451a6f120822600cce81867a29a785f9267ac",
       "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
     },
     {

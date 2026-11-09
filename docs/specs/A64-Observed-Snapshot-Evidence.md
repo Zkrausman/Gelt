@@ -183,3 +183,20 @@ Unsettled errors, aborts and late callbacks remain uncertain. This changes no
 historical v1 path, timeout, request count, public schema or operating authority.
 Original-reviewer confirmation and fresh final-head verification are still
 required before draft PR/CI; no new successor merge is authorized here.
+
+
+### Unbuilt checkout child-process regression
+
+The first draft-PR CI run failed 30 child-process cases before their storage
+assertions because those cases imported an unbuilt `worker/dist` module. Local
+verification had compiled first and therefore did not detect that prerequisite.
+The test children now use the already-locked `tsx` source loader, matching the
+existing receipt tests. No workflow order, production code, watchdog, FIFO
+boundary, geometry assertion, storage permission or dependency is changed.
+All 34 receipt cases pass in an isolated checkout containing source and the
+existing dependencies with no `worker/dist`, using a private Linux fixture
+parent. An initial isolated attempt correctly rejected group-writable fixture
+ancestors; that failure remains recorded. These are focused working results;
+original-pair correction review, fresh final-head verification and automatic CI
+on the corrected head remain required. No browser acceptance or operating
+qualification is inferred from the earlier failure or these focused tests.
