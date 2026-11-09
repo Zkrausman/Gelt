@@ -9,8 +9,12 @@ import { A64ObservedSnapshotReceiptStore } from './a64-observed-snapshot-receipt
 import { acquireObservedSnapshot, reserveObservedOriginal } from './alpaca-iex-connector.js';
 const roots: string[] = [];
 const root = () => { const p = fs.mkdtempSync(join(tmpdir(), 'gelt-observed-chain-')); fs.chmodSync(p, 0o700); roots.push(p); return p; };
-afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); for (const p of roots.splice(0))
-    fs.rmSync(p, { recursive: true, force: true }); });
+afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    for (const p of roots.splice(0))
+        fs.rmSync(p, { recursive: true, force: true });
+});
 it('runs one real new offline join with adaptive pages and reopens complete evidence read-only', async () => {
     const p = profile(), b = owner(p), t = transport(p, [100, 80, 73]), path = root(), chain = createA64ObservedSnapshotChain(path, p, b, credentials, { fetcher: t.fetcher, clock: clock() }), result = await chain.run();
     expect(result.status).toBe('retained');
@@ -127,20 +131,58 @@ it('latches body timeout and never issues/retains a late complete body', async (
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(() => A64ObservedSnapshotReceiptStore.reopen(path, owner(p))).toThrow();
 });
-it('rejects decoded secret echoes in escaped opaque tokens before another request',async()=>{
- const p=profile(),t=transport(p),path=root();let calls=0;
- const escaped='"'+Array.from(credentials.secretKey).map(c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0')).join('')+'"';
- const fetcher=(async(u:any,i:any)=>{calls++;const text=(await(await t.fetcher(u,i)).text()).replace('"opaque-1"',escaped);expect(text).not.toContain(credentials.secretKey);return new Response(text,{headers:{'content-type':'application/json'}});})as typeof fetch;
- const r=await createA64ObservedSnapshotChain(path,p,owner(p),credentials,{fetcher,clock:clock()}).run();expect(r.status).toBe('rejected');expect(r.receipt.reason).toBe('invalid_source');expect(calls).toBe(1);
+it('rejects decoded secret echoes in escaped opaque tokens before another request', async () => {
+    const p = profile(), t = transport(p), path = root();
+    let calls = 0;
+    const escaped = '"' + Array.from(credentials.secretKey).map(c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')).join('') + '"';
+    const fetcher = (async (u: any, i: any) => { calls++; const text = (await (await t.fetcher(u, i)).text()).replace('"opaque-1"', escaped); expect(text).not.toContain(credentials.secretKey); return new Response(text, { headers: { 'content-type': 'application/json' } }); }) as typeof fetch;
+    const r = await createA64ObservedSnapshotChain(path, p, owner(p), credentials, { fetcher, clock: clock() }).run();
+    expect(r.status).toBe('rejected');
+    expect(r.receipt.reason).toBe('invalid_source');
+    expect(calls).toBe(1);
 });
-it('reserves before awaiting transport; concurrent run and competing owner cannot issue another request',async()=>{
- const p=profile(),b=owner(p),path=root(),t=transport(p);let release!:()=>void;let calls=0;const gate=new Promise<void>(r=>release=r);
- const fetcher=(async(u:any,i:any)=>{calls++;if(calls===1)await gate;return t.fetcher(u,i);})as typeof fetch;
- const chain=createA64ObservedSnapshotChain(path,p,b,credentials,{fetcher,clock:clock()}),first=chain.run();
- await expect(chain.run()).rejects.toMatchObject({reason:'already_attempted'});expect(()=>createA64ObservedSnapshotChain(path,p,b,credentials,{fetcher,clock:clock()})).toThrow();expect(calls).toBe(1);release();expect((await first).status).toBe('retained');expect(calls).toBe(3);
+it('reserves before awaiting transport; concurrent run and competing owner cannot issue another request', async () => {
+    const p = profile(), b = owner(p), path = root(), t = transport(p);
+    let release!: () => void;
+    let calls = 0;
+    const gate = new Promise<void>(r => release = r);
+    const fetcher = (async (u: any, i: any) => { calls++; if (calls === 1)
+        await gate; return t.fetcher(u, i); }) as typeof fetch;
+    const chain = createA64ObservedSnapshotChain(path, p, b, credentials, { fetcher, clock: clock() }), first = chain.run();
+    await expect(chain.run()).rejects.toMatchObject({ reason: 'already_attempted' });
+    expect(() => createA64ObservedSnapshotChain(path, p, b, credentials, { fetcher, clock: clock() })).toThrow();
+    expect(calls).toBe(1);
+    release();
+    expect((await first).status).toBe('retained');
+    expect(calls).toBe(3);
 });
-it('does not trust a typed transport rejection as evidence of settled collection',async()=>{
- const p=profile(),path=root();const {ObservedSnapshotError}=await import('./alpaca-observed-snapshot-contract.js');
- const fetcher=(async()=>{throw new ObservedSnapshotError('invalid_source');})as typeof fetch;
- await expect(createA64ObservedSnapshotChain(path,p,owner(p),credentials,{fetcher,clock:clock()}).run()).rejects.toMatchObject({reason:'uncertain'});expect(fs.existsSync(join(path,'a64-observed-evidence.pending'))).toBe(true);expect(()=>A64ObservedSnapshotReceiptStore.reopen(path,owner(p))).toThrow();
+it('does not trust a typed transport rejection as evidence of settled collection', async () => {
+    const p = profile(), path = root();
+    const { ObservedSnapshotError } = await import('./alpaca-observed-snapshot-contract.js');
+    const fetcher = (async () => { throw new ObservedSnapshotError('invalid_source'); }) as typeof fetch;
+    await expect(createA64ObservedSnapshotChain(path, p, owner(p), credentials, { fetcher, clock: clock() }).run()).rejects.toMatchObject({ reason: 'uncertain' });
+    expect(fs.existsSync(join(path, 'a64-observed-evidence.pending'))).toBe(true);
+    expect(() => A64ObservedSnapshotReceiptStore.reopen(path, owner(p))).toThrow();
+});
+it('rejects changed profile fields retaining the issued digest and consumes that reservation', async () => {
+    for (const mutate of [(x: any) => x.asof = '2025-09-11', (x: any) => x.sessions[0].sessionDate = '2025-01-02', (x: any) => x.epochSha256 = 'c'.repeat(64), (x: any) => x.completed = true]) {
+        const p = profile(), t = transport(p), o = await acquireObservedSnapshot(p, credentials, { fetcher: t.fetcher, clock: clock() }), changed = copy(p);
+        mutate(changed);
+        expect(changed.profileSha256).toBe(p.profileSha256);
+        expect(() => reserveObservedOriginal(o, changed)).toThrow();
+        expect(() => reserveObservedOriginal(o, p)).toThrow();
+    }
+});
+it('accepts exactly10000ms but treats a declared request overrun as uncertainty even before timer scheduling', async () => {
+    const p = profile(), b = owner(p), boundary = () => { const values = [0, 1, 10001, 10002, 10003, 10004, 10005, 10006, 10007, 10008, 10009]; let i = 0; return { utcNow: () => new Date(Date.UTC(2026, 0, 1)).toISOString(), monotonicNow: () => values[i++] }; };
+    const path = root(), t = transport(p), valid = await createA64ObservedSnapshotChain(path, p, b, credentials, { fetcher: t.fetcher, clock: boundary() }).run();
+    expect(valid.status).toBe('retained');
+    const c = boundary(), next = c.monotonicNow;
+    let i = 0;
+    c.monotonicNow = () => { const n = next(); return ++i >= 3 ? n + 0.001 : n; };
+    const other = root(), t2 = transport(p);
+    await expect(createA64ObservedSnapshotChain(other, p, b, credentials, { fetcher: t2.fetcher, clock: c }).run()).rejects.toMatchObject({ reason: 'uncertain' });
+    expect(t2.limits).toHaveLength(1);
+    expect(fs.existsSync(join(other, 'a64-observed-evidence.pending'))).toBe(true);
+    expect(() => A64ObservedSnapshotReceiptStore.reopen(other, b)).toThrow();
 });

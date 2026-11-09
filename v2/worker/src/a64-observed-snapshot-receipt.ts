@@ -30,6 +30,8 @@ const receiptSchema = receiptBody.extend({ receiptSha256: observedDigestSchema }
 });
 export type ObservedReceipt = z.infer<typeof receiptSchema>;
 const filename = 'a64-observed-evidence.sqlite';
+const checkpointPageSize = 4096, checkpointPageCeiling = 128;
+const checkpointByteLimit = checkpointPageSize * checkpointPageCeiling;
 const pendingName = 'a64-observed-evidence.pending';
 const schema = [
     'CREATE TABLE binding (id INTEGER PRIMARY KEY CHECK(id=1), body TEXT NOT NULL) STRICT',
@@ -97,7 +99,10 @@ function snapshot(root: string, allowLock: boolean): void {
                 throw new Error();
             const path = join(root, entry.name);
             regularFile(path);
-            bytes += fs.lstatSync(path).size;
+            const size = fs.lstatSync(path).size;
+            if (entry.name === filename && size > checkpointByteLimit)
+                throw new Error();
+            bytes += size;
             if (bytes > observedLimits.store)
                 throw new Error();
         }
@@ -106,11 +111,11 @@ function snapshot(root: string, allowLock: boolean): void {
         directory.closeSync();
     }
 }
-function databaseSnapshot(path: string): Buffer {
+function databaseSnapshot(path: string, limit = checkpointByteLimit): Buffer {
     const fd = regularDescriptor(path);
     try {
         const before = fs.fstatSync(fd);
-        if (before.size > observedLimits.store)
+        if (before.size > limit)
             throw new Error();
         const data = Buffer.alloc(before.size + 1);
         let n = 0;
@@ -209,7 +214,12 @@ export class A64ObservedSnapshotReceiptStore {
                 // SQLite's documented deserialize workaround for a checkpointed WAL
                 // image: alter ONLY the in-memory format bytes, never the stored file.
                 // https://www.sqlite.org/c3ref/deserialize.html
-                if (checkpoint.length < 100 || checkpoint.subarray(0, 16).toString() !== 'SQLite format 3\0'
+                if (checkpoint.length < checkpointPageSize || checkpoint.length > checkpointByteLimit
+                    || checkpoint.length % checkpointPageSize !== 0
+                    || checkpoint.readUInt16BE(16) !== checkpointPageSize
+                    || checkpoint.readUInt32BE(28) < 1 || checkpoint.readUInt32BE(28) > checkpointPageCeiling
+                    || checkpoint.readUInt32BE(28) !== checkpoint.length / checkpointPageSize
+                    || checkpoint.subarray(0, 16).toString() !== 'SQLite format 3\0'
                     || checkpoint[18] !== 2 || checkpoint[19] !== 2)
                     throw new Error();
                 const memory = Buffer.from(checkpoint);
@@ -232,9 +242,9 @@ export class A64ObservedSnapshotReceiptStore {
                 writePrivateNew(join(this.root, pendingName), canonical(this.owner), true);
                 // One input <=256KiB plus bounded evidence: this database cannot grow
                 // into an additional 8MiB allocation, even through SQLite page growth.
-                if (this.db.pragma('page_size', { simple: true }) !== 4096)
+                if (this.db.pragma('page_size', { simple: true }) !== checkpointPageSize)
                     throw new Error();
-                this.db.pragma('max_page_count = 128');
+                this.db.pragma('max_page_count = ' + checkpointPageCeiling);
                 this.db.transaction(() => {
                     for (const statement of schema)
                         this.db.exec(statement);
@@ -275,7 +285,7 @@ export class A64ObservedSnapshotReceiptStore {
             throw new Error();
         this.storage?.validate();
         if (!this.readonlyReopen) {
-            const guard = databaseSnapshot(join(this.root, pendingName));
+            const guard = databaseSnapshot(join(this.root, pendingName), observedLimits.receipt);
             if (guard.toString('utf8') !== canonical(this.owner))
                 throw new Error();
         }

@@ -55,3 +55,15 @@ it('accepts the aggregate exact byte cap and rejects one byte over without trunc
     expect(assessObservedEvidence(at).status).toBe('assessed_data');
     expect(assessObservedEvidence(at + ' ').status).toBe('rejected');
 });
+it('reconstructs the request duration bound independently of otherwise valid ordering', async () => {
+    const p = profile(), t = transport(p);
+    const values = [0, 1, 10001, 10002, 10003, 10004, 10005, 10006];
+    let i = 0;
+    const c = { utcNow: () => new Date(Date.UTC(2026, 0, 1)).toISOString(), monotonicNow: () => values[i++] };
+    const original = await acquireObservedSnapshot(p, credentials, { fetcher: t.fetcher, clock: c });
+    expect(verifyObservedAcquisitionData(original)).toBe(true);
+    const changed = copy(original);
+    changed.timing.pages[0].bodyComplete.mono += 0.001;
+    expect(changed.timing.pages[0].bodyComplete.mono).toBeLessThan(changed.timing.pages[1].start.mono);
+    expect(verifyObservedAcquisitionData(changed)).toBe(false);
+});

@@ -1,3 +1,11 @@
+---
+type: specification
+title: "A64 observed-snapshot evidence and read-only reopen v2"
+status: source-candidate-awaiting-original-pair-correction-review
+source_baseline: c8350f7251033b8f634d8c01fdccf1fb7cc2de0c
+scope: "Offline evidence only; no provider operation or runtime/trading admission"
+---
+
 # A64 observed-snapshot evidence, version 2
 
 This source-only worker library extends the selected
@@ -122,3 +130,39 @@ Qualification NOT_READY, production CLOSED and operations DEFER remain. No live
 provider acquisition, financial transaction, trading decision, runner activation,
 credential/access/security configuration, calibration or profitability claim.
 Historical uncertain handoffs and unrelated metadata corrections are untouched.
+
+
+## Implementation review corrections and working evidence
+
+The first complete independent/adversarial source reviews required profile
+reservation to validate and recompute the supplied profile, instead of trusting
+its fingerprint. Invalid attempts remain consumed. Each request now enforces
+`bodyComplete.mono - start.mono <= 10000` milliseconds both at collection and
+whole-input reconstruction. A same-process overrun latches uncertainty even if
+the timer callback has not yet run; the exactly-10000-ms boundary remains valid.
+This neither qualifies the clock nor adds a live operation.
+
+Checkpoint reopen validates 4096-byte pages, a matching physical/header page
+count in 1–128, and at most 524288 image bytes before SQLite deserialization.
+The aggregate directory ceiling remains 8 MiB. Synthetic negative controls on
+the original source reproduced acceptance of a padded oversized image and valid
+8192/65536-page-size databases; a genuine 128-page/4096-byte image remains the
+positive boundary control. The FIFO oracle additionally covers sibling snapshot,
+pending-fence and checkpoint/reopen reads, retaining writer fences or read-only
+unavailability without creating a repair marker.
+
+Before these source-review corrections, working checks passed 280 tests across
+14 files, TypeScript compilation, Go 1.26.1 `go test -race ./... -count=1`,
+`go vet ./...`, import inventory and diff checks under Node 22.23.3 and owned
+Linux fixture directories. The correction's new regressions were first run as
+negative controls against the reviewed source. Those expected failures remain
+historical results; they are not acceptance passes. Corrected working checks,
+original-pair finding closure and then the full fresh final-head verification
+suite are distinct required gates. No working test is operating evidence.
+
+
+The corrected focused run passed all 60 cases under pinned Node 22.23.3,
+including 25 real-FIFO substitution cases and the exact timing/page-ceiling
+controls. TypeScript compilation and YAML metadata parsing passed. These are
+working correction results, not original-reviewer closure, full final-head
+integration, hosted CI, runtime qualification or operating admission.

@@ -281,19 +281,22 @@ import { observedAcquisitionSchema, observedOrdered, observedStampSchema, observ
   parseObservedProfile, ObservedSnapshotError, type ObservedAcquisition, type ObservedProfile,
   type ObservedClock, type ObservedStamp } from './alpaca-observed-snapshot-contract.js';
 const observedIssued = new WeakMap<object, { profile: string; reserved: boolean }>();
-export function reserveObservedOriginal(input: unknown, profile: ObservedProfile): void {
+export function reserveObservedOriginal(input: unknown, profile: unknown): void {
   if (!input || typeof input !== 'object') throw new ObservedSnapshotError('invalid_source');
   const state = observedIssued.get(input);
   if (!state || state.reserved) throw new ObservedSnapshotError('invalid_source');
   state.reserved = true;
-  if (state.profile !== profile.profileSha256) throw new ObservedSnapshotError('invalid_source');
+  let bound: ObservedProfile;
+  try { bound = parseObservedProfile(profile); } catch { throw new ObservedSnapshotError('invalid_source'); }
+  if (state.profile !== bound.profileSha256) throw new ObservedSnapshotError('invalid_source');
 }
 export function verifyObservedAcquisitionData(input: unknown): boolean {
   try {
     const a = observedAcquisitionSchema.parse(input), p = parseObservedProfile(a.profile), request = a.request;
     if (request.symbol !== p.symbol || request.feed !== p.feed || request.adjustment !== p.adjustment
       || request.asof !== p.asof || request.start !== p.start || request.end !== p.end
-      || a.pages.length !== a.timing.pages.length || a.pages.some(page => {
+      || a.pages.length !== a.timing.pages.length
+      || a.timing.pages.some(page => page.bodyComplete.mono - page.start.mono > alpacaIexRequestTimeoutMs) || a.pages.some(page => {
         const b = Buffer.from(page.bodyBase64, 'base64'); return b.toString('base64') !== page.bodyBase64;
       }) || !a.observations.every((o, i) => o.providerTimestamp === p.sessions[252 - i].providerTimestamp)) return false;
     return observedOrdered(a.timing.collectionStart, ...a.timing.pages.flatMap(t => [t.start, t.bodyComplete]), a.timing.collectionEnd)
@@ -360,6 +363,8 @@ export async function acquireObservedSnapshot(input: unknown, credentialInput: u
     const limit = Math.min(100, 253 - observations.length), start = stamp();
     const bytes = await fetchObservedPage(options.fetcher, pageUrl(profile, limit, token), credentials);
     const bodyComplete = stamp();
+    // Injected monotonic observations are milliseconds. Timer callbacks may lag.
+    if (bodyComplete.mono - start.mono > alpacaIexRequestTimeoutMs) throw new ObservedSnapshotError('uncertain');
     let decoded: ReturnType<typeof parsePage>;
     try { decoded = parsePage(bytes, 'SPY', limit); } catch { throw new ObservedSnapshotError('invalid_source'); }
     if (decoded.nextPageToken?.includes(credentials.keyId) || decoded.nextPageToken?.includes(credentials.secretKey)) throw new ObservedSnapshotError('invalid_source');

@@ -3848,7 +3848,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/alpaca-iex-connector.ts",
-      "sha256": "4149363bc46b60b796518e82f1daeb1d261b9cad3286d2b285bb283bcc18b44e",
+      "sha256": "93d7addfeae00961fab0eff44da5a0c0b8931564c99c8a6643a4bf9b24b1ba5f",
       "reason": "Owner-approved standalone read-only Alpaca IEX historical bars, strict exact-token parsing, private key-pair support, and synthetic offline tests; no provider call or application activation."
     },
     {
@@ -4538,7 +4538,7 @@
       "upstreamSha256": null,
       "path": "worker/src/a64-observed-snapshot-chain.test.ts",
       "status": "added",
-      "sha256": "6272c0f6c838a6d5a57c7545bc69e9b909ac5288c2f4d22f27eb6facde6b1c07",
+      "sha256": "bde8045d859b6358b13cf3e90043e1299c0c2bda7c17084509b6e4d4e9eb7b60",
       "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
     },
     {
@@ -4554,7 +4554,7 @@
       "upstreamSha256": null,
       "path": "worker/src/a64-observed-snapshot-evidence.test.ts",
       "status": "added",
-      "sha256": "a55735daec0d27d5c996513cccbbeb58da4277f41ff5a5e5f63040b7070d1e42",
+      "sha256": "fd342d90f39b993c1316e1ca0ee309e4bf55cc8b8e9ef854ee97a7765194405c",
       "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
     },
     {
@@ -4570,7 +4570,7 @@
       "upstreamSha256": null,
       "path": "worker/src/a64-observed-snapshot-receipt.test.ts",
       "status": "added",
-      "sha256": "af3e881e6abb4b992ccedc3122f1fa369d8626543951fe0c69c122c5114f18f4",
+      "sha256": "9b9ad4af190d80a171bd4df8779e8ccf1ef07887687305369981cd7a0b014290",
       "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
     },
     {
@@ -4578,7 +4578,7 @@
       "upstreamSha256": null,
       "path": "worker/src/a64-observed-snapshot-receipt.ts",
       "status": "added",
-      "sha256": "8a471ce109de0b07347b94d3ddc6e1fcb3b1e5bf142a0cc4f18d43a55a6ccb20",
+      "sha256": "14ee31ce8becf686ae85030c2d094b01872af43076ae9e04979f634e81d7d696",
       "reason": "Versioned offline A64 observed-byte evidence chain and synthetic acceptance; no provider or operating authority."
     },
     {
