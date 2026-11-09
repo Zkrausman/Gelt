@@ -147,3 +147,28 @@ and terminal open positions do not assume liquidation or hypothetical exit costs
 See the [execution-price contract](../../docs/specs/TASK_010_Historical_Backtester.md#declared-adverse-execution-price-scenario-2026-11-08)
 for rounding, bounds, output limitations and required review/delivery gates.
 No live data, broker calls, money, calibration, trading or qualification.
+
+
+## Opt-in cash/passive comparison
+
+```text
+gelt backtest-causal-compare BreakoutVol TEST supplied.csv 100 1 10 100 100
+```
+
+This separate command and `Engine.RunComparisonCausal` compare one unchanged
+execution-price strategy replay with flat cash and one passive lot. The complete
+strict supplied CSV and cost declarations are shared. Passive eligibility is
+index20 open after20 supplied closes, independent of strategy signals. It buys
+once only if the fee-inclusive debit (at most10 modelUSD) is fully funded, then
+holds to the final supplied close. An unaffordable lot is recorded as one nonfill;
+there is no resizing, borrowing, later retry, protection, rebalancing or terminal
+sale. No SELL fee or adverse SELL price is charged without a SELL.
+
+All supplied closes, including warmup, carry cash/value/equity/accounting PnL,
+fees and close-mark drawdown. The bounded human table shows three models and two
+signed ending-equity gaps. The CLI independently reconstructs controls against
+the actual bars before displaying them. Cash, exposure duration, protection and
+turnover differ: this is declared, uncalibrated scenario accounting, not ranking,
+statistical edge, profitability or qualification. Supplied-data provenance and
+supplier finality remain unknown. Existing commands and modes are unchanged.
+See [the comparison contract and source evidence](../../docs/specs/TASK_010_Causal_Comparison.md).
