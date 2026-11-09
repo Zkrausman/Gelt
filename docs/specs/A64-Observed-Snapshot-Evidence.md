@@ -166,3 +166,20 @@ including 25 real-FIFO substitution cases and the exact timing/page-ceiling
 controls. TypeScript compilation and YAML metadata parsing passed. These are
 working correction results, not original-reviewer closure, full final-head
 integration, hosted CI, runtime qualification or operating admission.
+
+
+### Completion measurement before known-negative classification
+
+A subsequent adversarial correction review found that completed credential-echo
+and invalid-response cancellation paths could throw a known rejection before
+reaching the outer completion-clock check. Six synthetic negative controls on
+the reviewed correction reproduced skipped completion observations and clean
+reported negatives despite over-budget or unavailable completion-clock evidence.
+The private fetch helper now routes every internally completed outcome through
+the same local completion-clock/duration gate before classifying it. Exactly
+10000 ms remains permitted; overrun or unavailable completion observations latch
+uncertainty and preserve pending ownership rather than retaining a negative.
+Unsettled errors, aborts and late callbacks remain uncertain. This changes no
+historical v1 path, timeout, request count, public schema or operating authority.
+Original-reviewer confirmation and fresh final-head verification are still
+required before draft PR/CI; no new successor merge is authorized here.

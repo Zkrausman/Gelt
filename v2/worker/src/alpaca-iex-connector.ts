@@ -313,7 +313,8 @@ export function observedClockReader(clock: ObservedClock, previous?: ObservedSta
     } catch { throw new ObservedSnapshotError('uncertain'); }
   };
 }
-async function fetchObservedPage(fetcher: typeof fetch, url: string, credentials: AlpacaCredentialPair): Promise<Buffer> {
+async function fetchObservedPage(fetcher: typeof fetch, url: string, credentials: AlpacaCredentialPair,
+  complete: () => ObservedStamp): Promise<Readonly<{ bytes: Buffer; bodyComplete: ObservedStamp }>> {
   const controller = new AbortController(); let active = true, knownComplete = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {
@@ -329,14 +330,16 @@ async function fetchObservedPage(fetcher: typeof fetch, url: string, credentials
         || (response.url && response.url !== url)) {
         await response.body?.cancel();
         if (!active) throw new ObservedSnapshotError('uncertain');
+        complete(); // Settled cancellation still needs a valid, in-budget completion observation.
         knownComplete = true;
         throw new ObservedSnapshotError('invalid_source');
       }
       const bytes = await boundedBody(response);
       if (!active) throw new ObservedSnapshotError('uncertain');
+      const bodyComplete = complete(); // Gate even credential-echo rejections after a complete body.
       knownComplete = true;
       if (bytes.includes(Buffer.from(credentials.keyId)) || bytes.includes(Buffer.from(credentials.secretKey))) throw new ObservedSnapshotError('invalid_source');
-      return bytes;
+      return { bytes, bodyComplete };
     } catch (e) { if (active && knownComplete && e instanceof ObservedSnapshotError) throw e; throw new ObservedSnapshotError('uncertain'); }
   })();
   try { return await Promise.race([operation, timeout]); }
@@ -361,10 +364,12 @@ export async function acquireObservedSnapshot(input: unknown, credentialInput: u
     if (page > 3 || (token !== null && seen.has(token))) throw new ObservedSnapshotError('invalid_source');
     if (token !== null) seen.add(token);
     const limit = Math.min(100, 253 - observations.length), start = stamp();
-    const bytes = await fetchObservedPage(options.fetcher, pageUrl(profile, limit, token), credentials);
-    const bodyComplete = stamp();
-    // Injected monotonic observations are milliseconds. Timer callbacks may lag.
-    if (bodyComplete.mono - start.mono > alpacaIexRequestTimeoutMs) throw new ObservedSnapshotError('uncertain');
+    const { bytes, bodyComplete } = await fetchObservedPage(options.fetcher, pageUrl(profile, limit, token), credentials, () => {
+      const end = stamp();
+      // Injected monotonic observations are milliseconds. Timer callbacks may lag.
+      if (end.mono - start.mono > alpacaIexRequestTimeoutMs) throw new ObservedSnapshotError('uncertain');
+      return end;
+    });
     let decoded: ReturnType<typeof parsePage>;
     try { decoded = parsePage(bytes, 'SPY', limit); } catch { throw new ObservedSnapshotError('invalid_source'); }
     if (decoded.nextPageToken?.includes(credentials.keyId) || decoded.nextPageToken?.includes(credentials.secretKey)) throw new ObservedSnapshotError('invalid_source');

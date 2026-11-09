@@ -146,8 +146,12 @@ it('reserves before awaiting transport; concurrent run and competing owner canno
     let release!: () => void;
     let calls = 0;
     const gate = new Promise<void>(r => release = r);
-    const fetcher = (async (u: any, i: any) => { calls++; if (calls === 1)
-        await gate; return t.fetcher(u, i); }) as typeof fetch;
+    const fetcher = (async (u: any, i: any) => {
+        calls++;
+        if (calls === 1)
+            await gate;
+        return t.fetcher(u, i);
+    }) as typeof fetch;
     const chain = createA64ObservedSnapshotChain(path, p, b, credentials, { fetcher, clock: clock() }), first = chain.run();
     await expect(chain.run()).rejects.toMatchObject({ reason: 'already_attempted' });
     expect(() => createA64ObservedSnapshotChain(path, p, b, credentials, { fetcher, clock: clock() })).toThrow();
@@ -186,3 +190,33 @@ it('accepts exactly10000ms but treats a declared request overrun as uncertainty 
     expect(fs.existsSync(join(other, 'a64-observed-evidence.pending'))).toBe(true);
     expect(() => A64ObservedSnapshotReceiptStore.reopen(other, b)).toThrow();
 });
+for (const mode of ['credential-echo', 'invalid-response-cancel'])
+    for (const outcome of ['boundary', 'overrun', 'clock-unavailable'])
+        it('measures completion before known negative ' + mode + ' ' + outcome, async () => {
+            const p = profile(), b = owner(p), path = root();
+            let canceled = 0, reads = 0, calls = 0;
+            const c = { utcNow: () => new Date(Date.UTC(2026, 0, 1)).toISOString(), monotonicNow: () => { reads++; if (reads === 3 && outcome === 'clock-unavailable')
+                    throw Error('PRIVATE_CLOCK_SENTINEL'); return reads === 1 ? 0 : reads === 2 ? 1 : outcome === 'overrun' ? 10001.001 : 10001; } };
+            const fetcher = (async () => { calls++; if (mode === 'credential-echo')
+                return new Response(JSON.stringify({ echo: credentials.secretKey }), { headers: { 'content-type': 'application/json' } }); return new Response(new ReadableStream<Uint8Array>({ cancel() { canceled++; } }), { status: 503, headers: { 'content-type': 'application/json' } }); }) as typeof fetch;
+            const chain = createA64ObservedSnapshotChain(path, p, b, credentials, { fetcher, clock: c }), run = chain.run();
+            if (outcome === 'boundary') {
+                const result = await run;
+                expect(result.status).toBe('rejected');
+                expect(result.receipt).toMatchObject({ reason: 'invalid_source', fullEvidenceRetained: false });
+                const ro = A64ObservedSnapshotReceiptStore.reopen(path, b);
+                expect(ro.read().assessment).toBeNull();
+                ro.close();
+            }
+            else {
+                await expect(run).rejects.toMatchObject({ reason: 'uncertain' });
+                expect(fs.existsSync(join(path, 'a64-observed-evidence.pending'))).toBe(true);
+                expect(() => A64ObservedSnapshotReceiptStore.reopen(path, b)).toThrow();
+                expect(() => A64ObservedSnapshotReceiptStore.create(path, b)).toThrow();
+            }
+            expect(reads).toBe(3);
+            expect(calls).toBe(1);
+            expect(canceled).toBe(mode === 'invalid-response-cancel' ? 1 : 0);
+            await expect(chain.run()).rejects.toMatchObject({ reason: 'already_attempted' });
+            expect(calls).toBe(1);
+        });
