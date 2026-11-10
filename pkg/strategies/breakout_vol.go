@@ -9,7 +9,8 @@ import (
 	"gelt/pkg/signals"
 )
 
-// BreakoutVolStrategy captures volatility expansion breakouts confirmed by volume spikes.
+// BreakoutVolStrategy compares signed close changes with a configurable ATR-from-closes threshold.
+// Volume is unused; scores are fixed diagnostics, not calibrated probabilities.
 type BreakoutVolStrategy struct {
 	ATRStopMultiplier float64
 	ATRTargetMultiplier float64
@@ -18,7 +19,7 @@ type BreakoutVolStrategy struct {
 	ATRPeriod              int
 }
 
-// NewBreakoutVolStrategy creates a new breakout volume strategy
+// NewBreakoutVolStrategy retains the default 1.25 expansion multiplier and ATR period 14.
 func NewBreakoutVolStrategy() *BreakoutVolStrategy {
 	return &BreakoutVolStrategy{
 		ATRExpansionMultiplier: 1.25,
@@ -56,10 +57,10 @@ func (s *BreakoutVolStrategy) Name() string {
 
 // Description returns the strategy description
 func (s *BreakoutVolStrategy) Description() string {
-	return "Captures volatility expansion breakouts confirmed by >1.5x ATR range expansion and volume surge."
+	return "Close-to-close volatility expansion against ATR-from-closes times a configurable multiplier (default 1.25). Volume is unused; scores 50/90 are fixed diagnostics, not calibrated probabilities."
 }
 
-// Evaluate evaluates the strategy against given prices and volumes
+// Evaluate uses closes; the volumes argument is retained for interface compatibility but is unused.
 func (s *BreakoutVolStrategy) Evaluate(ctx context.Context, evalTime time.Time, symbol string, closes []float64, volumes []float64) (StrategySignal, error) {
 	period := s.ATRPeriod
 	if period <= 0 {
