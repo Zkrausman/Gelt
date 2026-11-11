@@ -66,3 +66,23 @@ A complete independent/adversarial source/privacy pair must review this artifact
 before the required fresh final-head suite and any separately released delivery.
 No test here launches configured services, calls providers or executes trades.
 NOT_READY / CLOSED / DEFER and original uncertain-operation holds remain.
+
+
+## Test-only telemetry oracle correction
+
+The first fresh final-head suite at the original Q1 candidate failed the unchanged
+legacy `TestThneedBackend_NonBlocking` wall-clock assertion: 10.424086 ms against
+1 ms. Its cause remains UNKNOWN; the failure is retained, not waived as a flake.
+The replacement proves queue-backpressure behavior with a full bounded queue,
+unchanged sentinel, no consumer, immediate fallback and synchronized producer
+completion. A five-second watchdog detects nonreturn, releases controlled queue
+capacity and joins the producer before failing; cleanup cannot convert failure
+to success. This is not a relaxed numerical latency contract. Actual worker/file
+coverage now waits for successful `Flush` completion instead of sleeping.
+
+Only `pkg/telemetry/thneed_backend_test.go` and this explanation change in this
+correction. Production telemetry, fallback/drop policy, concurrent shutdown
+semantics and all Q1 implementation bytes remain unchanged. New focused race
+checks and a disposable blocking-send negative control precede original-reviewer
+correction review. Full fresh final-head gates remain required after accepted
+review of the corrected head; no prior partial pass becomes new-head acceptance.

@@ -2,7 +2,9 @@ package telemetry
 
 import (
 	"context"
+	"gelt/pkg/thesis"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -70,52 +72,84 @@ func TestThneedBackend_Fallback(t *testing.T) {
 	}
 }
 
+// This checks queue backpressure, not a wall-clock latency SLA. There is no
+// worker or consumer: the queue remains full until the producer has returned.
 func TestThneedBackend_NonBlocking(t *testing.T) {
+	fallback := &mockFallback{}
+	backend := &ThneedBackend{
+		enabled:  true,
+		fallback: fallback,
+		eventCh:  make(chan thesis.TradeThesis, 1),
+	}
+	sentinel := thesis.TradeThesis{Symbol: "QUEUED_SENTINEL", Side: "BUY"}
+	backend.eventCh <- sentinel
+	done := make(chan struct{})
+	go func() {
+		backend.LogTrade(context.Background(), TradeTelemetryEvent{
+			Symbol: "DEMO", Action: "SELL", Quantity: 5, Price: 300,
+			Strategy: "SyntheticRangePlan", Timestamp: time.Unix(1, 0),
+		})
+		close(done)
+	}()
+
+	// A generous deadlock guard bounds a broken blocking-send implementation.
+	// It is not a numerical performance assertion. Cleanup must join the sole
+	// producer before failing; making room afterward must never count as a pass.
+	watchdog := time.NewTimer(5 * time.Second)
+	defer watchdog.Stop()
+	select {
+	case <-done:
+		// The completion receive synchronizes subsequent mock-state reads.
+	case <-watchdog.C:
+		// If both notifications are ready, completion without a consumer still
+		// proves the invariant; do not fail merely on select scheduling order.
+		select {
+		case <-done:
+		default:
+			// No consumer exists and the queue started full. Release controlled
+			// capacity to unblock the specific blocking-send regression, then join.
+			select {
+			case <-backend.eventCh:
+			default:
+			}
+			<-done
+			t.Fatal("LogTrade waited for queue capacity; watchdog cleanup released capacity and joined producer")
+		}
+	}
+	if !fallback.logTradeCalled || !fallback.logCalled {
+		t.Fatal("full queue must preserve trade fallback and report the dropped event")
+	}
+	if len(backend.eventCh) != 1 {
+		t.Fatal("full queue changed before any consumer released capacity")
+	}
+	if got := <-backend.eventCh; !reflect.DeepEqual(got, sentinel) {
+		t.Fatal("LogTrade replaced the queued sentinel instead of dropping the new event")
+	}
+}
+
+func TestThneedBackend_WorkerFlushCompletesWrite(t *testing.T) {
 	tmpDir := t.TempDir()
 	fallback := &mockFallback{}
-	t.Setenv("GELT_BEADS_BRAIN_PATH", tmpDir)
-	backend := NewThneedBackend("", true, fallback)
-	defer backend.Flush(context.Background())
-
+	backend := NewThneedBackend(tmpDir, true, fallback)
 	ctx := context.Background()
-	event := TradeTelemetryEvent{
-		Symbol:    "DEMO",
-		Action:    "SELL",
-		Quantity:  5,
-		Price:     300,
-		Strategy:  "SyntheticRangePlan",
-		Timestamp: time.Now(),
+	backend.LogTrade(ctx, TradeTelemetryEvent{
+		Symbol: "DEMO", Action: "SELL", Quantity: 5, Price: 300,
+		Strategy: "SyntheticRangePlan", Timestamp: time.Unix(1, 0),
+	})
+	// Flush joins the actual worker; no sleep or scheduling assumption decides
+	// whether the test-owned file is ready. No producer runs concurrently here.
+	if err := backend.Flush(ctx); err != nil {
+		t.Fatalf("flush failed: %v", err)
 	}
-
-	// Verify LogTrade returns quickly (< 1ms)
-	start := time.Now()
-	backend.LogTrade(ctx, event)
-	duration := time.Since(start)
-
-	if duration > time.Millisecond {
-		t.Errorf("LogTrade took too long: %v, expected < 1ms", duration)
+	if !fallback.logTradeCalled || !fallback.flushCalled {
+		t.Fatal("expected trade and flush fallback calls")
 	}
-
-	if !fallback.logTradeCalled {
-		t.Error("Expected fallback LogTrade to be called even when Thneed is enabled")
-	}
-
-	// Give worker time to process
-	time.Sleep(10 * time.Millisecond)
-
-	// Check if file was written
 	files, err := os.ReadDir(tmpDir)
 	if err != nil {
-		t.Fatalf("Failed to read temp dir: %v", err)
+		t.Fatalf("failed to read test-owned directory: %v", err)
 	}
-
-	if len(files) != 1 {
-		t.Errorf("Expected 1 file written, got %d", len(files))
-	} else {
-		fileName := files[0].Name()
-		if !strings.HasPrefix(fileName, "trade_telemetry_demo_") {
-			t.Errorf("Unexpected file name: %s", fileName)
-		}
+	if len(files) != 1 || !strings.HasPrefix(files[0].Name(), "trade_telemetry_demo_") {
+		t.Fatalf("expected one completed telemetry file, got %v", files)
 	}
 }
 
