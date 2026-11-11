@@ -1,0 +1,68 @@
+---
+type: specification
+title: Declared-window offline comparison
+status: local-source-candidate-awaiting-independent-review
+scope: Fixed twenty-bar warmup and one declared scoring interval
+---
+
+`backtest-causal-window-compare` is a separate human-output command:
+
+```
+gelt backtest-causal-window-compare BreakoutVol SYMBOL INPUT.csv START END CASH FIXED_FEE FEE_BPS BUY_BPS SELL_BPS
+```
+
+Start is inclusive and must exactly match a supplied bar with at least twenty
+predecessors. End is exclusive and must match a later supplied bar, or be exactly
+one second after the last supplied timestamp. That terminal sentinel includes
+the final bar without inventing a successor. No nearest-date or calendar rule
+exists. Full CSV parsing/close and full bar-domain validation include excluded
+rows and preserve existing 1 MiB, 32-byte token and 10,000-bar bounds.
+
+The new `Engine.RunWindowComparisonCausal` API privately copies input, validates
+cash/costs, full bars, symbol and boundaries, and invokes the unchanged shipped
+comparison exactly once on `[startIndex-20:endIndex]`. Successful replay has
+K+1 evaluations with prefix lengths 20 through 20+K. No excluded values reach the
+evaluator. Strategy and passive may first enter at consumed index 20, aligned
+to source start. Existing fees, adverse prices, fee-inclusive simulated $10 cap,
+numeric-before-funding priority and terminal open-position/pending semantics are
+unchanged. Future rows never fill a final signal or cause a terminal sale.
+
+The typed result retains the unchanged nested replay and adds source/relative/
+scored mapping and three score summaries. Source index is replay index plus
+warmup-start offset; scored index is replay index minus 20. Warmup marks must be
+flat with zero fees and position. Starting scored equity is initial cash before
+the first scored open. Scored drawdown scans from that initial baseline, uses
+exact loss/peak comparisons and earliest ties, and preserves zero-equity nulls.
+Nested indices stay relative; mapped drawdown indices are additive, checked
+metadata. Monetary summaries use canonical scale-eight integer units internally.
+
+The CLI independently reconstructs selection and validates the nested comparison
+using the unchanged display validator. It checks original timestamps and close
+valuations, reconstructs controls, and reconciles strategy trace/accounting and
+score projections. It **does not independently prove strategy fills against
+original opens/highs/lows**. A coherent trace from altered scored OHLC geometry
+can retain original timestamps/closes and satisfy those consistency checks.
+This accepted limitation is shown in output and covered by a synthetic fixture;
+it is not original-OHLC evidence, untouched-data proof or callback authentication.
+
+New errors use fixed codes, zero whole results and checked source-bar indices;
+missing or reversed boundaries reject before insufficient warmup. No raw paths,
+CSV, callback errors or rationale appear in the bounded table or fixed errors.
+Successful output is at most 8,192 UTF-8 bytes and uses one stdout attempt; short
+or failed output is not retried. Cancellation is cooperative, including around
+bounded scans and callbacks, and cannot preempt blocking file/callback/writer work.
+
+Changed source is limited to new API/CLI and synthetic test files, one explicit
+main dispatch, this specification and the backtest README. Existing comparison,
+core event loop, parser, strategies, result schemas and commands are unchanged.
+The selected Q2 profile and held M1/explorer sources are not dependencies.
+
+Working focused tests cover exact/sentinel boundaries, maximum size, excluded
+value noninterference, callback counts/prefixes, funding and entry-fee drawdown,
+zero and tied drawdown, final state, source error mapping, forged projections,
+full excluded-row rejection, cancellation and single-write failures. Working
+checks are not independent review, postreview final verification or qualification.
+A complete independent/adversarial source/privacy pair must review this artifact
+before the required fresh final-head suite and any separately released delivery.
+No test here launches configured services, calls providers or executes trades.
+NOT_READY / CLOSED / DEFER and original uncertain-operation holds remain.
