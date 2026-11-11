@@ -172,3 +172,14 @@ turnover differ: this is declared, uncalibrated scenario accounting, not ranking
 statistical edge, profitability or qualification. Supplied-data provenance and
 supplier finality remain unknown. Existing commands and modes are unchanged.
 See [the comparison contract and source evidence](../../docs/specs/TASK_010_Causal_Comparison.md).
+
+### Declared-window comparison
+
+The separate `backtest-causal-window-compare` command selects an exact inclusive
+start and exclusive end (or final-timestamp-plus-one sentinel), validates the full
+supplied CSV, and replays only twenty prior warmup bars plus the selected window.
+It reports source/relative/scored mapping and strategy/cash/passive scored equity,
+costs and close-mark drawdown. Existing whole-input commands remain unchanged.
+Input selection is isolated; independent display checks cover original-close
+marks, controls and trace/accounting consistency, not original-OHLC strategy-fill
+causality or untouched-data evidence. See the [declared-window specification](../../docs/specs/TASK_010_Declared_Window_Comparison.md).
