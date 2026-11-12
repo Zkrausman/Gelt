@@ -1139,6 +1139,8 @@ func main() {
 
 	case "backtest-causal-window-compare":
 		os.Exit(runBacktestCausalWindowComparison(context.Background(), os.Args[2:], os.Stdout, os.Stderr))
+	case "backtest-causal-trend50-compare":
+		os.Exit(runBacktestCausalTrend50Comparison(context.Background(), os.Args[2:], os.Stdout, os.Stderr))
 	case "backtest-causal-compare":
 		os.Exit(runBacktestCausalComparison(context.Background(), os.Args[2:], os.Stdout, os.Stderr))
 	case "backtest-causal-execution":

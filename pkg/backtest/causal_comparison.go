@@ -152,13 +152,23 @@ func (s *comparisonControlState) mark(bar OHLCV, index int) CausalErrorCode {
 	return ""
 }
 func comparisonControls(ctx context.Context, symbol string, bars []OHLCV, initial, fixed, bps, target, buy int64) (ComparisonControlResult, ComparisonControlResult, CausalErrorCode, int) {
-	cash := newComparisonControl(ComparisonCashModelIdentity, ComparisonCashPolicy, symbol, len(bars), initial)
-	passive := newComparisonControl(ComparisonPassiveModelIdentity, ComparisonPassivePolicy, symbol, len(bars), initial)
+	return comparisonControlsForProfile(causalProfileShipped20, ctx, symbol, bars, initial, fixed, bps, target, buy)
+}
+
+func comparisonControlsForProfile(profile causalReplayProfile, ctx context.Context, symbol string, bars []OHLCV, initial, fixed, bps, target, buy int64) (ComparisonControlResult, ComparisonControlResult, CausalErrorCode, int) {
+	cashID, passiveID, policy, reason, entry := ComparisonCashModelIdentity, ComparisonPassiveModelIdentity, ComparisonPassivePolicy, "fixed_after_20_closes_one_buy", 20
+	if profile == causalProfileTrend50 {
+		cashID, passiveID, policy, reason, entry = Trend50CashModelIdentity, Trend50PassiveModelIdentity, "fixed_after_50_closes_one_buy_no_exit", "fixed_after_50_closes_one_buy", 50
+	} else if profile != causalProfileShipped20 {
+		return ComparisonControlResult{}, ComparisonControlResult{}, CausalInvalidInput, -1
+	}
+	cash := newComparisonControl(cashID, ComparisonCashPolicy, symbol, len(bars), initial)
+	passive := newComparisonControl(passiveID, policy, symbol, len(bars), initial)
 	for i, bar := range bars {
 		if ctx.Err() != nil {
 			return ComparisonControlResult{}, ComparisonControlResult{}, CausalCanceled, i
 		}
-		if i == 20 {
+		if i == entry {
 			if target == 0 {
 				return ComparisonControlResult{}, ComparisonControlResult{}, CausalNumericRange, i
 			}
@@ -182,8 +192,8 @@ func comparisonControls(ctx context.Context, symbol string, bars []OHLCV, initia
 			if !ok || debit <= 0 || debit > fundedEntryUnits {
 				return ComparisonControlResult{}, ComparisonControlResult{}, CausalNumericRange, i
 			}
-			passive.result.Entry = &ComparisonControlEntry{Origin: "fixed_control_policy", Reason: "fixed_after_20_closes_one_buy", PolicyDecisionBarIndex: 19,
-				BarIndex: 20, Timestamp: time.Unix(bar.Timestamp, 0).UTC(), ReferencePrice: bar.Open, ExecutionPrice: price, ModelQuantity: quantity,
+			passive.result.Entry = &ComparisonControlEntry{Origin: "fixed_control_policy", Reason: reason, PolicyDecisionBarIndex: entry - 1,
+				BarIndex: entry, Timestamp: time.Unix(bar.Timestamp, 0).UTC(), ReferencePrice: bar.Open, ExecutionPrice: price, ModelQuantity: quantity,
 				PrincipalUnits: fundedUnits(principal), FeeUnits: fundedUnits(fee), RequiredModelCashUnits: fundedUnits(debit), AvailableModelCashUnits: fundedUnits(initial)}
 			if initial < debit {
 				passive.result.EntryStatus = FundedInsufficientModelCash
