@@ -50,3 +50,10 @@ worktree Git environment, `go test -race -count=1 ./...`, `go vet ./...`, and
 at the nested presentation-test build before the linked-worktree environment
 was corrected; their logs remain in the private working receipt. Independent
 source reviews and a fresh final-head verification are still required.
+
+The complete Q2 validator regression suite also covers a balanced strategy
+trace generated from an alternate eligible open with the original controls,
+and a balanced flat trace that omits an entry while retaining the BUY signal.
+Both are rejected against the original bars. These are acceptance regressions
+for a review-identified coverage gap; the review did not demonstrate an
+accepted forgery or a production defect.

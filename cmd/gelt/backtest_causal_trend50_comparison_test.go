@@ -5,10 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
 	"gelt/pkg/backtest"
+	"gelt/pkg/strategies"
 )
 
 func trend50TestBars(n int, bull bool) []backtest.OHLCV {
@@ -210,5 +213,90 @@ func TestTrend50CLIReferenceEventsFromBars(t *testing.T) {
 	cancel()
 	if trend50ComparisonCLIResultValid(ctx, r, bars, "TEST", "100", s) {
 		t.Fatal("canceled validator")
+	}
+}
+
+// trend50AttachOriginalControls preserves independently reconstructed original
+// controls while allowing the strategy trace to be changed by each forgery.
+func trend50AttachOriginalControls(t *testing.T, forged *backtest.Trend50ComparisonResult, original backtest.Trend50ComparisonResult, bars []backtest.OHLCV) {
+	t.Helper()
+	cash, ok := trend50CLIControl(context.Background(), bars, "TEST", 10000000000, 0, 0, 1000000000, 0, false)
+	if !ok || !reflect.DeepEqual(cash, original.Cash) {
+		t.Fatal("original cash control reconstruction")
+	}
+	passive, ok := trend50CLIControl(context.Background(), bars, "TEST", 10000000000, 0, 0, 1000000000, 0, true)
+	if !ok || !reflect.DeepEqual(passive, original.Passive) {
+		t.Fatal("original passive control reconstruction")
+	}
+	forged.Cash, forged.Passive = cash, passive
+	equity, ok := fundedCLIUnits(forged.Strategy.FinalEquityUnits, false, fundedCLIMaxEquity)
+	if !ok {
+		t.Fatal("strategy equity")
+	}
+	passiveEquity, ok := fundedCLIUnits(passive.FinalEquityUnits, false, fundedCLIMaxEquity)
+	if !ok {
+		t.Fatal("passive equity")
+	}
+	forged.StrategyMinusCashUnits = strconv.FormatInt(equity-10000000000, 10)
+	forged.StrategyMinusPassiveUnits = strconv.FormatInt(equity-passiveEquity, 10)
+}
+
+func TestTrend50CLIRejectsCoherentAlternateOpen(t *testing.T) {
+	ctx := context.Background()
+	scenario := comparisonCLIScenario()
+	original, bars := trend50TestResult(t, 52, true, "100", scenario)
+	if len(original.Strategy.ReferenceReplay.Fills) == 0 || original.Strategy.ReferenceReplay.Evaluations[0].Signal != strategies.SignalBuy {
+		t.Fatal("original must produce eligible BUY fill")
+	}
+	altered := append([]backtest.OHLCV(nil), bars...)
+	altered[50].Open = 99
+	altered[50].Low = 99
+	alternate, err := backtest.RunTrend50ComparisonCausal(ctx, "TEST", altered, "100", scenario)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(original.Strategy.ReferenceReplay.Evaluations, alternate.Strategy.ReferenceReplay.Evaluations) {
+		t.Fatal("only OHLC geometry may change")
+	}
+	if !trend50ComparisonCLIResultValid(ctx, alternate, altered, "TEST", "100", scenario) {
+		t.Fatal("public altered-input result must be valid")
+	}
+	if !trend50ExecutionCLIResultValid(ctx, alternate.Strategy) {
+		t.Fatal("alternate strategy must retain coherent profile, diagnostics, flows and accounting")
+	}
+	if alternate.Strategy.ReferenceReplay.Fills[0].Price == original.Strategy.ReferenceReplay.Fills[0].Price {
+		t.Fatal("fixture did not change eligible reference open")
+	}
+	trend50AttachOriginalControls(t, &alternate, original, bars)
+	if trend50ComparisonCLIResultValid(ctx, alternate, bars, "TEST", "100", scenario) {
+		t.Fatal("coherent alternate-open result accepted for original OHLC")
+	}
+	if _, ok := backtestCausalTrend50ComparisonSummary(ctx, alternate, bars, "TEST", "100", scenario); ok {
+		t.Fatal("coherent alternate-open summary accepted")
+	}
+}
+
+func TestTrend50CLIRejectsCoherentOmittedEntry(t *testing.T) {
+	ctx := context.Background()
+	scenario := comparisonCLIScenario()
+	original, bars := trend50TestResult(t, 52, true, "100", scenario)
+	if len(original.Strategy.ReferenceReplay.Fills) == 0 || original.Strategy.ReferenceReplay.Evaluations[0].Signal != strategies.SignalBuy {
+		t.Fatal("original must produce eligible BUY fill")
+	}
+	flat, _ := trend50TestResult(t, 52, false, "100", scenario)
+	if len(flat.Strategy.ReferenceReplay.Fills) != 0 || len(flat.Strategy.RejectedEntries) != 0 || flat.Strategy.ReferenceReplay.TerminalPosition != nil {
+		t.Fatal("flat donor must have no events")
+	}
+	flat.Strategy.ReferenceReplay.Evaluations = append([]backtest.CausalEvaluation(nil), original.Strategy.ReferenceReplay.Evaluations...)
+	flat.Strategy.ReferenceReplay.PendingSignalUnfilled = original.Strategy.ReferenceReplay.PendingSignalUnfilled
+	trend50AttachOriginalControls(t, &flat, original, bars)
+	if !trend50ExecutionCLIResultValid(ctx, flat.Strategy) {
+		t.Fatal("flat strategy must retain coherent profile, diagnostics, flows and accounting with original signals")
+	}
+	if trend50ComparisonCLIResultValid(ctx, flat, bars, "TEST", "100", scenario) {
+		t.Fatal("coherent omitted entry accepted")
+	}
+	if _, ok := backtestCausalTrend50ComparisonSummary(ctx, flat, bars, "TEST", "100", scenario); ok {
+		t.Fatal("coherent omitted entry summary accepted")
 	}
 }
