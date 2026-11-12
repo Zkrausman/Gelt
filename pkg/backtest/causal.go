@@ -641,10 +641,52 @@ func (e *Engine) RunCausal(ctx context.Context, symbol string, data []OHLCV) (Ca
 // a touch predicate or reevaluate a close. Fee/execution modes supply quantity
 // at the pre-entry gate. The three closed private accounting states are exclusive.
 // Execution prices affect only the new accounting trace, never reference triggers.
+type causalReplayProfile uint8
+
+const (
+	causalProfileInvalid causalReplayProfile = iota
+	causalProfileShipped20
+	causalProfileTrend50
+)
+
 func (e *Engine) runCausal(
 	ctx context.Context, symbol string, data []OHLCV,
 	funded *causalFundedState, fee *causalFeeScenarioState, executionMode ...*causalExecutionScenarioState,
 ) (CausalResult, error) {
+	return e.runCausalProfile(causalProfileShipped20, ctx, symbol, data, funded, fee, executionMode...)
+}
+
+func (e *Engine) runCausalProfile(profile causalReplayProfile, ctx context.Context, symbol string, data []OHLCV,
+	funded *causalFundedState, fee *causalFeeScenarioState, executionMode ...*causalExecutionScenarioState,
+) (CausalResult, error) {
+	if profile != causalProfileShipped20 && profile != causalProfileTrend50 {
+		return causalFailure(CausalInvalidInput, causalNoBar)
+	}
+	if profile == causalProfileTrend50 {
+		if funded != nil || fee != nil || len(executionMode) != 1 || executionMode[0] == nil || e == nil || !causalNil(e.plan) {
+			return causalFailure(CausalInvalidInput, causalNoBar)
+		}
+		trend, ok := e.strategy.(*strategies.TrendConfluenceStrategy)
+		if !ok || trend == nil || trend.Name() != "TrendConfluence" || trend.BuyScoreThreshold != 75 || trend.SellScoreThreshold != 0 || executionMode[0].result.ModelIdentity != Trend50StrategyModelIdentity {
+			return causalFailure(CausalInvalidEvaluator, causalNoBar)
+		}
+	}
+	return e.runCausalCore(profile, ctx, symbol, data, funded, fee, executionMode...)
+}
+
+// runCausalCore is the one event loop after profile admission. Same-package
+// tests can exercise its transitions with synthetic strategies; the product
+// path always goes through runCausalProfile's owned-strategy admission.
+func (e *Engine) runCausalCore(profile causalReplayProfile, ctx context.Context, symbol string, data []OHLCV,
+	funded *causalFundedState, fee *causalFeeScenarioState, executionMode ...*causalExecutionScenarioState,
+) (CausalResult, error) {
+	if profile != causalProfileShipped20 && profile != causalProfileTrend50 {
+		return causalFailure(CausalInvalidInput, causalNoBar)
+	}
+	firstEvaluation := 19
+	if profile == causalProfileTrend50 {
+		firstEvaluation = 49
+	}
 	var execution *causalExecutionScenarioState
 	if len(executionMode) > 1 {
 		return causalFailure(CausalInvalidInput, causalNoBar)
@@ -682,6 +724,9 @@ func (e *Engine) runCausal(
 	}
 	if execution != nil {
 		res.ModelIdentity, res.CostIdentity = ExecutionScenarioCausalModelIdentity, ExecutionScenarioCausalCostIdentity
+		if profile == causalProfileTrend50 {
+			res.ModelIdentity = Trend50StrategyModelIdentity
+		}
 	}
 	var position *causalPosition
 	var pending *CausalEvaluation
@@ -769,7 +814,7 @@ func (e *Engine) runCausal(
 				return causalFailure(code, i)
 			}
 		}
-		if i < 19 {
+		if i < firstEvaluation {
 			if funded != nil {
 				if code = funded.mark(bar, i, position); code != "" {
 					return causalFailure(code, i)

@@ -247,12 +247,22 @@ func executionScenarioPrice(reference float64, rate int64, side CausalFillKind) 
 }
 
 func newCausalExecutionScenarioState(initial, fixed, bps, target, buy, sell int64) *causalExecutionScenarioState {
+	return newCausalExecutionScenarioStateForProfile(causalProfileShipped20, initial, fixed, bps, target, buy, sell)
+}
+
+func newCausalExecutionScenarioStateForProfile(profile causalReplayProfile, initial, fixed, bps, target, buy, sell int64) *causalExecutionScenarioState {
+	model := ExecutionScenarioCausalModelIdentity
+	if profile == causalProfileTrend50 {
+		model = Trend50StrategyModelIdentity
+	} else if profile != causalProfileShipped20 {
+		return nil
+	}
 	units := fundedUnits(initial)
 	return &causalExecutionScenarioState{
 		fixed: fixed, bps: bps, target: target, buy: buy, sell: sell,
 		initial: initial, cash: initial, peak: initial, maxBar: causalNoBar,
 		result: ExecutionScenarioCausalResult{
-			ModelIdentity: ExecutionScenarioCausalModelIdentity,
+			ModelIdentity: model,
 			CostIdentity:  ExecutionScenarioCausalCostIdentity,
 			DataLabel:     CausalOfflineLabel, AuthorityLabel: CausalOfflineLabel,
 			Scale:                           FundedCausalScale,

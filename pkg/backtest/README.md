@@ -183,3 +183,17 @@ costs and close-mark drawdown. Existing whole-input commands remain unchanged.
 Input selection is isolated; independent display checks cover original-close
 marks, controls and trace/accounting consistency, not original-OHLC strategy-fill
 causality or untouched-data evidence. See the [declared-window specification](../../docs/specs/TASK_010_Declared_Window_Comparison.md).
+
+### TrendConfluence fixed-50 comparison
+
+`backtest.RunTrend50ComparisonCausal` runs the existing default TrendConfluence
+strategy against the entire validated input and compares it with flat cash and
+one passive lot. Its first evaluation is at index 49, and the first possible
+strategy fill and passive entry are at index 50. The CLI is
+`gelt backtest-causal-trend50-compare TrendConfluence SYMBOL CSV CASH FIXED_FEE FEE_BPS BUY_BPS SELL_BPS`.
+It reconstructs reference events and accounting from the supplied OHLC and
+normalized signals before displaying a bounded table. It does not independently
+verify the strategy's indicator calculations. This is an unqualified offline,
+uncalibrated scenario; cadence, session, selection history and intraday operating
+eligibility are unestablished. It does not establish edge or trading readiness.
+See [the comparison specification](../../docs/specs/TrendConfluence50-Comparison.md).
