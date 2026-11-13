@@ -44,3 +44,14 @@ intentionally changes. Any volume/threshold behavior change needs a separate
 versioned contract. See [the source-only correction specification](../../docs/specs/BreakoutVol-Description-Accuracy.md).
 
 Configured ATR periods require at least period + 1 closes; `Evaluate` returns the helper error and a zero signal when that history is unavailable. The existing minimum of 20 closes and nonpositive-period fallback to 14 still apply. A computed zero ATR remains valid.
+
+## MeanReversion ATR defaults
+
+`NewMeanReversionStrategy` initializes the stop and target ATR multipliers to
+0.5 and 1.5. These are uncalibrated model defaults; the historical pair is not
+established. Positive `SetParams` overrides replace each multiplier independently,
+while nonpositive ATR overrides are ignored. Default and partially overridden
+signals therefore have different protection percentages from the previous zero
+constructor values; explicitly setting both positive multipliers preserves those
+configured evaluation inputs. These defaults do not establish market suitability
+or trading safety.

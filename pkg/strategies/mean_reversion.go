@@ -12,26 +12,28 @@ import (
 
 // MeanReversionStrategy implements Bollinger Band lower-band bounce and RSI oversold reversal logic.
 type MeanReversionStrategy struct {
-	ATRStopMultiplier float64
+	ATRStopMultiplier   float64
 	ATRTargetMultiplier float64
-	registry        *data.FeatureRegistry
-	chopFilter      *ATRChopFilter
-	logger          *slog.Logger
-	RSIOversold     float64
-	RSIOverbought   float64
-	BollingerPeriod int
-	BollingerStdDev float64
+	registry            *data.FeatureRegistry
+	chopFilter          *ATRChopFilter
+	logger              *slog.Logger
+	RSIOversold         float64
+	RSIOverbought       float64
+	BollingerPeriod     int
+	BollingerStdDev     float64
 }
 
 // NewMeanReversionStrategy creates a new mean reversion strategy
 func NewMeanReversionStrategy() *MeanReversionStrategy {
 	return &MeanReversionStrategy{
-		chopFilter:      NewATRChopFilter(0.015, 14),
-		logger:          slog.Default(),
-		RSIOversold:     35.0,
-		RSIOverbought:   65.0,
-		BollingerPeriod: 20,
-		BollingerStdDev: 2.0,
+		ATRStopMultiplier:   0.5,
+		ATRTargetMultiplier: 1.5,
+		chopFilter:          NewATRChopFilter(0.015, 14),
+		logger:              slog.Default(),
+		RSIOversold:         35.0,
+		RSIOverbought:       65.0,
+		BollingerPeriod:     20,
+		BollingerStdDev:     2.0,
 	}
 }
 
