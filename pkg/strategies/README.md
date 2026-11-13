@@ -42,3 +42,5 @@ whether a future volume-confirmed strategy was intended. Calculations, defaults,
 parameters, identity and signal results are unchanged; exported descriptive text
 intentionally changes. Any volume/threshold behavior change needs a separate
 versioned contract. See [the source-only correction specification](../../docs/specs/BreakoutVol-Description-Accuracy.md).
+
+Configured ATR periods require at least period + 1 closes; `Evaluate` returns the helper error and a zero signal when that history is unavailable. The existing minimum of 20 closes and nonpositive-period fallback to 14 still apply. A computed zero ATR remains valid.
