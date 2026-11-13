@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"gelt/pkg/backtest"
 	"io"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -152,7 +151,7 @@ func runBacktestCausalMean20Comparison(ctx context.Context, args []string, stdou
 	if ctx.Err() != nil {
 		return mean20CLIFail(stderr, "canceled")
 	}
-	f, err := os.Open(args[2])
+	f, err := openOfflineCSV(args[2])
 	if err != nil {
 		return mean20CLIFail(stderr, "input_file")
 	}

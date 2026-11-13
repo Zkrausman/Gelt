@@ -7,7 +7,6 @@ import (
 	"io"
 	"math"
 	"math/big"
-	"os"
 	"strings"
 	"time"
 
@@ -32,7 +31,7 @@ func runBacktestCausalExecution(ctx context.Context, args []string, stdout, stde
 		return executionScenarioCLIFail(stderr, "canceled")
 	}
 
-	f, err := os.Open(args[2])
+	f, err := openOfflineCSV(args[2])
 	if err != nil {
 		return executionScenarioCLIFail(stderr, "input_file")
 	}

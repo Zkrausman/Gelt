@@ -39,6 +39,12 @@ gelt backtest-causal-compare BreakoutVol SYMBOL ./supplied-bars.csv 100 0 0 0 0
 gelt backtest-causal-meanrev-compare MeanReversion SYMBOL ./supplied-bars.csv 100 0 0 0 0
 ```
 
+On Linux, supplied CSV inputs must open as regular files; symlinks to regular
+files remain supported. FIFOs, directories and devices return `input_file`,
+including streams that previously happened to parse. This admission rule avoids
+FIFO peer/EOF waits; it does not promise a deadline for all filesystem I/O or
+freeze concurrent writes to an admitted file.
+
 The CSV header must be exactly `Timestamp,Open,High,Low,Close,Volume`. Supply
 strictly increasing Unix-second timestamps in 1..253402300799. Numeric tokens
 use canonical unsigned ASCII integer/decimal syntax, with no leading-zero
