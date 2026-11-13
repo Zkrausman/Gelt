@@ -4,6 +4,57 @@ title: Gelt Strategic Roadmap 🪙
 ---
 # Gelt Strategic Roadmap 🪙
 
+## Current source status (2026-11-13; operations held)
+
+Source deliveries through [PR62](https://github.com/Zkrausman/Gelt/pull/62) are
+merged on master at `e6849e52`. The table supersedes older candidate, pending
+review and pending merge wording below for these delivered scopes. Their accepted
+source/privacy reviews, applicable local checks and automatic CI are retained
+delivery evidence; they are not tasks to repeat or operating acceptance.
+
+| Delivered source | Current capability and important limit |
+| --- | --- |
+| [PR45](https://github.com/Zkrausman/Gelt/pull/45), [PR46](https://github.com/Zkrausman/Gelt/pull/46), [PR47](https://github.com/Zkrausman/Gelt/pull/47) | Legacy backtest provenance/metric labels, fenced offline A64 retention/reopen, and declared adverse execution-price scenarios shipped. Simulated cash incorporates the modeled fill price without charging that effect twice; costs remain uncalibrated. |
+| [PR48](https://github.com/Zkrausman/Gelt/pull/48), [PR49](https://github.com/Zkrausman/Gelt/pull/49) | The versioned [observed-snapshot evidence library](specs/A64-Observed-Snapshot-Evidence.md) and [read-only receipt command](specs/A64-Observed-Receipt-Inspection-Command.md) shipped. Supplier completion, finality and vintage remain unknown; the command does not acquire, repair or write inspected receipts. |
+| [PR50](https://github.com/Zkrausman/Gelt/pull/50), [PR51](https://github.com/Zkrausman/Gelt/pull/51), [PR52](https://github.com/Zkrausman/Gelt/pull/52) | Offline BreakoutVol/cash/passive comparison, accurate unchanged-signal descriptions, and declared-window comparison with twenty preceding warmup bars shipped. The passive lot is capped at simulated $10 including entry fees. |
+| [PR53](https://github.com/Zkrausman/Gelt/pull/53) | Fixed-50-close TrendConfluence comparison shipped: evaluation starts at index49 and the first possible strategy fill/passive entry is index50. Cadence/session eligibility remains unestablished. |
+| [PR54](https://github.com/Zkrausman/Gelt/pull/54), [PR55](https://github.com/Zkrausman/Gelt/pull/55) | Declared-window and whole-input BreakoutVol displays now check reference events/nonfills against original OHLC, conditional on normalized signals. The older original-OHLC limitation is superseded for these displays; indicator decisions and input authenticity are not independently established. |
+| [PR56](https://github.com/Zkrausman/Gelt/pull/56) | BreakoutVol rejects unavailable configured ATR history instead of discarding the helper error. Legitimately computed zero ATR and sufficiently supplied configurations retain their behavior. |
+| [PR57](https://github.com/Zkrausman/Gelt/pull/57) | TrendConfluence selected-period comparison shipped with exactly fifty predecessor bars. This finite-prefix reseeded simulation is not a filtered full-history replay or a convergence guarantee. |
+| [PR58](https://github.com/Zkrausman/Gelt/pull/58) | MeanReversion uses explicit uncalibrated ATR stop/target defaults of 0.5/1.5. Default and partial-override protections intentionally change; signal decisions and fully specified positive overrides are preserved. Historical or market-suitable calibration is not claimed. |
+| [PR59](https://github.com/Zkrausman/Gelt/pull/59) | MeanReversion whole-input and selected-period comparison shipped. Period mode uses twenty predecessor bars and finite-prefix RSI reseeding; original-OHLC checking remains conditional on normalized signals. |
+| [PR60](https://github.com/Zkrausman/Gelt/pull/60) | Default notification configuration resolution moves from import/startup to the first actual payload. Explicit configuration calls remain effectful; bounded nonblocking queue/drop behavior adds no retry, refresh, shutdown or delivery guarantee. |
+| [PR61](https://github.com/Zkrausman/Gelt/pull/61) | `gelt help offline`, per-command help and sole help aliases expose existing supplied-CSV routes without opening data or entering configured services. Non-help admission and calculations are unchanged. |
+| [PR62](https://github.com/Zkrausman/Gelt/pull/62) | Linux causal CSV commands validate the opened regular-file descriptor before parsing; regular-file symlinks remain supported and nonregular inputs are rejected. Arbitrary-filesystem latency, concurrent-write snapshots and authenticity remain unestablished. |
+
+Hosted V2/browser/scientific workflows were path-excluded for the Go/docs-only
+PR53–62 changes; exclusion is not a pass. Retained local V2/scientific checks and
+unsupported Windows skips keep their original qualifications. These CLI changes
+have no browser user flow; HTTP smoke is not browser acceptance. Earlier A64
+hosted browser results remain evidence for their own exact candidates only.
+
+**Unfinished work:** the separate machine-readable comparison/experiment-binding
+candidate is locally implemented, but its adversarial review is incomplete and
+an execution outcome remains uncertain. Continuation and candidate publication
+remain held until that outcome is authoritatively reconciled; this update does
+not resume, replace or authorize the held review. The local feature-explorer
+provenance correction remains unpublished with its source-sharing review gate
+unresolved. Qlib/RD-Agent execution and research campaigns remain deferred.
+These dependencies do not reopen delivered scopes or establish ready work hours.
+
+Qualification **NOT_READY**, production **CLOSED**, operations **DEFER**, and the
+original unknown acquisition/closeout outcomes remain unchanged. No delivery
+here establishes data authenticity, calibrated costs, profitability, qualified
+runtime, actual trading or permission to activate operations.
+
+## Historical roadmap snapshots
+
+The remaining text is retained as historical planning and evidence. Read dated
+statuses at their stated checkpoint. The older candidate sections for A64 and
+causal comparison describe their pre-delivery scope; the current section above
+records their completed delivery. Older ready-depth, permission and pending-gate
+wording neither creates new work nor releases an unknown or held operation.
+
 ## Agent-first source delivery queue (2026-10-30; operations held)
 
 The owner commissioned roadmap extension **and continued implementation** toward
