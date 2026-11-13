@@ -98,6 +98,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	if handled, code := runOfflineHelp(os.Args[1:], os.Stdout, os.Stderr); handled {
+		os.Exit(code)
+	}
+
 	command := os.Args[1]
 
 	switch command {
@@ -1346,9 +1350,6 @@ func main() {
 		openBrowser("http://" + addr)
 		select {}
 
-	case "help", "--help", "-h":
-		printUsage()
-
 	default:
 		fmt.Printf("Unknown command: %s\n\n", command)
 		printUsage()
@@ -1369,33 +1370,7 @@ func generateSampleCloses(count int, startPrice float64, seed int64) []float64 {
 }
 
 func printUsage() {
-	fmt.Printf("Gelt Agentic Trading Suite (%s)\n", Version)
-	fmt.Println("Usage: gelt <command> [arguments]")
-	fmt.Println()
-	fmt.Println("Commands:")
-	fmt.Println("  version                              Show Gelt CLI version")
-	fmt.Println("  status / telemetry                   Display live session telemetry & portfolio dashboard")
-	fmt.Println("  risk                                 Display configured equity risk governance limits")
-	fmt.Println("  options-risk                         Display configured options risk governance limits")
-	fmt.Println("  signals [SYMBOL]                     Evaluate technical indicators and confluence score")
-	fmt.Println("  scan [MIN_SCORE]                     Scan watchlist universe and rank by Confluence Score")
-	fmt.Println("  monitor                              Inspect active position trailing-stops and exit triggers")
-	fmt.Println("  buy <SYMBOL> [AMOUNT_USD]            Execute risk-governed buy order & log thesis to Thneed")
-	fmt.Println("  sell <SYMBOL> [AMOUNT_USD]           Execute sell/exit order & log thesis to Thneed")
-	fmt.Println("  test-suite                           Run pre-market diagnostic health checks")
-	fmt.Println("  health                               Run pre-market broker integration diagnostic checks")
-	fmt.Println("  thesis                               Display logged trade rationales and Thneed self-doc history")
-	fmt.Println("  strategies / catalog                 Display Gelt Quantitative Strategy Catalog")
-	fmt.Println("  plan [active|list]                    Display active or available trading plans (activation is daemon-owned)")
-	fmt.Println("  shadow                               Display live vs shadow trading plan performance leaderboard")
-	fmt.Println("  shadow cycles [--latest] [--symbol=] [--json] Emit full scan cycle snapshots")
-	fmt.Println("  shadow capital-rebaseline --acknowledge-empty-journal-rebaseline Clear a capital-integrity latch only after manually archiving the journal")
-	fmt.Println("  regime [VIX]                         Monitor market regime indicators and display volatility alerts")
-	fmt.Println("  macro [SERIES_ID]                    Fetch FRED macro data asynchronously (EFFR rates)")
-	fmt.Println("  auth / login                         Authenticate with Robinhood Agentic Account via OAuth browser login")
-	fmt.Println("  config set-url <URL>                 Configure Robinhood Agentic Trading MCP Server URL")
-	fmt.Println("  dashboard / serve                    Launch the telemetry server and open the Web Dashboard")
-	fmt.Println("  backtest <Plan|Strategy> <Symbol> [Days] Run offline historical backtester")
+	writeOfflineHelp(globalHelp(Version), os.Stdout, os.Stderr)
 }
 
 func openBrowser(urlStr string) error {
