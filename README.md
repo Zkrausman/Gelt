@@ -83,6 +83,51 @@ go test ./...
 
 ## Usage
 
+### Supplied-CSV offline analysis
+
+Start with `gelt help offline` to choose an existing diagnostic or strategy
+comparison, then `gelt help NAME` for exact syntax. Global `gelt help`, `--help`
+and `-h` list all nine supplied-CSV commands. Each also accepts a sole `--help`
+or `-h` operand without opening an input file or loading configuration.
+
+| Strategy | Whole input | Selected period |
+| --- | --- | --- |
+| BreakoutVol | `backtest-causal-compare` | `backtest-causal-window-compare` |
+| TrendConfluence | `backtest-causal-trend50-compare` | `backtest-causal-trend50-window-compare` |
+| MeanReversion | `backtest-causal-meanrev-compare` | Same command with trailing `--window START END` |
+
+These compare the strategy with flat cash and one passive lot. Separate
+BreakoutVol diagnostics are `backtest-causal` (reference replay),
+`backtest-causal-funded` (declared cash), `backtest-causal-fees` (filled-side
+fees), and `backtest-causal-execution` (adverse execution prices).
+
+BreakoutVol and MeanReversion use a fixed 20-close warmup, first evaluation at
+index 19 and first eligible next-open fill at index 20. TrendConfluence uses a
+fixed 50-close profile, evaluation at 49 and fill at 50. Indices are zero-based;
+these are existing profiles, with no strategy ranking or parameter tuning.
+
+Input is strict, supplied CSV with the exact header
+`Timestamp,Open,High,Low,Close,Volume`. Selected periods require exact supplied
+timestamps, a nonempty score interval and exactly 20/50 prior warmup rows; END
+may also be the complete source's last timestamp plus one second. All original
+rows are validated. Finite-prefix reseeding can differ from filtering a
+whole-history run, including RSI/EMA memory.
+
+See the [CLI input, cost and window guide](cmd/gelt/README.md#supplied-csv-offline-analysis)
+for bounds and argument order. Costs/defaults are uncalibrated; supplied-data
+authenticity, adequate/converged history, cadence/session eligibility, edge,
+profitability and operating admission remain unestablished. The legacy
+`backtest <Plan|Strategy> <Symbol> [DataFile.csv | Days]` is a separate CSV or
+generated-synthetic diagnostic.
+
+```bash
+./gelt.exe help offline
+./gelt.exe help backtest-causal-window-compare
+./gelt.exe backtest-causal-meanrev-compare --help
+```
+
+### Other CLI examples
+
 ```bash
 # Check version
 ./gelt.exe version
@@ -96,9 +141,3 @@ go test ./...
 # Launch the dashboard / telemetry server
 ./gelt.exe dashboard
 ```
-
-### Offline MeanReversion comparison
-
-`gelt backtest-causal-meanrev-compare MeanReversion SYMBOL CSV CASH FIXED_FEE FEE_BPS BUY_BPS SELL_BPS` compares the owned default MeanReversion strategy with flat cash and one passive lot using causal next-open execution and declared costs. Add `--window START END` to reseed from exactly twenty prior bars and score the start-inclusive, end-exclusive interval. The timestamp boundaries must match supplied bars, except that the end may be one second after the final bar. Input is the strict offline causal CSV format.
-
-The fixed defaults include Bollinger 20 at two deviations, RSI thresholds 35/65, and ATR stop/target multipliers 0.5/1.5; these choices are uncalibrated. The comparison does not establish source authenticity, adequate history, intraday eligibility, market suitability, edge, or operating admission. A window is a fresh simulation, so its RSI history can differ from a whole-history run. A final pending directional signal is not a broker order.
