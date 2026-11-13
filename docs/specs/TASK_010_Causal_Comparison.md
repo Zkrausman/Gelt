@@ -1,9 +1,10 @@
 ---
 type: specification
 title: "TASK_010: Offline strategy, cash and passive comparison"
-status: source-candidate-awaiting-independent-review
+status: successor-source-candidate-awaiting-independent-review
 baseline: "eace8eebdb498333bf670ee35e0f723843352186"
 scope: "Separate strict-CSV comparison with declared synthetic accounting assumptions"
+successor_base: "fec3e6bbaaa8a1bbe4d682814606538fec904d61"
 ---
 
 # Offline causal comparison
@@ -152,3 +153,25 @@ No provider acquisition/calls, live runtime, orders, financial use, calibrated
 realism/profitability or operating qualification is released. Supplier finality,
 completion and vintage remain unknown. Runtime NOT_READY, production CLOSED,
 operations DEFER, all original uncertain handoffs and historical defaults remain.
+
+## Whole-input original-reference admission successor (2026-11-13)
+
+The whole-input summary retains the shared accounting, controls, marks and
+diagnostics validator and additionally checks the strategy reference events
+against all original supplied OHLC bars using the existing fixed-20 checker.
+The check is conditional on normalized signal records. Indicator calculations
+and input authenticity are not independently verified. Rejection returns no
+summary. The table and numeric behavior remain unchanged, with one fixed
+conditional-guarantee footer appended. No API or replay calculation changes.
+
+This successor changes `cmd/gelt/backtest_causal_comparison.go`, adds
+`cmd/gelt/backtest_causal_comparison_reference_test.go`, and updates this
+specification and the whole-input section of `pkg/backtest/README.md`. Owned
+producer fixtures exercise balanced omitted entry, alternate Open with restored
+controls, Low-only omitted stop, and omitted funding nonfills, along with costs
+and short-input boundaries. The initial added funding fixture failed to compile due
+to a misnamed test field; it was corrected to `RejectedEntries` and the focused
+suite passed. Working race, vet, build and compiled-output comparisons are
+recorded in the private successor implementation evidence; independent source
+reviews and fresh postreview final-head verification are pending. Prior dated evidence above
+describes the earlier implementation and is retained as history.

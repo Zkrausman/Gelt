@@ -368,6 +368,13 @@ func backtestCausalComparisonSummary(r backtest.ComparisonCausalResult, bars []b
 	if !comparisonCLIResultValid(r, bars, symbol, cash, scenario) {
 		return "", false
 	}
+	initial, initialOK := comparisonCLIInputUnits(cash, fundedCLIMaxUnits)
+	fixed, bps, target, declarationOK := executionScenarioCLIDeclaration(r.Scenario)
+	buy, buyOK := executionCLIAdverseRate(scenario.BuyAdverseBps)
+	sell, sellOK := executionCLIAdverseRate(scenario.SellAdverseBps)
+	if !initialOK || !declarationOK || !buyOK || !sellOK || !windowReferenceEvents(nil, bars, r.Strategy, initial, fixed, bps, target, buy, sell) {
+		return "", false
+	}
 	money := func(s string) string { return fundedCLIDecimal(s) }
 	dd := func(d backtest.FundedCausalDrawdown) string {
 		if d.Percent == nil {
@@ -395,5 +402,6 @@ func backtestCausalComparisonSummary(r backtest.ComparisonCausalResult, bars []b
 	}
 	fmt.Fprintf(&out, "Ending equity gaps (strategy minus control): cash %s; passive %s\n", money(r.StrategyMinusCashUnits), money(r.StrategyMinusPassiveUnits))
 	out.WriteString("Controls do not evaluate strategies. Passive holds one lot to the final supplied close; no protection, rebalancing or terminal sale. SELL costs apply only to a SELL.\nExposure duration, protection and turnover differ; equal declarations do not imply equal risk. No extra execution-price cash charge. Synthetic uncalibrated scenario assumptions; supplied CSV authenticity is unknown. No ranking, statistical edge, profitability, qualification or operating admission.\n")
+	out.WriteString("Original OHLC reference events are checked conditional on normalized signals; indicator calculations and input authenticity are not independently verified.\n")
 	return out.String(), out.Len() <= comparisonCLISummaryMaxBytes
 }
