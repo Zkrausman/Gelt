@@ -99,7 +99,7 @@ func TestLazyResolutionPayloads(t *testing.T) {
 	}
 }
 
-func TestLazyDisabledAndExplicitConstructors(t *testing.T) {
+func TestLazyDisabledAndExplicitEndpoints(t *testing.T) {
 	for _, endpoint := range []string{"", disabledSentinel} {
 		t.Run("lazy-"+endpoint, func(t *testing.T) {
 			var calls atomic.Int32
@@ -118,20 +118,22 @@ func TestLazyDisabledAndExplicitConstructors(t *testing.T) {
 			}
 		})
 		t.Run("explicit-"+endpoint, func(t *testing.T) {
-			d := NewWebhookDispatcher(endpoint, WithTimeout(3*time.Second))
-			if d.resolver != nil || d.client.Timeout != 3*time.Second || cap(d.queue) != 100 {
-				t.Fatal("explicit constructor changed")
+			d, requests, stop := ownedDispatcher(t, nil, 2)
+			d.SetEndpoint(endpoint)
+			d.Dispatch(SeverityInfo, "disabled", "")
+			d.DispatchDiscord(DiscordWebhook{Content: "disabled"}, SeverityInfo, "disabled")
+			stop()
+			if len(requests) != 0 {
+				t.Fatal("disabled explicit dispatcher sent a request")
 			}
+			// Check the producer paths with no worker consuming the queue.
+			d.queue = make(chan WebhookPayload, 2)
 			d.Dispatch(SeverityInfo, "disabled", "")
 			d.DispatchDiscord(DiscordWebhook{Content: "disabled"}, SeverityInfo, "disabled")
 			if len(d.queue) != 0 {
-				t.Fatal("disabled explicit constructor queued")
+				t.Fatal("disabled explicit dispatcher queued")
 			}
 		})
-	}
-	d := NewWebhookDispatcher("https://explicit.invalid")
-	if d.resolver != nil || d.client.Timeout != 2*time.Second || cap(d.queue) != 100 {
-		t.Fatal("default constructor options changed")
 	}
 }
 
