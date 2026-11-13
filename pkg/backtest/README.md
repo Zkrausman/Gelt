@@ -202,3 +202,9 @@ eligibility are unestablished. It does not establish edge or trading readiness.
 See [the comparison specification](../../docs/specs/TrendConfluence50-Comparison.md).
 
 For a configured BreakoutVol ATR period, fixed-20 causal replay evaluates first with 20 closes. Periods requiring more history return the existing `evaluator_error` at that first evaluation; replay does not wait for additional closes. Declared-window errors use the corresponding source index.
+
+### TrendConfluence declared-window comparison
+
+`RunTrend50WindowComparisonCausal` and `gelt backtest-causal-trend50-window-compare TrendConfluence SYMBOL CSV START END CASH FIXED_FEE FEE_BPS BUY_BPS SELL_BPS` select an exact inclusive start and exclusive end from a fully validated offline source. Exactly 50 prior bars seed one separate replay; the scored interval starts flat, and the first signal can fill at its first open. The command reports source/replay/scored mappings, three accounting scores, terminal state, and declared costs. Excluded rows remain subject to full validation.
+
+This finite-prefix reseeding is not a filtered full-history replay. Fifty bars do not establish indicator convergence, adequate history, session or intraday eligibility. Input authenticity, selection history, and cost calibration remain unestablished. The display checks original OHLC events conditional on normalized signals, without independently proving indicator calculations. See [the window specification](../../docs/specs/TrendConfluence50-Window-Comparison.md).
