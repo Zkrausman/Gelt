@@ -89,6 +89,10 @@ integrations or operating state. Use them only within the actual task's existing
 authority. They are not verification steps for an offline CSV comparison, and
 loading this skill grants no acquisition, credential, shadow or trading scope.
 
+For separately authorized shadow execution, retain the existing requirement to
+record shadow logs and trade theses through `GELT_BEADS_BRAIN_PATH` with
+`[bd-3qwe self-doc]` anchors.
+
 For source changes, follow repository `AGENTS.md` and
 `.agents/skills/ticket-delivery/SKILL.md` with scoped tests and owned offline
 fixtures. Do not substitute the integration `test-suite` or a configured
