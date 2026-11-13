@@ -36,14 +36,14 @@ exact loss/peak comparisons and earliest ties, and preserves zero-equity nulls.
 Nested indices stay relative; mapped drawdown indices are additive, checked
 metadata. Monetary summaries use canonical scale-eight integer units internally.
 
-The CLI independently reconstructs selection and validates the nested comparison
-using the unchanged display validator. It checks original timestamps and close
-valuations, reconstructs controls, and reconciles strategy trace/accounting and
-score projections. It **does not independently prove strategy fills against
-original opens/highs/lows**. A coherent trace from altered scored OHLC geometry
-can retain original timestamps/closes and satisfy those consistency checks.
-This accepted limitation is shown in output and covered by a synthetic fixture;
-it is not original-OHLC evidence, untouched-data proof or callback authentication.
+The CLI independently reconstructs selection and validates the nested comparison,
+original close valuations, controls and score projections. It also reconstructs
+the complete expected reference-event and nonfill sequence from consumed original
+OHLC and normalized signals before display. This conditional check does not prove
+indicator calculations, signal provenance, input authenticity or untouched data.
+The unchanged library API does not independently reconstruct these OHLC events.
+The historical PR52 H1 alternate-open fixture exposed the earlier CLI limitation;
+it is now retained as a rejection regression for this CLI change.
 
 New errors use fixed codes, zero whole results and checked source-bar indices;
 missing or reversed boundaries reject before insufficient warmup. No raw paths,
@@ -86,3 +86,28 @@ semantics and all Q1 implementation bytes remain unchanged. New focused race
 checks and a disposable blocking-send negative control precede original-reviewer
 correction review. Full fresh final-head gates remain required after accepted
 review of the corrected head; no prior partial pass becomes new-head acceptance.
+
+## Original-OHLC CLI validation successor
+
+The dedicated fixed-20 CLI checker walks every consumed bar, including bars
+with no returned event. It compares expected fills, funding nonfills and terminal
+position against the normalized trace using the existing fixed8 and adverse-price
+assumptions. It checks producer signal and protection bounds before use; it does
+not evaluate the strategy again. Existing library, Q2 and old whole-input APIs,
+identities and execution algorithms are unchanged. The changed files are the Q1
+window CLI and tests, the new private reference checker and tests, this spec and
+the scoped backtest README. Working focused race tests cover coherent alternate
+opens, omitted entries and low-only stop exits, protection ordering, funding,
+bounds and cancellation. Complete fresh source/privacy reviews and final-head
+verification remain separate delivery gates.
+
+Working verification on the candidate based on `f348e89050e6131f06a3d22142cabb961f80317a`
+used pinned offline Go 1.26.1. Focused race tests passed for the coherent
+alternate-open and low-only forgeries, omitted entry, event ordering, bounds,
+funding and cancellation. A disposable exact-base export and the candidate
+produced matching Q1 API result digests for zero and fixed-fee cases; their
+compiled Q1 numeric/header output matched, with the footer intentionally
+changed, and an exercised Q2 command remained byte-identical. Full working Go
+race, vet and build receipts are retained in the private implementation packet.
+These checks do not replace the fresh independent and adversarial reviews or
+the final-head suite.

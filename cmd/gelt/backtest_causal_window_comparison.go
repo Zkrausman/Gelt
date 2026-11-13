@@ -247,6 +247,15 @@ func windowCLIResultValid(ctx context.Context, r backtest.WindowComparisonResult
 	if !ok {
 		return false
 	}
+	fixed, bps, target, ok := executionScenarioCLIDeclaration(r.Replay.Scenario)
+	if !ok {
+		return false
+	}
+	buy, buyOK := executionCLIAdverseRate(scenario.BuyAdverseBps)
+	sell, sellOK := executionCLIAdverseRate(scenario.SellAdverseBps)
+	if !buyOK || !sellOK || !windowReferenceEvents(ctx, bars, r.Replay.Strategy, initial, fixed, bps, target, buy, sell) {
+		return false
+	}
 	strategy, ok := windowCLIScore(ctx, r.Replay.Strategy.ModelIdentity, r.Replay.Strategy.CloseMarks, initial, offset)
 	if !ok || !reflect.DeepEqual(strategy.MaxCloseMarkDrawdown, r.Replay.Strategy.MaxCloseMarkDrawdown) {
 		return false
@@ -287,6 +296,6 @@ func backtestCausalWindowComparisonSummary(ctx context.Context, r backtest.Windo
 		fmt.Fprintf(&b, "Passive required debit: %s; principal: %s; entry fee: %s; available cash: %s; reference price: %.17g; execution price: %.17g\n", fundedCLIDecimal(e.RequiredModelCashUnits), fundedCLIDecimal(e.PrincipalUnits), fundedCLIDecimal(e.FeeUnits), fundedCLIDecimal(e.AvailableModelCashUnits), e.ReferencePrice, e.ExecutionPrice)
 	}
 	fmt.Fprintf(&b, "Strategy terminal position open: %t; final directional signal unfilled: %t; closed trades: %d\nEnding equity strategy minus cash: %s; minus passive: %s\n", r.Replay.Strategy.ReferenceReplay.TerminalPosition != nil, r.Replay.Strategy.ReferenceReplay.PendingSignalUnfilled, r.Replay.Strategy.ReferenceReplay.ClosedTradeCount, fundedCLIDecimal(r.Replay.StrategyMinusCashUnits), fundedCLIDecimal(r.Replay.StrategyMinusPassiveUnits))
-	b.WriteString("Controls do not evaluate strategies. Passive holds to the final scored close with no protection, rebalancing or terminal sale; SELL costs apply only to a SELL. Exposure, protection and turnover differ. No ranking, edge, profitability, untouched-data or qualification claim.\nStrategy trace/accounting consistency checked; strategy fill causality against original open/high/low is not independently revalidated.\n")
+	b.WriteString("Controls do not evaluate strategies. Passive holds to the final scored close with no protection, rebalancing or terminal sale; SELL costs apply only to a SELL. Exposure, protection and turnover differ. No ranking, edge, profitability, untouched-data or qualification claim.\nOriginal OHLC reference events are checked conditional on normalized signals; indicator calculations and input authenticity are not independently verified.\n")
 	return b.String(), b.Len() <= 8192
 }
