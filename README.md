@@ -96,3 +96,9 @@ go test ./...
 # Launch the dashboard / telemetry server
 ./gelt.exe dashboard
 ```
+
+### Offline MeanReversion comparison
+
+`gelt backtest-causal-meanrev-compare MeanReversion SYMBOL CSV CASH FIXED_FEE FEE_BPS BUY_BPS SELL_BPS` compares the owned default MeanReversion strategy with flat cash and one passive lot using causal next-open execution and declared costs. Add `--window START END` to reseed from exactly twenty prior bars and score the start-inclusive, end-exclusive interval. The timestamp boundaries must match supplied bars, except that the end may be one second after the final bar. Input is the strict offline causal CSV format.
+
+The fixed defaults include Bollinger 20 at two deviations, RSI thresholds 35/65, and ATR stop/target multipliers 0.5/1.5; these choices are uncalibrated. The comparison does not establish source authenticity, adequate history, intraday eligibility, market suitability, edge, or operating admission. A window is a fresh simulation, so its RSI history can differ from a whole-history run. A final pending directional signal is not a broker order.
