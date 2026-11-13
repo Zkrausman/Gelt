@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"gelt/pkg/backtest"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -41,7 +42,7 @@ func TestWindowCLIActualCSVAndBoundedLabels(t *testing.T) {
 		if code := runBacktestCausalWindowComparison(nil, args, &stdout, &stderr); code != 0 {
 			t.Fatalf("%d %s", code, stderr.String())
 		}
-		for _, label := range []string{backtest.WindowComparisonModelIdentity, backtest.WindowComparisonSelectionPolicy, "Source bars: 27; warmup: 20; scored: 2; consumed: 22", "selection_history_unestablished", "strategy fill causality against original open/high/low is not independently revalidated", "10.00000000", "Exposure, protection and turnover differ"} {
+		for _, label := range []string{backtest.WindowComparisonModelIdentity, backtest.WindowComparisonSelectionPolicy, "Source bars: 27; warmup: 20; scored: 2; consumed: 22", "selection_history_unestablished", "Original OHLC reference events are checked conditional on normalized signals", "10.00000000", "Exposure, protection and turnover differ"} {
 			if !strings.Contains(stdout.String(), label) {
 				t.Fatal("missing", label)
 			}
@@ -77,7 +78,7 @@ func TestWindowCLIIndependentProjectionForgeries(t *testing.T) {
 		}
 	}
 }
-func TestWindowCLIValidationLimitIsExplicit(t *testing.T) {
+func TestWindowCLIRejectsHistoricalAlternateOpen(t *testing.T) {
 	original := feeScenarioCLIBars(21, 100)
 	w := backtest.DeclaredComparisonWindow{StartInclusiveUnix: 21, EndExclusiveUnix: 22}
 	altered := append([]backtest.OHLCV(nil), original...)
@@ -87,6 +88,17 @@ func TestWindowCLIValidationLimitIsExplicit(t *testing.T) {
 	r, err := engine.RunWindowComparisonCausal(nil, "TEST", altered, w, "100", comparisonCLIScenario())
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !windowCLIResultValid(nil, r, altered, "TEST", w, "100", comparisonCLIScenario()) {
+		t.Fatal("altered producer must be valid")
+	}
+	originalEngine, _ := feeScenarioCLIEngine("buy")
+	originalResult, err := originalEngine.RunWindowComparisonCausal(nil, "TEST", original, w, "100", comparisonCLIScenario())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(r.Replay.Strategy.ReferenceReplay.Evaluations, originalResult.Replay.Strategy.ReferenceReplay.Evaluations) {
+		t.Fatal("normalized signals changed")
 	}
 	controlEngine, _ := feeScenarioCLIEngine("hold")
 	controls, err := controlEngine.RunComparisonCausal(nil, "TEST", original, "100", comparisonCLIScenario())
@@ -108,10 +120,14 @@ func TestWindowCLIValidationLimitIsExplicit(t *testing.T) {
 	r.Passive.MaxCloseMarkDrawdown = controls.Passive.MaxCloseMarkDrawdown
 	r.Passive.DrawdownSourceBarIndex = nil
 	r.Passive.DrawdownScoredBarIndex = nil
-	// This coherent alternate-open strategy trace is NOT independent original-OHLC proof.
-	if !windowCLIResultValid(nil, r, original, "TEST", w, "100", comparisonCLIScenario()) {
-		t.Fatal("limitation fixture no longer matches shipped consistency checks; adjudicate rather than overclaim")
+	assertWindowPriorLayers(t, r, original, w)
+	if windowCLIResultValid(nil, r, original, "TEST", w, "100", comparisonCLIScenario()) {
+		t.Fatal("coherent alternate open accepted")
 	}
+	if _, ok := backtestCausalWindowComparisonSummary(nil, r, original, "TEST", w, "100", comparisonCLIScenario()); ok {
+		t.Fatal("coherent alternate summary accepted")
+	}
+
 }
 func TestWindowCLINegativeInputCancellationAndOneWrite(t *testing.T) {
 	path := causalCLITestFile(t, causalCLITestPositiveCSV(27))

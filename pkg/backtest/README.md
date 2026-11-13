@@ -180,9 +180,10 @@ start and exclusive end (or final-timestamp-plus-one sentinel), validates the fu
 supplied CSV, and replays only twenty prior warmup bars plus the selected window.
 It reports source/relative/scored mapping and strategy/cash/passive scored equity,
 costs and close-mark drawdown. Existing whole-input commands remain unchanged.
-Input selection is isolated; independent display checks cover original-close
-marks, controls and trace/accounting consistency, not original-OHLC strategy-fill
-causality or untouched-data evidence. See the [declared-window specification](../../docs/specs/TASK_010_Declared_Window_Comparison.md).
+Input selection is isolated. The CLI independently checks original consumed OHLC
+reference events conditional on normalized signals, along with accounting and
+controls. It does not verify indicator calculations or input authenticity. The
+unchanged library API does not independently reconstruct original OHLC events. See the [declared-window specification](../../docs/specs/TASK_010_Declared_Window_Comparison.md).
 
 ### TrendConfluence fixed-50 comparison
 
