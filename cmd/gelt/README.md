@@ -53,8 +53,9 @@ fixed filled-side fee is fixed8 in 0..<10, fee bps is an unsigned integer in
 0..10000, and buy/sell adverse bps are unsigned integers in 0..9999. The simulated
 entry cap is 10 including entry fee. There is no cash resizing, loan, forced
 terminal sale or SELL cost without a SELL. Comparisons include flat cash and
-one passive lot held to the final supplied close; equal cost declarations do
-not imply equal exposure or risk.
+one passive lot held to the final supplied close for whole-input comparisons,
+or the final scored close for selected periods; equal cost declarations do not
+imply equal exposure or risk.
 
 Window START is inclusive and END exclusive. Both must be exact supplied
 timestamps, except END may equal the **complete source's last timestamp plus
