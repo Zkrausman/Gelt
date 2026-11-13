@@ -461,6 +461,15 @@ func executionScenarioCLIApplyFlow(
 // This boundary checks formatting consistency of a typed, internally computed
 // standalone result. It is not an imported-record authenticator or evaluator.
 func executionScenarioCLIResultValid(r backtest.ExecutionScenarioCausalResult) bool {
+	return executionScenarioCLIResultValidForTarget(r, "BreakoutVol")
+}
+func mean20ExecutionScenarioCLIResultValid(r backtest.ExecutionScenarioCausalResult) bool {
+	return executionScenarioCLIResultValidForTarget(r, "MeanReversion")
+}
+func executionScenarioCLIResultValidForTarget(r backtest.ExecutionScenarioCausalResult, expectedTarget string) bool {
+	if expectedTarget != "BreakoutVol" && expectedTarget != "MeanReversion" {
+		return false
+	}
 	replay := r.ReferenceReplay
 	if r.ModelIdentity != backtest.ExecutionScenarioCausalModelIdentity ||
 		r.CostIdentity != backtest.ExecutionScenarioCausalCostIdentity ||
@@ -471,7 +480,7 @@ func executionScenarioCLIResultValid(r backtest.ExecutionScenarioCausalResult) b
 		replay.CostIdentity != backtest.ExecutionScenarioCausalCostIdentity ||
 		replay.DataLabel != backtest.CausalOfflineLabel ||
 		replay.AuthorityLabel != backtest.CausalOfflineLabel ||
-		replay.TargetName != "BreakoutVol" ||
+		replay.TargetName != expectedTarget ||
 		len(replay.Symbol) == 0 || len(replay.Symbol) > 256 {
 		return false
 	}

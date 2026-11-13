@@ -1137,6 +1137,8 @@ func main() {
 		fmt.Println(ev)
 		fmt.Println("================================================================================")
 
+	case "backtest-causal-meanrev-compare":
+		os.Exit(runBacktestCausalMean20Comparison(context.Background(), os.Args[2:], os.Stdout, os.Stderr))
 	case "backtest-causal-window-compare":
 		os.Exit(runBacktestCausalWindowComparison(context.Background(), os.Args[2:], os.Stdout, os.Stderr))
 	case "backtest-causal-trend50-window-compare":
