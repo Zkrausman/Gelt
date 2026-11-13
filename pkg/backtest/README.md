@@ -200,3 +200,5 @@ verify the strategy's indicator calculations. This is an unqualified offline,
 uncalibrated scenario; cadence, session, selection history and intraday operating
 eligibility are unestablished. It does not establish edge or trading readiness.
 See [the comparison specification](../../docs/specs/TrendConfluence50-Comparison.md).
+
+For a configured BreakoutVol ATR period, fixed-20 causal replay evaluates first with 20 closes. Periods requiring more history return the existing `evaluator_error` at that first evaluation; replay does not wait for additional closes. Declared-window errors use the corresponding source index.

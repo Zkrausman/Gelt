@@ -74,7 +74,10 @@ func (s *BreakoutVolStrategy) Evaluate(ctx context.Context, evalTime time.Time, 
 	lastClose := closes[len(closes)-1]
 	prevClose := closes[len(closes)-2]
 
-	atr, _ := signals.CalculateATRFromCloses(closes, period)
+	atr, err := signals.CalculateATRFromCloses(closes, period)
+	if err != nil {
+		return StrategySignal{}, err
+	}
 	priceChange := lastClose - prevClose
 
 	stopPct := (atr * s.ATRStopMultiplier / lastClose) * 100.0
