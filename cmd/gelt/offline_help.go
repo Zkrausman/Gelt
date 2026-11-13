@@ -20,6 +20,8 @@ const offlineCommandList = `Supplied-CSV offline commands:
 `
 
 const offlineInputHelp = `Input and declarations:
+  On Linux, CSV inputs must be regular files; symlinks to regular files work.
+  FIFOs, directories and devices are rejected with input_file.
   CSV header must be exactly Timestamp,Open,High,Low,Close,Volume.
   Supply strictly increasing Unix-second timestamps in 1..253402300799.
   Use canonical unsigned ASCII numeric tokens: no leading-zero integer parts,

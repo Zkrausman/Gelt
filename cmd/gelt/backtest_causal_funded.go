@@ -7,7 +7,6 @@ import (
 	"io"
 	"math"
 	"math/big"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -39,7 +38,7 @@ func runBacktestCausalFunded(ctx context.Context, args []string, stdout, stderr 
 		return fundedCLIFail(stderr, "canceled")
 	}
 
-	f, err := os.Open(args[2])
+	f, err := openOfflineCSV(args[2])
 	if err != nil {
 		return fundedCLIFail(stderr, "input_file")
 	}

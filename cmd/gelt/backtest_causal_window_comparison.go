@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -57,7 +56,7 @@ func runBacktestCausalWindowComparison(ctx context.Context, args []string, stdou
 	if ctx.Err() != nil {
 		return windowCLIFail(stderr, "canceled")
 	}
-	f, err := os.Open(args[2])
+	f, err := openOfflineCSV(args[2])
 	if err != nil {
 		return windowCLIFail(stderr, "input_file")
 	}

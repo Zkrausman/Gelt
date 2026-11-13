@@ -7,7 +7,6 @@ import (
 	"io"
 	"math"
 	"math/big"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -886,7 +885,7 @@ func runBacktestCausalTrend50Comparison(ctx context.Context, args []string, stdo
 	if ctx.Err() != nil {
 		return trend50CLIFail(stderr, "canceled")
 	}
-	f, err := os.Open(args[2])
+	f, err := openOfflineCSV(args[2])
 	if err != nil {
 		return trend50CLIFail(stderr, "input_file")
 	}

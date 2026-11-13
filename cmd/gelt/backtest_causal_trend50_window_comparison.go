@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -40,7 +39,7 @@ func runBacktestCausalTrend50WindowComparison(ctx context.Context, args []string
 	if ctx.Err() != nil {
 		return trend50WindowCLIFail(stderr, "canceled")
 	}
-	f, err := os.Open(args[2])
+	f, err := openOfflineCSV(args[2])
 	if err != nil {
 		return trend50WindowCLIFail(stderr, "input_file")
 	}

@@ -7,7 +7,6 @@ import (
 	"io"
 	"math"
 	"math/big"
-	"os"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -34,7 +33,7 @@ func runBacktestCausalComparison(ctx context.Context, args []string, stdout, std
 		return comparisonCLIFail(stderr, "canceled")
 	}
 
-	f, err := os.Open(args[2])
+	f, err := openOfflineCSV(args[2])
 	if err != nil {
 		return comparisonCLIFail(stderr, "input_file")
 	}

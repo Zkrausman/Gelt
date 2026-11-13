@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -164,7 +163,7 @@ func runBacktestCausal(ctx context.Context, args []string, stdout, stderr io.Wri
 		return causalCLIFail(stderr, "canceled")
 	}
 
-	f, err := os.Open(args[2])
+	f, err := openOfflineCSV(args[2])
 	if err != nil {
 		return causalCLIFail(stderr, "input_file")
 	}
