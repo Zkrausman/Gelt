@@ -57,6 +57,7 @@ type WebhookPayload struct {
 type WebhookDispatcher struct {
 	mu       sync.RWMutex
 	endpoint string
+	resolver func() string // nil means there is no pending endpoint lookup
 	client   *http.Client
 	queue    chan WebhookPayload
 }
@@ -75,14 +76,18 @@ func WithTimeout(d time.Duration) DispatcherOption {
 var DefaultDispatcher *WebhookDispatcher
 
 func init() {
-	endpoint := GetWebhookURL()
-	DefaultDispatcher = NewWebhookDispatcher(endpoint)
+	DefaultDispatcher = newWebhookDispatcher("", GetWebhookURL)
 }
 
 // NewWebhookDispatcher creates and starts a new thread-safe WebhookDispatcher.
 func NewWebhookDispatcher(endpoint string, opts ...DispatcherOption) *WebhookDispatcher {
+	return newWebhookDispatcher(endpoint, nil, opts...)
+}
+
+func newWebhookDispatcher(endpoint string, resolver func() string, opts ...DispatcherOption) *WebhookDispatcher {
 	dispatcher := &WebhookDispatcher{
 		endpoint: endpoint,
+		resolver: resolver,
 		client: &http.Client{
 			Timeout: 2 * time.Second, // max 2 seconds per requirement
 		},
@@ -102,14 +107,16 @@ func (d *WebhookDispatcher) SetEndpoint(endpoint string) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.endpoint = endpoint
+	d.resolver = nil
 }
 
 // Dispatch queues a webhook alert asynchronously. It does not block.
 func (d *WebhookDispatcher) Dispatch(severity AlertSeverity, eventType string, data string) {
 	d.mu.RLock()
 	ep := d.endpoint
+	pending := d.resolver != nil
 	d.mu.RUnlock()
-	if ep == "" || ep == "http://localhost:8080/webhook" {
+	if !pending && (ep == "" || ep == "http://localhost:8080/webhook") {
 		return
 	}
 
@@ -131,6 +138,19 @@ func (d *WebhookDispatcher) Dispatch(severity AlertSeverity, eventType string, d
 
 func (d *WebhookDispatcher) startWorker() {
 	for payload := range d.queue {
+		d.mu.RLock()
+		resolver := d.resolver
+		d.mu.RUnlock()
+		if resolver != nil {
+			endpoint := resolver()
+			d.mu.Lock()
+			// SetEndpoint clears the resolver, so an explicit binding wins.
+			if d.resolver != nil {
+				d.endpoint = endpoint
+				d.resolver = nil
+			}
+			d.mu.Unlock()
+		}
 		d.send(payload)
 	}
 }
@@ -181,8 +201,9 @@ func (d *WebhookDispatcher) send(payload WebhookPayload) {
 func (d *WebhookDispatcher) DispatchDiscord(webhook DiscordWebhook, severity AlertSeverity, eventType string) {
 	d.mu.RLock()
 	ep := d.endpoint
+	pending := d.resolver != nil
 	d.mu.RUnlock()
-	if ep == "" || ep == "http://localhost:8080/webhook" {
+	if !pending && (ep == "" || ep == "http://localhost:8080/webhook") {
 		return
 	}
 
