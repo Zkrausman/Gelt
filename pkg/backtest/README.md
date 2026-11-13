@@ -167,8 +167,10 @@ sale. No SELL fee or adverse SELL price is charged without a SELL.
 All supplied closes, including warmup, carry cash/value/equity/accounting PnL,
 fees and close-mark drawdown. The bounded human table shows three models and two
 signed ending-equity gaps. The CLI independently reconstructs controls against
-the actual bars before displaying them. Cash, exposure duration, protection and
-turnover differ: this is declared, uncalibrated scenario accounting, not ranking,
+the actual bars before displaying them. It also checks strategy reference events
+against original OHLC conditional on normalized signals; indicator calculations
+and input authenticity are not independently verified. Cash, exposure duration,
+protection and turnover differ: this is declared, uncalibrated scenario accounting, not ranking,
 statistical edge, profitability or qualification. Supplied-data provenance and
 supplier finality remain unknown. Existing commands and modes are unchanged.
 See [the comparison contract and source evidence](../../docs/specs/TASK_010_Causal_Comparison.md).
