@@ -90,6 +90,14 @@ comparison, then `gelt help NAME` for exact syntax. Global `gelt help`, `--help`
 and `-h` list the supplied-CSV commands. Each also accepts a sole `--help`
 or `-h` operand without opening an input file or loading configuration.
 
+`gelt backtest-causal-aligned-window-compare SYMBOL CSV START END CASH FIXED_FEE FEE_BPS BUY_BPS SELL_BPS`
+uses one admitted input for the fixed BreakoutVol, TrendConfluence and
+MeanReversion families over one exact scoring interval. It preserves native
+20/50/20 prior histories, validates each result and checks complete shared
+cash/passive paths before writing the three summaries. START needs at least
+50 prior rows. It adds no ranking or operating qualification; use its exact help
+for argument order and the retained native limits.
+
 Use `gelt diagnose-causal-csv ./supplied-bars.csv` to locate a syntax or common
 bar-domain issue before choosing a replay. It reports a fixed reason and, when
 known, a one-based physical line and field, without changing the input or

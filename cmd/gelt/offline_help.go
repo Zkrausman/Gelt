@@ -8,6 +8,7 @@ import (
 const offlineHelpMaxBytes = 16384
 
 const offlineCommandList = `Supplied-CSV offline commands:
+  backtest-causal-aligned-window-compare  Fixed three-family comparison, one shared interval
   diagnose-causal-csv                     Locate a supplied CSV syntax/domain issue
   backtest-causal                         BreakoutVol reference replay
   backtest-causal-funded                  BreakoutVol declared-cash diagnostic
@@ -93,6 +94,23 @@ Use ./--help or ./-h for filenames literally --help or -h.
 Use gelt help offline for CSV syntax and numeric bounds.
 `
 
+const alignedWindowCLIHelp = alignedWindowCLIUsage + `
+Purpose: one supplied CSV parse and one shared exact scoring interval for the
+fixed BreakoutVol, TrendConfluence and MeanReversion families. No target operand.
+Native prior histories remain 20/50/20 bars; START needs at least 50 prior rows.
+Native execution order is TrendConfluence, fresh BreakoutVol, MeanReversion;
+report order is BreakoutVol, TrendConfluence, MeanReversion. No retries or ranking.
+Each native result is checked against the complete original input/declarations;
+scored cash/passive paths, entries, basis, fees, peaks and drawdowns must agree
+after translating only native warmup indices. Strategy economics may differ.
+The report retains each native summary and finite-prefix reseeding limits.
+Arguments START/END precede all cash/cost declarations. CSV filenames literally
+--help or -h among the nine operands remain filenames; only sole flags show help.
+Failure has no success output before the final write. Nonzero output is
+incomplete; an output failure can leave a prefix. No I/O deadline is promised.
+
+` + offlineInputHelp
+
 func globalHelp(version string) string {
 	return "Gelt Agentic Trading Suite (" + version + ")\nUsage: gelt <command> [arguments]\n\n" +
 		offlineCommandList + "\nStart with gelt help offline; get exact syntax with gelt help NAME.\n\n" +
@@ -128,6 +146,8 @@ const otherCommandHelp = `  version                              Show Gelt CLI v
 func offlineDetailHelp(topic string) (string, bool) {
 	var usage, purpose, profile string
 	switch topic {
+	case "backtest-causal-aligned-window-compare":
+		return alignedWindowCLIHelp, true
 	case "diagnose-causal-csv":
 		return diagnoseCausalCSVHelp, true
 	case "backtest-causal":
