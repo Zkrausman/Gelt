@@ -8,6 +8,7 @@ import (
 const offlineHelpMaxBytes = 16384
 
 const offlineCommandList = `Supplied-CSV offline commands:
+  diagnose-causal-csv                     Locate a supplied CSV syntax/domain issue
   backtest-causal                         BreakoutVol reference replay
   backtest-causal-funded                  BreakoutVol declared-cash diagnostic
   backtest-causal-fees                    BreakoutVol filled-side fee diagnostic
@@ -83,6 +84,15 @@ Bollinger 20 x2, RSI14 thresholds 35/65, ATR proxy14 stop/target 0.5/1.5;
 defaults are uncalibrated. Append --window START END after the cost declarations.
 `
 
+const diagnoseCausalCSVHelp = diagnoseCausalCSVUsage + `
+Check one supplied regular CSV through common syntax/domain admission only.
+The first issue reports a physical line and fixed field/reason; input is not
+changed. Syntax is checked before domain; a valid one-row file may pass.
+Symbol, costs, warmup, strategy and operating admission are not checked.
+Use ./--help or ./-h for filenames literally --help or -h.
+Use gelt help offline for CSV syntax and numeric bounds.
+`
+
 func globalHelp(version string) string {
 	return "Gelt Agentic Trading Suite (" + version + ")\nUsage: gelt <command> [arguments]\n\n" +
 		offlineCommandList + "\nStart with gelt help offline; get exact syntax with gelt help NAME.\n\n" +
@@ -118,6 +128,8 @@ const otherCommandHelp = `  version                              Show Gelt CLI v
 func offlineDetailHelp(topic string) (string, bool) {
 	var usage, purpose, profile string
 	switch topic {
+	case "diagnose-causal-csv":
+		return diagnoseCausalCSVHelp, true
 	case "backtest-causal":
 		usage = causalCLIUsage
 		purpose = "Purpose: reference signal/next-open replay; no declared-cash or fee scenario.\n"

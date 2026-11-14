@@ -41,15 +41,37 @@ const (
 // validation of the complete parsed series. ParseFloat uses float64 rounding;
 // this parser does not provide exact-decimal arithmetic.
 func parseBacktestCausalCSV(r io.Reader) ([]backtest.OHLCV, error) {
+	bars, issue := parseDetailedCausalCSV(r)
+	if issue != nil {
+		return nil, issue.Code
+	}
+	return bars, nil
+}
+
+// causalCSVInputIssue contains only fixed vocabulary and a physical line.
+// Line zero means that no particular cell can be identified.
+type causalCSVInputIssue struct {
+	Code   causalCSVError
+	Line   int
+	Field  string
+	Reason string
+}
+
+// parseDetailedCausalCSV is the single syntax admission implementation shared
+// by the existing fixed-error parser and the input-repair command.
+func parseDetailedCausalCSV(r io.Reader) ([]backtest.OHLCV, *causalCSVInputIssue) {
+	fail := func(code causalCSVError, line int, field, reason string) ([]backtest.OHLCV, *causalCSVInputIssue) {
+		return nil, &causalCSVInputIssue{Code: code, Line: line, Field: field, Reason: reason}
+	}
 	content, err := io.ReadAll(io.LimitReader(r, causalCSVMaxBytes+1))
 	if len(content) > causalCSVMaxBytes {
-		return nil, causalCSVLimit
+		return fail(causalCSVLimit, 0, "none", "byte_limit")
 	}
 	if err != nil {
-		return nil, causalCSVRead
+		return fail(causalCSVRead, 0, "none", "read_failed")
 	}
 	if !utf8.Valid(content) {
-		return nil, causalCSVInvalid
+		return fail(causalCSVInvalid, 0, "none", "invalid_utf8")
 	}
 
 	lines := bytes.Split(content, []byte{'\n'})
@@ -58,10 +80,10 @@ func parseBacktestCausalCSV(r io.Reader) ([]backtest.OHLCV, error) {
 		lines = lines[:len(lines)-1]
 	}
 	if len(lines) < 2 {
-		return nil, causalCSVInvalid
+		return fail(causalCSVInvalid, 0, "none", "missing_data")
 	}
 	if len(lines)-1 > backtest.CausalMaxBars {
-		return nil, causalCSVLimit
+		return fail(causalCSVLimit, 0, "none", "row_limit")
 	}
 
 	bars := make([]backtest.OHLCV, 0, len(lines)-1)
@@ -74,28 +96,32 @@ func parseBacktestCausalCSV(r io.Reader) ([]backtest.OHLCV, error) {
 		}
 		if i == 0 {
 			if string(line) != causalCSVHeader {
-				return nil, causalCSVInvalid
+				return fail(causalCSVInvalid, 1, "none", "header_mismatch")
 			}
 			continue
 		}
 		fields := bytes.Split(line, []byte{','})
 		if len(fields) != 6 {
-			return nil, causalCSVInvalid
+			return fail(causalCSVInvalid, i+1, "none", "field_count")
 		}
 		for j, field := range fields {
 			if !causalCSVNumber(field, j != 0) {
-				return nil, causalCSVInvalid
+				reason := "noncanonical_number"
+				if len(field) > causalCSVMaxToken {
+					reason = "token_too_long"
+				}
+				return fail(causalCSVInvalid, i+1, causalCSVField(j), reason)
 			}
 		}
 		ts, err := strconv.ParseInt(string(fields[0]), 10, 64)
 		if err != nil {
-			return nil, causalCSVInvalid
+			return fail(causalCSVInvalid, i+1, "Timestamp", "number_conversion")
 		}
 		var values [5]float64
 		for j := range values {
 			values[j], err = strconv.ParseFloat(string(fields[j+1]), 64)
 			if err != nil || math.IsNaN(values[j]) || math.IsInf(values[j], 0) {
-				return nil, causalCSVInvalid
+				return fail(causalCSVInvalid, i+1, causalCSVField(j+1), "number_conversion")
 			}
 		}
 		bars = append(bars, backtest.OHLCV{
@@ -108,6 +134,25 @@ func parseBacktestCausalCSV(r io.Reader) ([]backtest.OHLCV, error) {
 		})
 	}
 	return bars, nil
+}
+
+func causalCSVField(column int) string {
+	switch column {
+	case 0:
+		return "Timestamp"
+	case 1:
+		return "Open"
+	case 2:
+		return "High"
+	case 3:
+		return "Low"
+	case 4:
+		return "Close"
+	case 5:
+		return "Volume"
+	default:
+		return "none"
+	}
 }
 
 // causalCSVNumber accepts canonical unsigned ASCII integer/decimal syntax.
