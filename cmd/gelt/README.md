@@ -10,6 +10,35 @@ common input guidance. `gelt help NAME`, `NAME --help` and `NAME -h` produce the
 same exact syntax and notes for the commands below. Help uses static text
 and the build version; it does not read data/configuration or run a command.
 
+`gelt backtest-causal-aligned-window-compare <Symbol> <CSV> <StartInclusiveUnix> <EndExclusiveUnix> <InitialCash> <FixedFee> <FeeBps> <BuyBps> <SellBps>`
+takes exactly nine operands, with no target argument. It admits and parses one
+supplied CSV, closes it once and retains an unchanged original for validation.
+It invokes native TrendConfluence50, fresh default BreakoutVol20 and
+MeanReversion20 selected-period APIs once each, sequentially, stopping on any
+failure. Every family keeps its existing finite-prefix history and defaults;
+START therefore needs at least 50 preceding rows and a nonempty exact interval.
+
+The command validates each unchanged native summary against the original input
+and declarations, then compares the complete scored cash/passive economic paths,
+entries, basis, fees, peaks and drawdowns. Only the distinct native model/policy
+identities, passive reason, flat warmup marks and local indices are normalized
+after validation. Strategy results are not required to agree. The final report
+has common source/window metadata followed by full native summaries in fixed
+BreakoutVol, TrendConfluence, MeanReversion order, with no ranking or tuning.
+
+Failures exit 1 with one fixed stderr diagnostic of the form
+`backtest-causal-aligned-window-compare: FAMILY: CODE`, at most 512 UTF-8 bytes
+including usage for wrong arity. Unknown/inconsistent errors become
+`input: replay_failed`. Cancellation is attributed to input before native work,
+the active native family after its call/summary, alignment during projection or
+comparison, and output at the final pre-write check. Parse/close errors precede
+post-read cancellation. No I/O preemption or snapshot of concurrent file writes
+is promised. Success writes once only after all work passes: header at most
+2048 bytes, each native body at most 8192, complete UTF-8 report at most 32768.
+Nil/short/error stdout returns `output: output_error` without retry; a prefix may
+remain and nonzero output is incomplete. Detailed help retains its separate
+16384-byte cap. Literal CSV filenames `--help`/`-h` among nine operands are data.
+
 `gelt diagnose-causal-csv <DataFile.csv>` checks the complete supplied input for
 CSV syntax and common numeric/bar-domain admission without creating an engine,
 selecting a strategy, parsing symbol/cost declarations or replaying. A valid
@@ -45,6 +74,7 @@ post-read cancellation. No I/O deadline or concurrent-file snapshot is promised.
 
 | Command | Literal target | Purpose and period |
 | --- | --- | --- |
+| `backtest-causal-aligned-window-compare` | none | Fixed three-family comparison over one exact interval |
 | `diagnose-causal-csv` | none | Locate a syntax/domain issue in complete supplied input |
 | `backtest-causal` | `BreakoutVol` | Reference signal/next-open replay |
 | `backtest-causal-funded` | `BreakoutVol` | Declared-cash affordability diagnostic, zero modeled costs |

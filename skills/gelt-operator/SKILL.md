@@ -33,6 +33,11 @@ BreakoutVol diagnostics are `backtest-causal`, `backtest-causal-funded`,
 `backtest-causal-fees` and `backtest-causal-execution`; they are not the
 strategy/cash/passive comparison.
 
+For all three fixed families on one exact interval, use
+`help backtest-causal-aligned-window-compare` and its nine operands with no
+target; it checks shared controls while retaining native 20/50/20 histories
+and all qualification limits, without ranking strategies or expanding authority.
+
 Use an explicitly supplied CSV and symbol declaration. No causal route silently
 substitutes generated data. The symbol declaration does not authenticate the
 file's origin. On Linux, the input must be a regular file or a symlink resolving
