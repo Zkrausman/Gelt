@@ -1141,6 +1141,8 @@ func main() {
 		fmt.Println(ev)
 		fmt.Println("================================================================================")
 
+	case "diagnose-causal-csv":
+		os.Exit(runDiagnoseCausalCSV(context.Background(), os.Args[2:], os.Stdout, os.Stderr))
 	case "backtest-causal-meanrev-compare":
 		os.Exit(runBacktestCausalMean20Comparison(context.Background(), os.Args[2:], os.Stdout, os.Stderr))
 	case "backtest-causal-window-compare":

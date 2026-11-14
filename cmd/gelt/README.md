@@ -7,11 +7,45 @@ The `cmd/gelt` package provides the command-line interface entry point for Gelt,
 `gelt help` (also `gelt --help` or `gelt -h`) lists the supplied-CSV commands
 separately from the other CLI interfaces. `gelt help offline` shows a chooser and
 common input guidance. `gelt help NAME`, `NAME --help` and `NAME -h` produce the
-same exact syntax and notes for the nine commands below. Help uses static text
+same exact syntax and notes for the commands below. Help uses static text
 and the build version; it does not read data/configuration or run a command.
+
+`gelt diagnose-causal-csv <DataFile.csv>` checks the complete supplied input for
+CSV syntax and common numeric/bar-domain admission without creating an engine,
+selecting a strategy, parsing symbol/cost declarations or replaying. A valid
+one-row file may pass. It does not check source authenticity, warmup, history,
+symbol, costs, strategy or operating admission, and it does not change input.
+
+On failure it emits one fixed diagnostic on stderr and exits 1:
+
+```text
+diagnose-causal-csv: invalid_csv line=23 field=High reason=noncanonical_number
+```
+
+Physical lines are one-based, including header line 1; the first data row is
+line 2. `line=none field=none` means no particular cell is identified. Complete
+bounded read, UTF-8 and row count checks precede header/row syntax; all syntax
+checks precede domain checks. Thus a later malformed token can precede an
+earlier domain-invalid price. A combined geometry fault identifies `OHLC`,
+without guessing a particular price. Values, rows, paths and OS/parser error
+text are not echoed. Success exits 0 with only:
+
+```text
+Causal CSV syntax/domain check: passed
+Data rows: N
+Scope: unqualified input only; symbol, costs, warmup, strategy and operating admission not checked.
+```
+
+Each report, including usage/error, is valid UTF-8 and at most 512 bytes before
+one write attempt. A failed success write exits 1 and attempts only fixed
+`diagnose-causal-csv: output_error` on stderr; a prefix can already exist.
+Cancellation is checked before opening and after successful parsing/closing,
+then again before success. Read/parse/close failures take precedence over
+post-read cancellation. No I/O deadline or concurrent-file snapshot is promised.
 
 | Command | Literal target | Purpose and period |
 | --- | --- | --- |
+| `diagnose-causal-csv` | none | Locate a syntax/domain issue in complete supplied input |
 | `backtest-causal` | `BreakoutVol` | Reference signal/next-open replay |
 | `backtest-causal-funded` | `BreakoutVol` | Declared-cash affordability diagnostic, zero modeled costs |
 | `backtest-causal-fees` | `BreakoutVol` | Fixed and bps fees on filled sides |
@@ -79,7 +113,9 @@ CSV/generated-synthetic diagnostic.
 Help topics are closed: unsupported topics (including `help buy` and
 `help dashboard`) return `gelt help: unsupported_topic`; multiple topic tokens
 return `gelt help: invalid_arguments`. Only a sole `--help`/`-h` operand for one
-of the nine commands is intercepted. A full invocation containing a data
+of the listed commands is intercepted. For `diagnose-causal-csv`, filenames
+literally `--help` or `-h` must be supplied as `./--help` or `./-h`. A full
+existing replay/comparison invocation containing a data
 filename literally `--help`, mixed operands and all other command grammar keep
 their existing parsing and admission. No general operational-command help alias
 is added. No arguments still print global usage and exit 1; unknown top-level

@@ -465,24 +465,8 @@ func (v causalEvaluator) evaluate(
 }
 
 func causalValidateBars(data []OHLCV) (int, CausalErrorCode) {
-	if len(data) < 1 {
-		return causalNoBar, CausalInvalidInput
-	}
-	if len(data) > CausalMaxBars {
-		return causalNoBar, CausalResourceLimit
-	}
-	for i, b := range data {
-		if b.Timestamp <= 0 || b.Timestamp > causalMaxTimestamp ||
-			(i > 0 && b.Timestamp <= data[i-1].Timestamp) ||
-			!causalFiniteRange(b.Open, 0.01, 1000000) ||
-			!causalFiniteRange(b.High, 0.01, 1000000) ||
-			!causalFiniteRange(b.Low, 0.01, 1000000) ||
-			!causalFiniteRange(b.Close, 0.01, 1000000) ||
-			!causalFiniteRange(b.Volume, 0, 1000000000000) ||
-			b.Low > b.Open || b.Low > b.Close || b.Open > b.High ||
-			b.Close > b.High || b.Low > b.High {
-			return i, CausalInvalidInput
-		}
+	if issue := causalBarsIssue(data); issue != nil {
+		return issue.BarIndex, issue.Code
 	}
 	return causalNoBar, ""
 }

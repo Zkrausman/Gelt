@@ -43,6 +43,11 @@ Limits are 1 MiB, 10,000 data rows and 32 bytes per numeric token. LF and CRLF
 are supported. Use the help's price, OHLC, volume, timestamp and declaration
 bounds; CSV prices use float64 parsing, not exact-decimal arithmetic.
 
+For an input-repair address, run `./gelt.exe diagnose-causal-csv ./supplied.csv`
+on the already supplied file; its fixed line/field/reason checks only complete
+syntax/domain admission, does not alter input or establish warmup/operating
+readiness, and literal filenames `--help`/`-h` require `./--help`/`./-h`.
+
 Declare initial simulated cash, fixed filled-side fee, fee basis points and
 BUY/SELL adverse basis points as the selected help requires. For example, this
 is one **uncalibrated zero-cost synthetic scenario**, not realistic execution:

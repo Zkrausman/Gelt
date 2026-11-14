@@ -87,8 +87,15 @@ go test ./...
 
 Start with `gelt help offline` to choose an existing diagnostic or strategy
 comparison, then `gelt help NAME` for exact syntax. Global `gelt help`, `--help`
-and `-h` list all nine supplied-CSV commands. Each also accepts a sole `--help`
+and `-h` list the supplied-CSV commands. Each also accepts a sole `--help`
 or `-h` operand without opening an input file or loading configuration.
+
+Use `gelt diagnose-causal-csv ./supplied-bars.csv` to locate a syntax or common
+bar-domain issue before choosing a replay. It reports a fixed reason and, when
+known, a one-based physical line and field, without changing the input or
+echoing its values. A valid one-row file may pass; symbol, costs, warmup,
+strategy and operating admission are not checked. For filenames literally
+`--help` or `-h`, supply `./--help` or `./-h`.
 
 | Strategy | Whole input | Selected period |
 | --- | --- | --- |
