@@ -1,87 +1,100 @@
 ---
 name: gelt-operator
-description: Operational skill for the Gelt Trading Engine CLI. Use when running backtests, multi-strategy ensemble shadow engines, risk governance limit checks, macro matrix polling, pre-market health checks, market screeners, or telemetry dashboards.
+description: Use Gelt's supplied-CSV offline replay/comparison commands, or its operational CLI when that separate task is authorized.
 ---
 
-# Gelt Trading Engine Operator Skill 🪙
+# Gelt CLI workflow
 
-The `gelt-operator` skill equips AI agents with comprehensive operational commands and diagnostic workflows for managing the **Gelt Trading Engine** (`gelt.exe`).
+For a supplied-data simulation, use the closed causal commands below. They do
+not acquire data or enter configured services. Operational command references
+later in this skill are a separate workflow, not offline prerequisites.
 
-```mermaid
-graph TD
-    UserReq["Operator / AI Request"] --> CmdDispatch["cmd/gelt/main.go"]
-    CmdDispatch --> HealthCheck["./gelt.exe test-suite / health"]
-    CmdDispatch --> RiskGuard["./gelt.exe risk / options-risk"]
-    CmdDispatch --> MarketScan["./gelt.exe scan / signals <ticker>"]
-    CmdDispatch --> ShadowExec["./gelt.exe shadow --ensemble --duration=session"]
-    CmdDispatch --> BacktestRun["./gelt.exe backtest <Plan> <Symbol>"]
-    CmdDispatch --> DashboardServer["./gelt.exe dashboard"]
-```
+## Supplied-CSV replay and comparison
 
-## 1. Core CLI Commands
+Start with the installed binary's source-defined chooser and exact command help:
 
-### Health & Pre-Market Verification
 ```bash
-# Run comprehensive pre-market diagnostic test-suite across all modules
-./gelt.exe test-suite
-
-# Check live broker & MCP endpoint health
-./gelt.exe health
+./gelt.exe help offline
+./gelt.exe help backtest-causal-compare
 ```
 
-### Risk Governance & Sizing
+Choose the existing comparison that matches the requested strategy and period:
+
+| Strategy | Whole supplied input | Selected scoring period |
+| --- | --- | --- |
+| BreakoutVol | `backtest-causal-compare` | `backtest-causal-window-compare` |
+| TrendConfluence | `backtest-causal-trend50-compare` | `backtest-causal-trend50-window-compare` |
+| MeanReversion | `backtest-causal-meanrev-compare` | The same command with `--window START END` after its cost declarations |
+
+Use `help NAME` for the selected command before constructing its positional
+arguments. Its target must be the exact literal strategy name in the table;
+plans and other catalog targets are not admitted by these routes. Separate
+BreakoutVol diagnostics are `backtest-causal`, `backtest-causal-funded`,
+`backtest-causal-fees` and `backtest-causal-execution`; they are not the
+strategy/cash/passive comparison.
+
+Use an explicitly supplied CSV and symbol declaration. No causal route silently
+substitutes generated data. The symbol declaration does not authenticate the
+file's origin. On Linux, the input must be a regular file or a symlink resolving
+to one; FIFO, directory and device inputs are rejected. The complete UTF-8 file
+must have the exact header `Timestamp,Open,High,Low,Close,Volume`, strictly
+increasing Unix-second timestamps and canonical unsigned numeric tokens.
+Limits are 1 MiB, 10,000 data rows and 32 bytes per numeric token. LF and CRLF
+are supported. Use the help's price, OHLC, volume, timestamp and declaration
+bounds; CSV prices use float64 parsing, not exact-decimal arithmetic.
+
+Declare initial simulated cash, fixed filled-side fee, fee basis points and
+BUY/SELL adverse basis points as the selected help requires. For example, this
+is one **uncalibrated zero-cost synthetic scenario**, not realistic execution:
+
 ```bash
-# Inspect active equity risk limits ($10 max trade, 20% max allocation, 3.0% stop-loss)
-./gelt.exe risk
-
-# Inspect options risk limits (contract premium caps, min DTE)
-./gelt.exe options-risk
+./gelt.exe backtest-causal-compare BreakoutVol TEST owned.csv 100 0 0 0 0
 ```
 
-### Market Screening & Technical Indicators
-```bash
-# Evaluate technical indicator confluence score (RSI, EMA, MACD, Bollinger, ATR)
-./gelt.exe signals SPY
+Replace the example file, symbol and assumptions with the task's actual supplied
+inputs and declarations. Comparisons use flat cash and one passive buy capped
+at simulated $10 including its entry fee. There is no funding resize, loan,
+rebalancing, forced terminal sale or SELL cost without a SELL.
 
-# Run multi-ticker market screener across universe
-./gelt.exe scan 70.0
+For selected periods, START is inclusive and END exclusive. Both must match
+supplied timestamps, except END can be the complete source's last timestamp
+plus **one second**, not the next cadence interval. The selected replay consumes
+exactly twenty preceding warmup rows for BreakoutVol/MeanReversion or fifty for
+TrendConfluence.
+All source rows, including excluded rows, are validated. Finite-prefix indicator
+reseeding is a separate simulation, not a filtered full-history replay.
 
-# Monitor asset-calibrated trailing stops on active positions
-./gelt.exe monitor
-```
+Read the bounded human summary with its exposure, protection, turnover, fee and
+terminal-state disclosures. Original-OHLC event checks are conditional on
+normalized signals; they do not independently establish indicator decisions,
+authenticity, adequate/converged history, cadence/session eligibility, calibrated
+costs or profitability. MeanReversion's 0.5/1.5 protection multipliers are
+explicit uncalibrated defaults. No machine-readable comparison export is implied.
 
-### Multi-Strategy Ensemble Shadow Engine
-```bash
-# Launch concurrent shadow simulation engine for current trading session
-./gelt.exe shadow --ensemble --duration=session
+Retain the command's exit status and diagnostic. Nonzero means the command
+failed; stdout may contain a prefix after an output failure and must not be
+treated as a complete result. Do not automatically replay an uncertain action.
+Source delivery and synthetic results leave NOT_READY / CLOSED / DEFER intact.
 
-# Inspect strategy leaderboard (live vs shadow metrics)
-./gelt.exe shadow
-```
+## Legacy and operational references
 
-### Backtesting & Macro Intelligence
-```bash
-# Run deterministic 100% offline backtest for a strategy or plan
-./gelt.exe backtest IntradayAlphaPlan SPY 60
+Legacy `backtest <PlanOrStrategy> <Symbol> [DataFile.csv | Days]` is a different
+CSV/generated-synthetic diagnostic. Without a CSV it generates wall-clock-seeded
+data; it is not deterministic historical evidence or a substitute for the
+supplied-CSV comparison workflow. Its registry and parser behavior also differ.
 
-# Fetch non-blocking async macro economic indicators (EFFR, CPI, Yields via FRED)
-./gelt.exe macro EFFR
+Commands such as `health`, `test-suite`, `risk`, `scan`, `macro`, `shadow`,
+`telemetry`, `dashboard`, authentication and trading can access configuration,
+integrations or operating state. Use them only within the actual task's existing
+authority. They are not verification steps for an offline CSV comparison, and
+loading this skill grants no acquisition, credential, shadow or trading scope.
 
-# Evaluate current market volatility regime
-./gelt.exe regime 28.5
-```
+For separately authorized shadow execution, retain the existing requirement to
+record shadow logs and trade theses through `GELT_BEADS_BRAIN_PATH` with
+`[bd-3qwe self-doc]` anchors.
 
-### Telemetry & Web Dashboard
-```bash
-# View console telemetry & trade journal summary
-./gelt.exe telemetry
-
-# Launch local telemetry web server on port 8080
-./gelt.exe dashboard
-```
-
-## 2. Operational Guardrails
-
-1. **Deterministic Testing**: Always verify local binary execution with `./gelt.exe test-suite` before deploying changes or executing shadow sessions.
-2. **Single-Subscription Optimization**: Leverage local offline backtesting (`pkg/backtest`) and async non-blocking macro caching (`pkg/macro`) to minimize external network latency and token usage.
-3. **Beads Self-Doc Compliance**: Ensure shadow execution logs and trade theses are recorded to `GELT_BEADS_BRAIN_PATH` with `[bd-3qwe self-doc]` anchors.
+For source changes, follow repository `AGENTS.md` and
+`.agents/skills/ticket-delivery/SKILL.md` with scoped tests and owned offline
+fixtures. Do not substitute the integration `test-suite` or a configured
+dashboard for those checks. Preserve any stricter current operating, access and
+unknown-outcome holds.
