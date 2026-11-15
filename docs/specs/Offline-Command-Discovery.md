@@ -5,6 +5,13 @@ title: Supplied-CSV offline command discovery
 
 # Supplied-CSV offline command discovery
 
+> Additive unknown-command boundary (2026-11-14): this original help-delivery
+> report records its historical raw-prefix compatibility below. The separate
+> [fixed unknown-command diagnostic](Unknown-Command-Diagnostic.md) supersedes
+> only that unmatched-command prefix: fixed stderr reason, unchanged global
+> usage, exit 1, and no operand echo. Help grammar and all recognized dispatch
+> behavior remain governed by the existing contracts.
+
 The CLI exposes its nine existing strict supplied-CSV routes in global help and
 a separate offline chooser. `help`, `--help` and `-h` accept no topic, `offline`,
 or exactly one of the nine causal names. Each causal name also accepts a sole

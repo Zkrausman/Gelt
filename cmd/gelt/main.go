@@ -1355,9 +1355,7 @@ func main() {
 		select {}
 
 	default:
-		fmt.Printf("Unknown command: %s\n\n", command)
-		printUsage()
-		os.Exit(1)
+		os.Exit(runUnknownCommand(os.Stdout, os.Stderr))
 	}
 }
 
