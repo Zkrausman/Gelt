@@ -180,3 +180,10 @@ graph TD
 - `gelt plan`: Inspects or switches active trading plans (`gelt plan set <name>`).
 - `gelt shadow`: Manages shadow strategy forward-testing and cycle snapshots (`gelt shadow cycles`).
 - `gelt version`: Emits Squire-compliant semantic version metadata.
+
+`version` retains its exact `gelt version <Version>` line and existing operand
+handling. It returns success only when stdout accepts the complete line without
+an error. A failed or short write returns 1 and attempts the fixed stderr reason
+`gelt version: output_error` once; no raw writer error or operand is printed and
+no write is retried. Failure may leave an output prefix. Success means writer
+acceptance, not durable storage or downstream consumption.
