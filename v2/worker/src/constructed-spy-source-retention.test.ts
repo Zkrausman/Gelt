@@ -190,7 +190,8 @@ it('retains exact lexical outer bytes, replays the complete projection, and isol
   const path = join(rootA, 'source.json');
   const before = { bytes: fs.readFileSync(path), file: fs.statSync(path), directory: fs.statSync(rootA), names: readdirSync(rootA).sort() };
   const mutationCalls: string[] = [];
-  const relevant = (candidate: unknown) => typeof candidate === 'string' && candidate.startsWith(rootA + '/');
+  const relevant = (candidate: unknown) => typeof candidate === 'string'
+    && (candidate === rootA || candidate.startsWith(rootA + '/'));
   const originalWriteFile = fsMutable.writeFileSync, originalFsync = fsMutable.fsyncSync;
   const originalUnlink = fsMutable.unlinkSync, originalRename = fsMutable.renameSync,
     originalMkdir = fsMutable.mkdirSync, originalOpen = fsMutable.openSync;

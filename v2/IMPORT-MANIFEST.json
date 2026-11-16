@@ -4682,7 +4682,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/constructed-spy-source-retention.test.ts",
-      "sha256": "f90cd7d31820477ce993f45514b30eba01616bc543c75f5006a8d4e8fe39e445",
+      "sha256": "308984584202fca7aa75a79267f3e6862fd50272d56834c4782e10b8e0664c9e",
       "reason": "Synthetic source-retention acceptance; no provider, actual-data or operating authority."
     },
     {

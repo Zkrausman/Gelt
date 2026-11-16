@@ -5,7 +5,7 @@ classification: constructed_offline_test
 authority: none
 market_evaluation: not_established
 promotion_allowed: false
-verification: prior_partial_run_stale_after_test_correction
+verification: working_checks_passed_final_gates_pending
 ---
 
 # Constructed SPY/G05 original-source retention
@@ -64,9 +64,11 @@ never retained.
 
 The fixed namespace is source.json and .source.pending in an already
 existing canonical private directory. No directory creation, permission
-repair, overwrite, update, delete, append, automatic cleanup, writer reopen,
-retry, clock, network, or runtime wiring is performed. Linux local filesystems
-are limited to the existing ext4, XFS, Btrfs, and overlay allowlist.
+repair, overwrite, update, source-record deletion API, append, automatic
+cleanup, writer reopen, retry, clock, network, or runtime wiring is performed.
+Writer close intentionally unlinks only the pending fence under the documented
+final-fence protocol. Linux local filesystems are limited to the existing
+ext4, XFS, Btrfs, and overlay allowlist.
 
 The raw input and complete projection are each limited to 1 MiB. The exact
 base64 limit is 1,398,104 characters, the canonical source record limit is
@@ -95,6 +97,25 @@ Errors use the fixed message constructed SPY source unavailable and the
 closed reason set invalid_input, unavailable, or uncertain. Raw input, paths,
 owner values, parser messages, and operating-system errors are not included.
 
+## Initial review and remediation
+
+The initial independent accuracy/privacy and adversarial reviews were distinct.
+Both found no blocker, high, or medium issue, no privacy finding, and no
+indispensable evidence gap. They identified three actionable Low findings:
+
+- The readonly mutation spy omitted the archive directory itself. The test now
+  includes the exact root path as well as its descendants.
+- The storage description said no deletion occurred, despite writer close
+  intentionally unlinking the pending fence. The description now distinguishes
+  the absence of a source-record deletion API from that close operation.
+- The working-verification paragraph did not match the retained run evidence.
+  This section now reports the earlier failures, working-stage passes, and
+  remaining gates separately.
+
+All three Low findings have been addressed in the current working tree. These
+were initial reviews, not final approvals. Fresh independent and adversarial
+reviews of the complete closeout diff remain pending.
+
 ## Acceptance
 
 Owned synthetic tests cover:
@@ -120,12 +141,17 @@ Owned synthetic tests cover:
 - Existing PR74/PR75 projection and G05 consumer compatibility checks on
   unchanged source.
 
-An earlier run against the pre-correction test draft reported 55 passing tests
-and three mock-instrumentation failures. A separate Go race run passed. The
-current test-spy correction has not been rerun, so those results do not verify
-the current tests or source head. Typechecking, import inventory verification,
-vet, independent source/privacy reviews, final V2 checks, CI, and delivery
-remain unrun or pending. No final acceptance or publication is claimed here.
+The initial working run reported 55 passing tests and three ESM-spy
+instrumentation failures. After the mutable-fs spy correction, the ten archive
+unit tests passed; the unchanged consumer integration and 47 compatibility
+cases remained passed on their unchanged bytes. A later remediation-only run
+passed all ten archive unit tests, including the exact-root mutation-spy
+regression, and the import inventory check. Go race, worker typechecking, and
+vet also passed as working-stage checks. These are not final exact-head
+acceptance results. The complete final suite, fresh final independent and
+adversarial reviews, final V2 checks, scientific and applicable protected
+gates, CI, and delivery remain unrun or pending. No final acceptance or
+publication is claimed here.
 
 ## Changed files
 
