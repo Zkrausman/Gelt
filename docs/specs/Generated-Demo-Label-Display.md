@@ -40,8 +40,14 @@ the same tested renderer but that branch is not claimed as runtime-tested.
   account for the existing eight-column symbol field. The test expectation was
   corrected to preserve that padding; this was an acceptance-fixture failure,
   not a production behavior change.
-- Formatting and diff checks passed. Full working race and vet verification
-  remain in progress; no final-suite or hosted-CI result is claimed here.
+- Full working verification passed: `go test -race ./...` (exit 0; all
+  packages passed, with `cmd/gelt` completing in 66.378s) and
+  `go vet ./...` (exit 0). Formatting and diff checks passed.
+- Fresh independent and distinct adversarial source/privacy reviews approved
+  candidate `dc75482d2eb1d89f9670628927dda8d78d9ee2d3`, with no actionable or
+  privacy findings.
+- Fresh final review and final-head verification, followed by hosted CI, remain
+  pending. Working checks and initial reviews are not claimed as final gates.
 
 ## Limits
 
