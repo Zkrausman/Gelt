@@ -19,8 +19,10 @@ rename loop, all legacy root files remain in place on either failure. The public
 void API and caller behavior remain unchanged.
 
 When both directories are available, the existing mappings remain unchanged.
-An existing destination continues to prevent its legacy source from being
-renamed. The migration does not promise an atomic multi-file transaction or
+The existing `os.Stat` destination check continues to prevent the legacy source
+from being renamed when the destination is stat-visible. A dangling symlink may
+be treated as absent by `os.Stat`; this correction does not change that existing
+behavior. The migration does not promise an atomic multi-file transaction or
 protection against concurrent directory namespace changes.
 
 ## Changed files and verification
