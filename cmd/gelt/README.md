@@ -149,7 +149,9 @@ existing replay/comparison invocation containing a data
 filename literally `--help`, mixed operands and all other command grammar keep
 their existing parsing and admission. No general operational-command help alias
 is added. No arguments still print global usage and exit 1; unknown top-level
-commands retain their existing raw prefix and usage behavior.
+commands emit only `gelt: unknown_command` on stderr, retain global usage on
+stdout and exit 1. The unmatched operand is never echoed. Existing help-output
+failure handling remains; a failed write may leave a prefix, without retry.
 
 New help bodies are nonempty UTF-8, at most 16384 bytes, with one stdout write
 attempt. Invalid rendered output returns `gelt help: invalid_output` before
