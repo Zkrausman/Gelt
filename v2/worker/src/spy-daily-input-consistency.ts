@@ -76,7 +76,8 @@ const requestSchema = z.object({
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['predecessor'], message: 'invalid input' });
   }
 });
-type Request = z.infer<typeof requestSchema>;
+export type SpyDailyInputRequest = z.infer<typeof requestSchema>;
+type Request = SpyDailyInputRequest;
 
 const spyDailyInputReasons = [
   'daily_mapping',

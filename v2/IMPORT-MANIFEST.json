@@ -4634,7 +4634,7 @@
       "upstreamSha256": null,
       "path": "worker/src/spy-daily-input-consistency.ts",
       "status": "added",
-      "sha256": "1f742f9e467bd3f44007bad422adda68c487c801cb25b4826f2d0d02fc61446e",
+      "sha256": "da21b7ca75c18aaa780f52c6a5ca9b00b8387546daaae3a7367bcb9c425f92c9",
       "reason": "Gelt pure constructed synthetic SPY daily-window consistency and tests; no admission, provider, market-data or effect authority."
     },
     {
@@ -4644,6 +4644,30 @@
       "status": "added",
       "sha256": "cae8ba2223336756ca291a7674f5e9ba543f190b8c16e44fa5b522d944a5fb38",
       "reason": "Gelt pure constructed synthetic SPY daily-window consistency and tests; no admission, provider, market-data or effect authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/constructed-spy-g05-projection.ts",
+      "status": "added",
+      "sha256": "bca9b156bc25a20015da08f1597fab98db7c93f3cdad05fb56018f3e82dc3698",
+      "reason": "Pure constructed-only PR74-to-G05 projection; no source authentication, admission, provider, data rights, or effects."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/constructed-spy-g05-projection.test.ts",
+      "status": "added",
+      "sha256": "a9ca5f440a290a8510fe7ba7fb6b048e9d4499677df7fe32907cb824d44d710d",
+      "reason": "Synthetic acceptance cases for constructed PR74-to-G05 projection; no provider, market-data, or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/constructed-spy-g05-consumer.test.ts",
+      "status": "added",
+      "sha256": "e8b92bd38670d45964f64d49effd7f5004c4dc474f6d09da6a02559ec3c7d7a8",
+      "reason": "Synthetic projected-consumer integration and protected read-only reopen acceptance; no real-data or order authority."
     }
   ],
   "retiredLocalEntries": []
