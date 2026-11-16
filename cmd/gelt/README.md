@@ -183,7 +183,10 @@ graph TD
 
 `version` retains its exact `gelt version <Version>` line and existing operand
 handling. It returns success only when stdout accepts the complete line without
-an error. A failed or short write returns 1 and attempts the fixed stderr reason
-`gelt version: output_error` once; no raw writer error or operand is printed and
-no write is retried. Failure may leave an output prefix. Success means writer
-acceptance, not durable storage or downstream consumption.
+an error. When a write returns a failure or short count, the helper returns 1
+and attempts fixed stderr reason `gelt version: output_error` once. Ordinary
+Unix SIGPIPE behavior is preserved: a broken stdout or diagnostic pipe may
+terminate the process before that return, with a different nonzero disposition
+and no diagnostic. No raw writer error or operand is printed and no write is
+retried. Failure may leave an output prefix. Success means writer acceptance,
+not durable storage or downstream consumption.
