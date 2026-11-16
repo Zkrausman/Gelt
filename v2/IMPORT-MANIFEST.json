@@ -4162,8 +4162,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/candidate-shadow-integration.test.ts",
-      "sha256": "e085dcf964bd7209dece3f7469722bb52a3aad78d9a4eeae7dce38c5ddecf25b",
-      "reason": "Gelt bounded constructed baseline candidate/lifecycle evidence integration; no operating or conversion authority"
+      "sha256": "4f2179a670a61b652ad0e921817eb1bdedf9f8e67dbb354e4bc471ddbb48d698",
+      "reason": "Gelt constructed-offline candidate lifecycle integration, including stop/reopen conformance; no operating or conversion authority"
     },
     {
       "upstreamPath": null,

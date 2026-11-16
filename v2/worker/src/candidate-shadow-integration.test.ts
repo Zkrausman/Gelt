@@ -153,11 +153,81 @@ it('preserves actual dispatch UNKNOWN across protected reads and reopen without 
   const before = await f.read(result.intentId);
   expect(before.view.lifecycle.disposition).toBe('unknown');
   expect(before.view.lifecycle.dispatchUnknown).toBe(true);
+  const portfolio = f.h.mockStore!.portfolio();
+  const calls = f.calls();
+  f.h.haltSizingBound();
+  expect(await f.read(result.intentId)).toEqual(before);
+  expect(f.h.mockStore!.portfolio()).toEqual(portfolio);
   await f.h.close();
   const reopened = f.h.reopen(); harnesses.push(reopened);
   const request = f.makeRequest(reopened, await reopened.start());
   expect((await request('history', { candidateDispatchId: result.intentId })).body.value).toEqual(before);
+  expect(reopened.mockStore!.portfolio()).toEqual(portfolio);
+  expect((await request('resume')).status).toBe(409);
+  expect((await request('preview', {})).status).toBe(409);
   expect((await request('confirm', { confirmationToken: prepared.confirmationToken, termsHash: prepared.termsHash })).status).toBe(409);
+  await expect(reopened.previewSizingBound()).rejects.toThrow();
+  expect((await request('history', { candidateDispatchId: result.intentId })).body.value).toEqual(before);
+  expect(reopened.mockStore!.portfolio()).toEqual(portfolio);
+  expect(f.calls()).toBe(calls);
+}, 15000);
+
+it('revokes a prepared G05 confirmation on stop and remains read-only after reopen', async () => {
+  const f = await fixture(), prepared = await f.prepare();
+  const portfolio = f.h.mockStore!.portfolio();
+  const confirmation = { confirmationToken: prepared.confirmationToken, termsHash: prepared.termsHash };
+  const calls = f.calls();
+
+  f.h.haltSizingBound();
+  expect((await f.request('confirm', confirmation)).status).toBe(409);
+  expect((await f.request('history')).body.value.items).toEqual([]);
+  expect(f.h.mockStore!.portfolio()).toEqual(portfolio);
+  expect(f.h.mockStore!.portfolio().snapshot.cash.value).toBe('20.00000000');
+  expect(f.h.mockStore!.portfolio().snapshot.quantity.value).toBe('0.000000000000000000');
+  expect(f.calls()).toBe(calls);
+
+  await f.h.close();
+  const reopened = f.h.reopen(); harnesses.push(reopened);
+  const request = f.makeRequest(reopened, await reopened.start());
+  expect((await request('history')).body.value.items).toEqual([]);
+  expect((await request('confirm', confirmation)).status).toBe(409);
+  expect((await request('resume')).status).toBe(409);
+  expect((await request('preview', {})).status).toBe(409);
+  await expect(reopened.previewSizingBound()).rejects.toThrow();
+  expect((await request('history')).body.value.items).toEqual([]);
+  expect(reopened.mockStore!.portfolio()).toEqual(portfolio);
+  expect(f.calls()).toBe(calls);
+}, 15000);
+
+it('preserves a committed G05 fill exactly across stop and read-only reopen', async () => {
+  const f = await fixture(), { prepared, result } = await f.confirm();
+  const decisionId = (await f.read(result.intentId)).view.decision.decisionId;
+  const execution = f.fill(result.intentId, decisionId, prepared.terms.order.requestedQuantity);
+  expect((await f.request('reconcile')).status).toBe(200);
+  const before = await f.read(result.intentId);
+  const portfolio = f.h.mockStore!.portfolio();
+  const calls = f.calls();
+  expect(before.view.simulatedOrder.executions).toHaveLength(1);
+  expect(before.view.simulatedOrder.executions[0].receiptId).toBe(execution.receiptId);
+  expect(portfolio.snapshot.quantity.value).not.toBe('0.000000000000000000');
+
+  f.h.haltSizingBound();
+  expect(await f.read(result.intentId)).toEqual(before);
+  expect(f.h.mockStore!.portfolio()).toEqual(portfolio);
+  await f.h.close();
+  const reopened = f.h.reopen(); harnesses.push(reopened);
+  const request = f.makeRequest(reopened, await reopened.start());
+  expect((await request('history', { candidateDispatchId: result.intentId })).body.value).toEqual(before);
+  expect(reopened.mockStore!.portfolio()).toEqual(portfolio);
+  expect((await request('resume')).status).toBe(409);
+  expect((await request('preview', {})).status).toBe(409);
+  expect((await request('confirm', { confirmationToken: prepared.confirmationToken, termsHash: prepared.termsHash })).status).toBe(409);
+  const after = (await request('history', { candidateDispatchId: result.intentId })).body.value;
+  expect(after).toEqual(before);
+  expect(after.view.simulatedOrder.executions).toEqual(before.view.simulatedOrder.executions);
+  expect(after.view.simulatedOrder.executions).toHaveLength(1);
+  expect(reopened.mockStore!.portfolio()).toEqual(portfolio);
+  expect(f.calls()).toBe(calls);
 }, 15000);
 
 it('keeps partial/cancel/late fills distinct and retains holdings after cancellation settlement', async () => {
