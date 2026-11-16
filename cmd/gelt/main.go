@@ -106,7 +106,7 @@ func main() {
 
 	switch command {
 	case "version":
-		fmt.Printf("gelt version %s\n", Version)
+		os.Exit(runVersionCommand(os.Stdout, os.Stderr))
 
 	case "risk":
 		appCfg, _ := config.LoadAppConfig()
