@@ -35,6 +35,22 @@ protection against concurrent directory namespace changes.
   successful mappings and existing-target behavior.
 - This specification records the scope and its limits.
 
-Checks are recorded in the private delivery handoff. No real user home,
-configuration, journal or daemon files are used. This storage-path correction
-does not change trading behavior or grant operating authority.
+The isolated focused race test `go test -race ./pkg/config -count=1` passed
+(`ok gelt/pkg/config 1.026s`). It used disposable HOME/cwd trees, a read-only
+source mount and Go SDK, fresh task-owned cache/temp/module-cache directories,
+and disabled network access. This test ran before the documentation-only
+correction that clarified stat-visible destination behavior; the executable
+source and test files were unchanged by that clarification. `gofmt -d` with the
+project Go SDK and `git diff --check` also passed. The complete repository
+release checks are run separately before publication.
+
+An independent source review and a distinct adversarial review accepted the
+corrected candidate after one Low wording issue was fixed: the existing-target
+description now matches the `os.Stat` check and notes that dangling-symlink
+behavior is unchanged. Their review found no remaining blocker, high, actionable
+medium, or privacy finding. The final review covers this completion
+specification as part of the complete changed-file set.
+
+No real user home, configuration, journal or daemon files are used. This
+storage-path correction does not change trading behavior or grant operating
+authority.
