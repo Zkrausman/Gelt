@@ -4628,6 +4628,22 @@
       "status": "added",
       "sha256": "b71ac101f7172feace675376c24ff6b35661e5362b398a311efcac976c6b7a7d",
       "reason": "Owner-approved read-only agent inspection of existing A64 receipts; no acquisition, writes or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/spy-daily-input-consistency.ts",
+      "status": "added",
+      "sha256": "1f742f9e467bd3f44007bad422adda68c487c801cb25b4826f2d0d02fc61446e",
+      "reason": "Gelt pure constructed synthetic SPY daily-window consistency and tests; no admission, provider, market-data or effect authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "path": "worker/src/spy-daily-input-consistency.test.ts",
+      "status": "added",
+      "sha256": "cae8ba2223336756ca291a7674f5e9ba543f190b8c16e44fa5b522d944a5fb38",
+      "reason": "Gelt pure constructed synthetic SPY daily-window consistency and tests; no admission, provider, market-data or effect authority."
     }
   ],
   "retiredLocalEntries": []
