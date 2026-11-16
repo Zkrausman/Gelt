@@ -176,7 +176,17 @@ graph TD
 
 ## Supported Commands
 
-- `gelt scan`: Runs Universe Screener and prints Confluence scores.
+- `gelt signals [SYMBOL]`: Demonstrates indicators and diagnostic scores using generated sample closes. The symbol labels the demo; it does not select observed market prices.
+- `gelt scan [MIN_SCORE]`: Ranks generated demo series using the configured/default watchlist and synthetic price anchors. It does not fetch observed market prices. Filtering and diagnostic calculations are unchanged; equal-score ordering is unspecified.
+
+Both previews explicitly display `SYNTHETIC DEMO`. Their prices, bias, scores,
+stops and targets are calculations on generated sample closes, not market
+observations, calibrated probabilities or market-suitability evidence. `scan`
+still loads local configuration and can perform its existing legacy-file
+migration; it is not a read-only supplied-CSV command. Use the offline commands
+above for an already supplied CSV. Neither route grants trading or operating
+authority.
+
 - `gelt plan`: Inspects or switches active trading plans (`gelt plan set <name>`).
 - `gelt shadow`: Manages shadow strategy forward-testing and cycle snapshots (`gelt shadow cycles`).
 - `gelt version`: Emits Squire-compliant semantic version metadata.

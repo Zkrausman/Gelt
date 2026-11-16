@@ -121,8 +121,8 @@ const otherCommandHelp = `  version                              Show Gelt CLI v
   status / telemetry                   Display live session telemetry & portfolio dashboard
   risk                                 Display configured equity risk governance limits
   options-risk                         Display configured options risk governance limits
-  signals [SYMBOL]                     Evaluate technical indicators and confluence score
-  scan [MIN_SCORE]                     Scan watchlist universe and rank by Confluence Score
+  signals [SYMBOL]                     Show indicators and scores from generated demo closes
+  scan [MIN_SCORE]                     Rank generated demo series using watchlist declarations
   monitor                              Inspect active position trailing-stops and exit triggers
   buy <SYMBOL> [AMOUNT_USD]            Execute risk-governed buy order & log thesis to Thneed
   sell <SYMBOL> [AMOUNT_USD]           Execute sell/exit order & log thesis to Thneed
