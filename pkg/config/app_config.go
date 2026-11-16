@@ -161,8 +161,14 @@ func MigrateLegacyFiles() {
 	if err != nil {
 		return
 	}
-	journalsDir, _ := UserJournalsDir()
-	daemonDir, _ := UserDaemonDir()
+	journalsDir, err := UserJournalsDir()
+	if err != nil {
+		return
+	}
+	daemonDir, err := UserDaemonDir()
+	if err != nil {
+		return
+	}
 
 	migrations := map[string]string{
 		filepath.Join(geltDir, "gelt_shadow_journal.json"): filepath.Join(journalsDir, "shadow_journal.json"),
