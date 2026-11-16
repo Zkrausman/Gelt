@@ -41,6 +41,11 @@ import (
 
 const Version = "v0.1.0"
 
+// These two legacy previews always evaluate generated closes, even when their
+// symbol labels or synthetic price anchors come from user configuration.
+const syntheticSignalDisclosure = "SYNTHETIC DEMO: calculations use generated sample closes, not observed market data.\n" +
+	"Scores, bias, stops and targets are illustrative diagnostics, not calibrated probabilities or market-suitability evidence.\n"
+
 func resolveStrategies(appCfg *config.AppConfig, appCfgErr error, isCrypto bool) ([]string, error) {
 	if appCfgErr != nil {
 		return nil, fmt.Errorf("configuration missing or unreadable: %w", appCfgErr)
@@ -167,6 +172,7 @@ func main() {
 		fmt.Print(dashboardStr)
 
 	case "signals":
+		fmt.Print(syntheticSignalDisclosure)
 		symbol := "SPY"
 		if len(os.Args) >= 3 {
 			symbol = strings.ToUpper(os.Args[2])
@@ -179,7 +185,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("Gelt Technical Signals Evaluation (%s):\n", summary.Symbol)
+		fmt.Printf("Gelt Synthetic Signals Demo (%s):\n", summary.Symbol)
 		fmt.Printf("  Latest Price:      $%.2f\n", summary.LatestPrice)
 		fmt.Printf("  Confluence Score:  %.1f / 100.0\n", summary.Score)
 		fmt.Printf("  Market Bias:       %s\n", summary.Bias)
@@ -198,6 +204,7 @@ func main() {
 		}
 
 	case "scan":
+		fmt.Print(syntheticSignalDisclosure)
 		minScore := 0.0
 		if len(os.Args) >= 3 {
 			if val, err := strconv.ParseFloat(os.Args[2], 64); err == nil {
@@ -233,7 +240,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("Gelt Market Screener Results (%d tickers scanned, min score: %.1f):\n", len(watchlist), minScore)
+		fmt.Printf("Gelt Synthetic Screener Demo (%d tickers scanned, min score: %.1f):\n", len(watchlist), minScore)
 		fmt.Printf("%-8s | %-9s | %-12s | %-8s | %-8s | %-8s | %s\n", "Symbol", "Price", "Score (0-100)", "Bias", "ATR Stop%", "Target%", "Top Signal")
 		fmt.Println("----------------------------------------------------------------------------------------------------------")
 		for _, res := range results {

@@ -99,6 +99,14 @@ integrations or operating state. Use them only within the actual task's existing
 authority. They are not verification steps for an offline CSV comparison, and
 loading this skill grants no acquisition, credential, shadow or trading scope.
 
+`signals` and `scan` are generated-price demos, explicitly labeled
+`SYNTHETIC DEMO`. Their indicator scores, bias and protection values do not use
+observed market prices and are not calibrated probabilities or market-suitability
+evidence. A symbol is a label; `scan` uses configured/default watchlist and
+synthetic price declarations and retains its existing local configuration and
+legacy-file migration effects. Do not treat either preview as a supplied-CSV
+comparison, live scan or operating signal.
+
 For separately authorized shadow execution, retain the existing requirement to
 record shadow logs and trade theses through `GELT_BEADS_BRAIN_PATH` with
 `[bd-3qwe self-doc]` anchors.
