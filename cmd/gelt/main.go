@@ -46,6 +46,32 @@ const Version = "v0.1.0"
 const syntheticSignalDisclosure = "SYNTHETIC DEMO: calculations use generated sample closes, not observed market data.\n" +
 	"Scores, bias, stops and targets are illustrative diagnostics, not calibrated probabilities or market-suitability evidence.\n"
 
+const generatedDemoLabelUnavailable = "label_unavailable"
+
+// renderGeneratedDemoLabel keeps only a small printable ASCII set literal in
+// the generated-demo headings and scan table. The input is a display label,
+// not an identity or evidence of an observed market symbol.
+func renderGeneratedDemoLabel(label string) string {
+	if len(label) == 0 || len(label) > 64 {
+		return generatedDemoLabelUnavailable
+	}
+
+	const hex = "0123456789abcdef"
+	var rendered strings.Builder
+	rendered.Grow(len(label) * 4)
+	for i := 0; i < len(label); i++ {
+		b := label[i]
+		if (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z') || (b >= '0' && b <= '9') || b == '.' || b == '_' || b == ':' || b == '/' || b == '-' {
+			rendered.WriteByte(b)
+			continue
+		}
+		rendered.WriteString("\\x")
+		rendered.WriteByte(hex[b>>4])
+		rendered.WriteByte(hex[b&0x0f])
+	}
+	return rendered.String()
+}
+
 func resolveStrategies(appCfg *config.AppConfig, appCfgErr error, isCrypto bool) ([]string, error) {
 	if appCfgErr != nil {
 		return nil, fmt.Errorf("configuration missing or unreadable: %w", appCfgErr)
@@ -181,11 +207,11 @@ func main() {
 		closes := generateSampleCloses(60, 500.0, 42)
 		summary, err := signals.EvaluateConfluence(symbol, closes)
 		if err != nil {
-			fmt.Printf("Error calculating signals for %s: %v\n", symbol, err)
+			fmt.Printf("Error calculating signals for %s: %v\n", renderGeneratedDemoLabel(symbol), err)
 			os.Exit(1)
 		}
 
-		fmt.Printf("Gelt Synthetic Signals Demo (%s):\n", summary.Symbol)
+		fmt.Printf("Gelt Synthetic Signals Demo (%s):\n", renderGeneratedDemoLabel(summary.Symbol))
 		fmt.Printf("  Latest Price:      $%.2f\n", summary.LatestPrice)
 		fmt.Printf("  Confluence Score:  %.1f / 100.0\n", summary.Score)
 		fmt.Printf("  Market Bias:       %s\n", summary.Bias)
@@ -248,7 +274,7 @@ func main() {
 			if len(res.SignalsTriggered) > 0 {
 				topSig = res.SignalsTriggered[0]
 			}
-			fmt.Printf("%-8s | $%-8.2f | %-12.1f | %-8s | -%-7.2f%% | +%-7.2f%% | %s\n", res.Symbol, res.LatestPrice, res.Score, res.Bias, res.DynamicStopPct, res.DynamicTargetPct, topSig)
+			fmt.Printf("%-8s | $%-8.2f | %-12.1f | %-8s | -%-7.2f%% | +%-7.2f%% | %s\n", renderGeneratedDemoLabel(res.Symbol), res.LatestPrice, res.Score, res.Bias, res.DynamicStopPct, res.DynamicTargetPct, topSig)
 		}
 
 	case "monitor":
