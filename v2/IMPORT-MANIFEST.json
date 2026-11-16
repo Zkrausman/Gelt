@@ -4668,6 +4668,30 @@
       "status": "added",
       "sha256": "e8b92bd38670d45964f64d49effd7f5004c4dc474f6d09da6a02559ec3c7d7a8",
       "reason": "Synthetic projected-consumer integration and protected read-only reopen acceptance; no real-data or order authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/constructed-spy-source-retention.ts",
+      "sha256": "e2c69eaf0df38e75c2a6855f18453a49c8d7ed69baacf8764e465e6d5e962bcb",
+      "reason": "One-case constructed SPY/G05 source archive and full replay; no provider, source-authentication, operating or order authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/constructed-spy-source-retention.test.ts",
+      "sha256": "308984584202fca7aa75a79267f3e6862fd50272d56834c4782e10b8e0664c9e",
+      "reason": "Synthetic source-retention acceptance; no provider, actual-data or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/constructed-spy-source-consumer.test.ts",
+      "sha256": "40a3717ec1144f38c11e654e2e442eb4238024c6f1e43ea2885981363625f5bc",
+      "reason": "Synthetic callback-to-consumer archive join and protected readonly reopen; no actual-data or order authority."
     }
   ],
   "retiredLocalEntries": []
