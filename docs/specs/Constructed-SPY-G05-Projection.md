@@ -1,7 +1,7 @@
 ---
 type: specification
 title: Constructed SPY to G05 projection
-status: implementation-prepared-validation-and-review-pending
+status: implemented-working-validated-initial-reviews-accepted-final-gates-pending
 source_baseline: 93b517e1543284d50d47436c54ef1b48cd540e73
 scope: pure constructed daily input projection into the existing synthetic G05 consumer
 ---
@@ -106,7 +106,31 @@ followed by halt and protected read-only reopen. It verifies rejected
 post-stop preview/confirmation attempts do not change durable evidence or
 restore authority. The test does not claim the full daily source was stored.
 
-## Changed files and verification
+## Implementation and verification
+
+The bounded projector, its unit coverage, and the constructed consumer
+integration are implemented. The PR74 change exports only its inferred
+request type. The existing G05 rule, consumer schemas, storage schemas and
+routes were not changed.
+
+Working verification completed on the implementation candidate: 20 new tests
+and 75 unchanged focused compatibility tests passed; the worker TypeScript and
+import-inventory checks passed; Go race tests and vet passed. The Go working
+cache was reused for unchanged packages. An initial working test run had 92
+passes and three fixture-expectation failures; the corrections changed tests
+only. A missing `awk` dependency in the isolated check wrapper was resolved
+through its existing read-only binding. No production rule or consumer changes
+were made to address either issue.
+
+The initial fresh independent and adversarial source/privacy reviews accepted
+the implementation with no actionable correctness, privacy, or evidence-gap
+findings. The owner read and accepted both reports; no code remedy was needed.
+This specification closeout is a further ticketed change, so fresh final
+reviews must cover the complete resulting head. Final exact-head verification,
+required CI, and ordinary delivery gates remain pending and are not reported as
+passed.
+
+## Changed files
 
 - `v2/worker/src/constructed-spy-g05-projection.ts`
 - `v2/worker/src/constructed-spy-g05-projection.test.ts`
@@ -115,8 +139,5 @@ restore authority. The test does not claim the full daily source was stored.
 - `v2/IMPORT-MANIFEST.json`
 - `docs/specs/Constructed-SPY-G05-Projection.md`
 
-Implementation is prepared on the PR74 source base. Tests, builds, inventory
-verification, independent accuracy/privacy review, adversarial review, final
-exact-head checks, CI, and publication are pending and have not been run by the
-implementation writer. No data acquisition, provider call, account access,
-campaign, live order, credential change, or operating admission is included.
+No data acquisition, provider call, account access, campaign, live order,
+credential change, or operating admission is included.
