@@ -4716,6 +4716,30 @@
       "path": "worker/src/constructed-spy-raw-mark-consumer.test.ts",
       "sha256": "8880ba2f27d2c738989b793153d16af31b7ff8ce8283814177243edd6a118a69",
       "reason": "Synthetic actual-consumer callback and modeled fill/stop/read-only reopen coverage; no live-order or raw-mark persistence claim."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/constructed-spy-raw-mark-source-retention.ts",
+      "sha256": "feb7adbbf4eec6b92dfcf565005abd5e42ba6f859db5b4c34a25c02055ac621a",
+      "reason": "Separate exact-byte constructed raw-mark archive with complete PR77 replay; no source authentication, provider, or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/constructed-spy-raw-mark-source-retention.test.ts",
+      "sha256": "1595f76ae6448183003e499dc0a76f30bfcbbaac88c293fb1af72d33d6c4e60a",
+      "reason": "Synthetic raw-mark archive acceptance for exact source, bounded replay, private fencing, and readonly behavior; no actual-data or campaign authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/constructed-spy-raw-mark-source-consumer.test.ts",
+      "sha256": "70b9ecc73c45cf5b811d3ca29ae12b69220faad855561b38547595d0c4be4e7e",
+      "reason": "Synthetic callback-owned raw-mark archive joined to the unchanged consumer's modeled fill and readonly reopen; no actual-market, campaign, or operating authority."
     }
   ],
   "retiredLocalEntries": []
