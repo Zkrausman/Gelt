@@ -459,6 +459,40 @@ describe('constructed SPY raw mark binding', () => {
     expect(matchesConstructedSpyRawMark(saved, savedResultBytes)).toBe(true);
   });
 
+  it('keeps combined large max-representable declared consumer and mark fields below their 8 KiB guards', () => {
+    const ordinaryInput = validInput();
+    const ordinary = projectConstructedSpyRawMark(bytes(ordinaryInput));
+    expect(ordinary.status).toBe('projected');
+    if (ordinary.status !== 'projected') return;
+
+    const largeInput = validInput();
+    const run = largeInput.consumer.config;
+    const largestDecimalUnits = 10n ** 38n - 1n;
+    // These schema-valid declared snapshot values exercise bounded serialization;
+    // they are not reachable-capital or position claims.
+    largeInput.consumer.portfolio.snapshot = snapshot(
+      run, largestDecimalUnits, largestDecimalUnits, [],
+    );
+    largeInput.mark.tradeId = 'T'.repeat(64);
+    largeInput.mark.price = decimal('9'.repeat(38));
+    const consumerBytes = Buffer.byteLength(canonical(largeInput.consumer), 'utf8');
+    const markBytes = Buffer.byteLength(canonical(largeInput.mark), 'utf8');
+    expect(consumerBytes).toBeGreaterThan(Buffer.byteLength(canonical(ordinaryInput.consumer), 'utf8'));
+    expect(markBytes).toBeGreaterThan(Buffer.byteLength(canonical(ordinaryInput.mark), 'utf8'));
+    expect(consumerBytes).toBeLessThan(8_192);
+    expect(markBytes).toBeLessThan(8_192);
+
+    const result = projectConstructedSpyRawMark(bytes(largeInput));
+    expect(result.status).toBe('projected');
+    if (result.status !== 'projected') return;
+    expect(result.projection.manifestText).toBe(ordinary.projection.manifestText);
+    expect(result.projection.ruleReceipt.decision).toBe(ordinary.projection.ruleReceipt.decision);
+    expect(result.classification).toBe('constructed_offline_test');
+    expect(result.rights).toBe('not_established');
+    expect(result.effectAuthority).toBe('none');
+    expect(result.promotionAllowed).toBe(false);
+  });
+
   it('accepts exact outer and daily input limits and rejects one beyond each', () => {
     const baseInput = bytes(validInput());
     const exactOuter = Buffer.concat([baseInput, Buffer.alloc(1_048_576 - baseInput.length, 0x20)]);
@@ -521,6 +555,26 @@ describe('constructed SPY raw mark binding', () => {
     expect(matchesConstructedSpyRawMark(input, Buffer.alloc(3_145_729))).toBe(false);
     expect(matchesConstructedSpyRawMark(Buffer.alloc(1_048_577), bytes(result))).toBe(false);
     expect(matchesConstructedSpyRawMark(undefined as unknown as Buffer, bytes(result))).toBe(false);
+  });
+
+  it('matches a real valid result padded with JSON whitespace to the exact 3 MiB wire limit', () => {
+    const input = bytes(validInput());
+    const result = projectConstructedSpyRawMark(input);
+    expect(result.status).toBe('projected');
+    if (result.status !== 'projected') return;
+
+    const canonicalResult = Buffer.from(canonical(result), 'utf8');
+    expect(canonicalResult.length).toBeLessThan(3_145_728);
+    const exactWireResult = Buffer.concat([
+      canonicalResult,
+      Buffer.alloc(3_145_728 - canonicalResult.length, 0x20),
+    ]);
+    expect(exactWireResult.length).toBe(3_145_728);
+    expect(matchesConstructedSpyRawMark(input, exactWireResult)).toBe(true);
+
+    const overWireResult = Buffer.concat([exactWireResult, Buffer.from(' ')]);
+    expect(overWireResult.length).toBe(3_145_729);
+    expect(matchesConstructedSpyRawMark(input, overWireResult)).toBe(false);
   });
 
   it('uses one projector call for a locally valid legacy rejection and none for local rejection', () => {

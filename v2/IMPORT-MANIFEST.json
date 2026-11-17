@@ -4706,7 +4706,7 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/constructed-spy-raw-mark.test.ts",
-      "sha256": "406335765e82d9da344d14bb8d7ac5b173d29fe54b2f5355d3d9801c29139a8e",
+      "sha256": "2114a625b8e2ce458048a6289930bcbfa2458e6934a2682df1c58773222e92a8",
       "reason": "Synthetic raw-mark binding and bounded full-result replay coverage; no acquisition or actual-data authority."
     },
     {
