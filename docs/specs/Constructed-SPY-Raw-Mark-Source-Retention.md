@@ -121,6 +121,17 @@ without another producer call. The later execution observation continues to
 be supplied under the existing consumer checks; this archive does not
 authenticate it.
 
+A sibling fixture covers one modeled submit whose response is deliberately
+lost. It checks the consumer's recorded `unknown` outcome and
+`dispatchUnknown` history, zero recorded executions, and unchanged synthetic
+balances; it does not infer whether a submitted order could exist beyond the
+lost response. The fixture then halts the candidate, confirms preview and
+confirmation remain unavailable, and compares the full retained source,
+result, receipt, consumer history, durable candidate and portfolio across
+readonly reopen. Archive file and directory identities, modification times,
+bytes and names remain unchanged, and the producer is not called again. This
+new acceptance fixture has not been run.
+
 ## Acceptance coverage
 
 The owned unit suite implements the contract's A1–A8 cases:
