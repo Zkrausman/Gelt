@@ -4692,6 +4692,30 @@
       "path": "worker/src/constructed-spy-source-consumer.test.ts",
       "sha256": "40a3717ec1144f38c11e654e2e442eb4238024c6f1e43ea2885981363625f5bc",
       "reason": "Synthetic callback-to-consumer archive join and protected readonly reopen; no actual-data or order authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/constructed-spy-raw-mark.ts",
+      "sha256": "af144214f7110b0e452bacb54c3168f5f924ebdbe29103b0d30dad83dabcaea0",
+      "reason": "Pure constructed raw-trade binding to the unchanged SPY/G05 projection; no source authentication, rights, provider, or operating authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/constructed-spy-raw-mark.test.ts",
+      "sha256": "406335765e82d9da344d14bb8d7ac5b173d29fe54b2f5355d3d9801c29139a8e",
+      "reason": "Synthetic raw-mark binding and bounded full-result replay coverage; no acquisition or actual-data authority."
+    },
+    {
+      "upstreamPath": null,
+      "upstreamSha256": null,
+      "status": "added",
+      "path": "worker/src/constructed-spy-raw-mark-consumer.test.ts",
+      "sha256": "8880ba2f27d2c738989b793153d16af31b7ff8ce8283814177243edd6a118a69",
+      "reason": "Synthetic actual-consumer callback and modeled fill/stop/read-only reopen coverage; no live-order or raw-mark persistence claim."
     }
   ],
   "retiredLocalEntries": []
