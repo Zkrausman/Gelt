@@ -4,11 +4,13 @@ status: implementation candidate
 base: cea2447e48c70feb05deea4fd04343ae90d1a594
 classification: constructed_offline_test
 verification:
-  implementation-tests: "10 passed in a parent-owned isolated working run"
-  parent-working-validation: "unit 10/10 passed; consumer integration pending"
+  implementation-tests: "105 passed across 8 files in parent-owned working validation"
+  parent-working-validation: "worker types, 560-file import audit, Go race and vet passed"
   independent-source-review: pending
   adversarial-review: pending
+  fresh-final-reviews-and-full-suite: pending
   exact-head-final-gates: pending
+  ci-and-delivery: pending
   publication: pending
 ---
 
@@ -140,16 +142,20 @@ data, credentials, campaign, live capital or order route is used.
 
 ## Verification status
 
-The implementation, unit fixtures and actual-consumer fixture are saved for
-parent-owned isolated validation. A parent-owned focused run passed all ten
-tests in the new unit file. An earlier invocation stopped at fixture parsing
-before collecting tests because of an escaped child-source literal; that
-fixture was corrected, and the earlier zero-tests-collected failure is retained
-as history rather than treated as a product behavior result. The source writer
-did not run tests or builds. The actual-consumer fixture, compatibility
-suites, type/import checks, Go race and vet, independent source/privacy review,
-adversarial review, final exact-head gates and delivery remain pending. Passing
-the unit file does not constitute complete acceptance or operating evidence.
+Parent-owned isolated working validation passed 105 tests across eight files:
+10 new archive unit tests, one actual-consumer test and 94 unchanged
+compatibility tests. The prior 10/10 unit run overlaps that total and is not
+additional evidence. Worker TypeScript checking, the 560-candidate import
+audit, the full Go race suite and Go vet also passed.
+
+An earlier invocation stopped during fixture parsing before collecting any
+tests because of an escaped child-source literal. The fixture was corrected;
+the initial zero-tests-collected failure remains part of the history and is
+not a product behavior result. The source writer did not run tests or builds.
+Fresh independent and adversarial source reviews, the final review pair, the
+full required final suite, exact-head CI and delivery remain pending. These
+working results do not establish operating readiness or release any existing
+hold.
 
 ## Explicit non-claims
 
