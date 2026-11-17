@@ -133,8 +133,9 @@ bytes and names remain unchanged, and the producer is not called again. The
 new lost-response case passed once in parent-owned focused working validation
 (59 tests total: 10 archive, 2 raw-source consumer and 47 candidate integration;
 the 5.66-second case duration is not a benchmark). Worker types, import audit,
-full Go race suite and vet also passed. Independent review and exact-head final
-gates remain pending.
+full Go race suite and vet also passed. Initial independent and adversarial
+source/privacy reviews were accepted with no actionable findings. Fresh final
+reviews, fresh exact-head verification, and normal CI/delivery remain pending.
 
 ## Acceptance coverage
 
