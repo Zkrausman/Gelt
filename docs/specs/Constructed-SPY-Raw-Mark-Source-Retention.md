@@ -121,6 +121,22 @@ without another producer call. The later execution observation continues to
 be supplied under the existing consumer checks; this archive does not
 authenticate it.
 
+A sibling fixture covers one modeled submit whose response is deliberately
+lost. It checks the consumer's recorded `unknown` outcome and
+`dispatchUnknown` history, zero recorded executions, and unchanged synthetic
+balances; it does not infer whether a submitted order could exist beyond the
+lost response. The fixture then halts the candidate, confirms preview and
+confirmation remain unavailable, and compares the full retained source,
+result, receipt, consumer history, durable candidate and portfolio across
+readonly reopen. Archive file and directory identities, modification times,
+bytes and names remain unchanged, and the producer is not called again. The
+new lost-response case passed once in parent-owned focused working validation
+(59 tests total: 10 archive, 2 raw-source consumer and 47 candidate integration;
+the 5.66-second case duration is not a benchmark). Worker types, import audit,
+full Go race suite and vet also passed. Initial independent and adversarial
+source/privacy reviews were accepted with no actionable findings. Fresh final
+reviews, fresh exact-head verification, and normal CI/delivery remain pending.
+
 ## Acceptance coverage
 
 The owned unit suite implements the contract's A1–A8 cases:

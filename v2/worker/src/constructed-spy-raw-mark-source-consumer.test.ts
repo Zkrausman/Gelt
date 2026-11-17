@@ -431,3 +431,258 @@ it('binds the callback-owned raw mark to actual durable G05 evidence across fill
   expect(producerCalls).toBe(priorProducerCalls);
   expect(durableAfterFill.input.observation.evidenceSha256).toBe(latest!.markEvidenceSha256);
 }, 20_000);
+
+it('retains the complete callback-owned raw source through a lost-submit UNKNOWN, halt, and readonly reopen', async () => {
+  const dailyText = canonical(dailyRequest());
+  const daily = JSON.parse(dailyText) as SpyDailyInputRequest;
+  let now = Date.parse(daily.decisionAt) + 1_000;
+  const evaluationAt = iso(now);
+  const run = config(evaluationAt);
+  const setupDecoy = {
+    snapshot: snapshot(run, units(decimal('19'), 8), units(run.genesis.quantity, 18), []),
+    state: 'settled' as const,
+  };
+  const setupBytes = rawMarkBytes(dailyText, run, setupDecoy, evaluationAt);
+  const setupResult = projectConstructedSpyRawMark(setupBytes);
+  if (setupResult.status !== 'projected') throw new Error('constructed raw-mark setup projection unavailable');
+  const setupManifest = parseCandidateShadowManifest(setupResult.projection.manifestText);
+  const archiveRoot = storageFixture('constructed-raw-mark-unknown-source-');
+  roots.push(archiveRoot);
+  const policy = sizingBindingPolicySchema.parse({
+    schema: 'gelt.synthetic-sizing-binding-policy.v1',
+    version: 1,
+    classification: 'constructed_offline_test',
+    runId: run.runId,
+    sourceCommit: run.sourceCommit,
+    configSha256: simulationDigest(run),
+    sizingPolicyId: shadowSizingPolicyId,
+    quantityQuantum: decimal('0.01'),
+    buyLimitPrice: decimal('3'),
+    sellLimitPrice: decimal('3'),
+    candidate: setupManifest,
+  });
+
+  let producerCalls = 0;
+  let callbackInput: Buffer | undefined;
+  let ownerBytes: Buffer | undefined;
+  let latest: Extract<ConstructedSpyRawMarkResult, { status: 'projected' }> | undefined;
+  let archiveWriter: ConstructedSpyRawMarkSourceStore | undefined;
+  const harness = createSyntheticOrderHarness(() => now, {
+    applicationMock: true,
+    simulationRun: {
+      config: run,
+      sizingBinding: {
+        policy,
+        producer: context => {
+          producerCalls++;
+          const input = rawMarkBytes(dailyText, context.config, context.portfolio, iso(now));
+          const result = projectConstructedSpyRawMark(input);
+          if (result.status !== 'projected' || result.projection.manifestText !== setupResult.projection.manifestText) {
+            throw new Error('callback-owned constructed raw-mark projection unavailable');
+          }
+          const owner = rawMarkOwner(input, result);
+          const decoyRoot = storageFixture('constructed-raw-mark-unknown-decoy-');
+          roots.push(decoyRoot);
+          const decoyOwner = rawMarkOwner(setupBytes, setupResult);
+          expect(() => ConstructedSpyRawMarkSourceStore.create(
+            decoyRoot, Buffer.from(canonical(decoyOwner), 'utf8'), input,
+          )).toThrow('constructed SPY raw-mark source unavailable');
+          expect(fsMutable.readdirSync(decoyRoot)).toEqual([]);
+
+          callbackInput = Buffer.from(input);
+          ownerBytes = Buffer.from(canonical(owner), 'utf8');
+          archiveWriter = ConstructedSpyRawMarkSourceStore.create(archiveRoot, ownerBytes, input);
+          sourceStores.push(archiveWriter);
+          const retained = archiveWriter.read();
+          if (!retained.originalInput.equals(input) || canonical(retained.result) !== canonical(result)) {
+            throw new Error('complete raw-mark source replay changed');
+          }
+          latest = retained.result;
+          return {
+            inputBytes: Buffer.from(retained.result.projection.ruleInputText, 'utf8'),
+            receipt: retained.result.projection.ruleReceipt,
+            observation: retained.result.projection.observation,
+          };
+        },
+      },
+    },
+  });
+  harnesses.push(harness);
+  roots.push(dirname(dirname(harness.path)));
+
+  const port = await harness.start();
+  const request = async (active: ReturnType<typeof createSyntheticOrderHarness>, operation: string, body: unknown = {}) => {
+    const response = await fetch('http://127.0.0.1:' + port + '/v1/synthetic-orders/' + operation, {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer ' + active.auth.bearer,
+        'x-gelt-session': active.auth.session,
+        'x-gelt-session-expires': String(active.auth.expiresAt),
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    return { status: response.status, body: await response.json() as any };
+  };
+
+  expect((await request(harness, 'resume')).status).toBe(200);
+  const prepared = await harness.previewSizingBound();
+  if ('noOrder' in prepared) throw new Error('expected constructed synthetic proposal');
+  expect(producerCalls).toBe(1);
+  expect(callbackInput).toBeDefined();
+  expect(ownerBytes).toBeDefined();
+  expect(latest).toBeDefined();
+  expect(archiveWriter).toBeDefined();
+  const originalBytes = Buffer.from(callbackInput!);
+  const originalHash = createHash('sha256').update(originalBytes).digest('hex');
+  const sourceBeforeUnknown = archiveWriter!.read();
+  const sourceResultText = canonical(sourceBeforeUnknown.result);
+  const sourceReceiptText = canonical(sourceBeforeUnknown.receipt);
+  expect(sourceBeforeUnknown.originalInput).toEqual(originalBytes);
+  expect(sourceBeforeUnknown.result).toEqual(latest);
+  expect(sourceBeforeUnknown.receipt.originalInputBytes).toBe(originalBytes.length);
+  expect(sourceBeforeUnknown.receipt.originalInputSha256).toBe(originalHash);
+  expect(sourceBeforeUnknown.receipt.resultSha256).toBe(
+    createHash('sha256').update(canonical(sourceBeforeUnknown.result)).digest('hex'),
+  );
+  expect(sourceBeforeUnknown.receipt.projectionSha256).toBe(
+    createHash('sha256').update(canonical(sourceBeforeUnknown.result.projection)).digest('hex'),
+  );
+  expect(sourceBeforeUnknown.receipt.bindingId).toBe(latest!.bindingId);
+  expect(sourceBeforeUnknown.receipt.projectionId).toBe(latest!.projection.projectionId);
+  expect(sourceBeforeUnknown.receipt.markSha256).toBe(latest!.markSha256);
+  expect(sourceBeforeUnknown.receipt.markEvidenceSha256).toBe(latest!.markEvidenceSha256);
+  expect(latest!.originalInputSha256).toBe(originalHash);
+  expect(latest!.markRecord.price).toEqual(decimal('3'));
+  expect(JSON.parse(latest!.projection.ruleInputText).bars[252].adjustedClose).toEqual(decimal('2.00'));
+  const callbackOuter = JSON.parse(originalBytes.toString('utf8'));
+  expect(callbackOuter.consumer.config).toEqual(run);
+  expect(callbackOuter.consumer.portfolio.snapshot.cash.value).toBe('20.00000000');
+  expect(callbackOuter.consumer.portfolio.snapshot.quantity.value).toBe('0.000000000000000000');
+  expect(callbackOuter.consumer.portfolio.snapshot.cash.value).not.toBe('19.00000000');
+  const portfolioBeforeSubmit = harness.mockStore!.portfolio();
+  expect(portfolioBeforeSubmit.snapshot.cash.value).toBe('20.00000000');
+  expect(portfolioBeforeSubmit.snapshot.quantity.value).toBe('0.000000000000000000');
+
+  // The one response-loss injection precedes the one guarded confirmation.
+  harness.mockTransport!.loseNextSubmitResponseForTest();
+  const confirmation = await request(harness, 'confirm', {
+    confirmationToken: prepared.confirmationToken, termsHash: prepared.termsHash,
+  });
+  expect(confirmation.status).toBe(200);
+  const result = confirmation.body.value;
+  expect(result.outcome).toBe('unknown');
+  const intentId = result.intentId as string;
+  const historyResponse = await request(harness, 'history', { candidateDispatchId: intentId });
+  expect(historyResponse.status).toBe(200);
+  const unknownHistory = historyResponse.body.value;
+  expect(unknownHistory.state).toBe('available');
+  expect(unknownHistory.view.lifecycle.disposition).toBe('unknown');
+  expect(unknownHistory.view.lifecycle.dispatchUnknown).toBe(true);
+  expect(unknownHistory.view.simulatedOrder.executions).toEqual([]);
+  expect(unknownHistory.view.portfolio.snapshot.cash.value).toBe('20.00000000');
+  expect(unknownHistory.view.portfolio.snapshot.quantity.value).toBe('0.000000000000000000');
+
+  const durableUnknown = harness.mockStore!.readCandidateShadow(intentId)!;
+  expect(durableUnknown.input.config).toEqual(run);
+  expect(durableUnknown.input.portfolio).toEqual(callbackOuter.consumer.portfolio);
+  expect(durableUnknown.input.observation.referencePrice).toEqual(decimal('3'));
+  expect(durableUnknown.input.observation.evidenceSha256).toBe(latest!.markEvidenceSha256);
+  expect(durableUnknown.input.ruleReceipt).toEqual(latest!.projection.ruleReceipt);
+  expect(durableUnknown.input.ruleInput).toEqual(JSON.parse(latest!.projection.ruleInputText));
+  expect(durableUnknown.input.observation.evidenceSha256).toBe(sourceBeforeUnknown.receipt.markEvidenceSha256);
+  expect(candidateShadowId(durableUnknown.candidate)).toBe(sourceBeforeUnknown.receipt.candidateId);
+  expect(durableUnknown.input.ruleReceipt.decisionId).toBe(sourceBeforeUnknown.receipt.decisionId);
+  expect(unknownHistory.view.decision.decisionId).toBe(sourceBeforeUnknown.receipt.decisionId);
+  expect(durableUnknown.portfolio.snapshot.cash.value).toBe('20.00000000');
+  expect(durableUnknown.portfolio.snapshot.quantity.value).toBe('0.000000000000000000');
+  expect(durableUnknown.order.executions).toEqual([]);
+  expect(canonical(durableUnknown.input)).not.toContain('trade-1');
+  expect(canonical(durableUnknown.input)).not.toContain('dailyRequestText');
+
+  // UNKNOWN remains unresolved; the assertions describe recorded fixture state,
+  // not whether a submitted order could exist outside the lost response.
+  const portfolioAfterUnknown = harness.mockStore!.portfolio();
+  expect(portfolioAfterUnknown.snapshot.cash.value).toBe('20.00000000');
+  expect(portfolioAfterUnknown.snapshot.quantity.value).toBe('0.000000000000000000');
+  const callsAfterUnknown = producerCalls;
+  expect(archiveWriter!.read().originalInput).toEqual(originalBytes);
+  expect(canonical(archiveWriter!.read().result)).toBe(sourceResultText);
+  expect(canonical(archiveWriter!.read().receipt)).toBe(sourceReceiptText);
+
+  harness.haltSizingBound();
+  await expect(harness.previewSizingBound()).rejects.toThrow();
+  expect((await request(harness, 'confirm', {
+    confirmationToken: prepared.confirmationToken, termsHash: prepared.termsHash,
+  })).status).toBe(409);
+  expect((await request(harness, 'history', { candidateDispatchId: intentId })).body.value).toEqual(unknownHistory);
+  expect(harness.mockStore!.readCandidateShadow(intentId)).toEqual(durableUnknown);
+  expect(harness.mockStore!.portfolio()).toEqual(portfolioAfterUnknown);
+  expect(producerCalls).toBe(callsAfterUnknown);
+
+  const sourceWriter = archiveWriter!;
+  closeSourceStore(sourceWriter);
+  archiveWriter = undefined;
+  const archivePath = join(archiveRoot, 'raw-mark-source.json');
+  const archiveBeforeReopen = { bytes: fsMutable.readFileSync(archivePath), file: fsMutable.statSync(archivePath),
+    directory: fsMutable.statSync(archiveRoot), names: fsMutable.readdirSync(archiveRoot).sort() };
+  const readonlyArchive = ConstructedSpyRawMarkSourceStore.reopen(archiveRoot, ownerBytes!);
+  sourceStores.push(readonlyArchive);
+  const sourceAfterReopen = readonlyArchive.read();
+  expect(sourceAfterReopen.originalInput).toEqual(originalBytes);
+  expect(canonical(sourceAfterReopen.result)).toBe(sourceResultText);
+  expect(canonical(sourceAfterReopen.receipt)).toBe(sourceReceiptText);
+  closeSourceStore(readonlyArchive);
+  const archiveAfterReopen = { bytes: fsMutable.readFileSync(archivePath), file: fsMutable.statSync(archivePath),
+    directory: fsMutable.statSync(archiveRoot), names: fsMutable.readdirSync(archiveRoot).sort() };
+  expect(archiveAfterReopen.bytes).toEqual(archiveBeforeReopen.bytes);
+  expect(archiveAfterReopen.file.ino).toBe(archiveBeforeReopen.file.ino);
+  expect(archiveAfterReopen.file.mtimeMs).toBe(archiveBeforeReopen.file.mtimeMs);
+  expect(archiveAfterReopen.directory.ino).toBe(archiveBeforeReopen.directory.ino);
+  expect(archiveAfterReopen.directory.mtimeMs).toBe(archiveBeforeReopen.directory.mtimeMs);
+  expect(archiveAfterReopen.names).toEqual(['raw-mark-source.json']);
+
+  await harness.close();
+  const reopened = harness.reopen();
+  harnesses.push(reopened);
+  expect(reopened.mockStore!.sizingBoundReadOnly).toBe(true);
+  const reopenedPort = await reopened.start();
+  const reopenedRequest = async (operation: string, body: unknown = {}) => {
+    const response = await fetch('http://127.0.0.1:' + reopenedPort + '/v1/synthetic-orders/' + operation, {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer ' + reopened.auth.bearer,
+        'x-gelt-session': reopened.auth.session,
+        'x-gelt-session-expires': String(reopened.auth.expiresAt),
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    return { status: response.status, body: await response.json() as any };
+  };
+  expect((await reopenedRequest('history', { candidateDispatchId: intentId })).body.value).toEqual(unknownHistory);
+  expect(reopened.mockStore!.readCandidateShadow(intentId)).toEqual(durableUnknown);
+  expect(reopened.mockStore!.portfolio()).toEqual(portfolioAfterUnknown);
+  expect(reopened.mockStore!.readCandidateShadow(intentId)!.order.executions).toEqual([]);
+  expect((await reopenedRequest('resume')).status).toBe(409);
+  expect((await reopenedRequest('preview', {})).status).toBe(409);
+  expect((await reopenedRequest('confirm', {
+    confirmationToken: prepared.confirmationToken, termsHash: prepared.termsHash,
+  })).status).toBe(409);
+  await expect(reopened.previewSizingBound()).rejects.toThrow();
+  await expect(reopened.confirmSizingBound({
+    confirmationToken: prepared.confirmationToken, termsHash: prepared.termsHash,
+  })).rejects.toThrow();
+  expect((await reopenedRequest('history', { candidateDispatchId: intentId })).body.value).toEqual(unknownHistory);
+  expect(reopened.mockStore!.readCandidateShadow(intentId)).toEqual(durableUnknown);
+  expect(reopened.mockStore!.portfolio()).toEqual(portfolioAfterUnknown);
+  expect(producerCalls).toBe(callsAfterUnknown);
+  const archiveFinal = { bytes: fsMutable.readFileSync(archivePath), file: fsMutable.statSync(archivePath),
+    directory: fsMutable.statSync(archiveRoot), names: fsMutable.readdirSync(archiveRoot).sort() };
+  expect(archiveFinal.bytes).toEqual(archiveAfterReopen.bytes);
+  expect(archiveFinal.file.ino).toBe(archiveAfterReopen.file.ino);
+  expect(archiveFinal.file.mtimeMs).toBe(archiveAfterReopen.file.mtimeMs);
+  expect(archiveFinal.directory.ino).toBe(archiveAfterReopen.directory.ino);
+  expect(archiveFinal.directory.mtimeMs).toBe(archiveAfterReopen.directory.mtimeMs);
+  expect(archiveFinal.names).toEqual(['raw-mark-source.json']);
+}, 20_000);

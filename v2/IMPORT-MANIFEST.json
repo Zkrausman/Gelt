@@ -4738,8 +4738,8 @@
       "upstreamSha256": null,
       "status": "added",
       "path": "worker/src/constructed-spy-raw-mark-source-consumer.test.ts",
-      "sha256": "70b9ecc73c45cf5b811d3ca29ae12b69220faad855561b38547595d0c4be4e7e",
-      "reason": "Synthetic callback-owned raw-mark archive joined to the unchanged consumer's modeled fill and readonly reopen; no actual-market, campaign, or operating authority."
+      "sha256": "e54ae90aefaf94a19f3c8c3044680ac0dc7601a9c6fedd5eb6f62ec896af9303",
+      "reason": "Synthetic callback-owned raw-mark archive joined to modeled fill and lost-submit UNKNOWN, halt, and readonly-reopen acceptance; no actual-market, campaign, or operating authority."
     }
   ],
   "retiredLocalEntries": []
