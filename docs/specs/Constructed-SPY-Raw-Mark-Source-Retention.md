@@ -6,8 +6,8 @@ classification: constructed_offline_test
 verification:
   implementation-tests: "105 passed across 8 files in parent-owned working validation"
   parent-working-validation: "worker types, 560-file import audit, Go race and vet passed"
-  independent-source-review: pending
-  adversarial-review: pending
+  initial-independent-source-review: accepted-no-findings
+  initial-adversarial-source-review: accepted-no-findings
   fresh-final-reviews-and-full-suite: pending
   exact-head-final-gates: pending
   ci-and-delivery: pending
@@ -140,6 +140,17 @@ synthetic harness. A10 compatibility suites and full verification gates belong
 to the separate parent validation lane, not the unit file. No provider, external
 data, credentials, campaign, live capital or order route is used.
 
+## Initial source and adversarial review
+
+The independent source/privacy and adversarial reviews examined frozen
+candidate head f3088b90f3ebe76ec28457c407d9aba7fddfc0a2. Both were accepted with
+no blocker, high, actionable medium, actionable low, privacy, or indispensable
+evidence-gap findings. An initial timing note was retracted by the same
+adversarial reviewer after checking runner evidence: a synchronous callback
+body runs before an event-loop timeout is armed, so that note did not establish
+a current hard deadline or a reproduced flaky test. No code or assertion was
+changed for it.
+
 ## Verification status
 
 Parent-owned isolated working validation passed 105 tests across eight files:
@@ -152,10 +163,9 @@ An earlier invocation stopped during fixture parsing before collecting any
 tests because of an escaped child-source literal. The fixture was corrected;
 the initial zero-tests-collected failure remains part of the history and is
 not a product behavior result. The source writer did not run tests or builds.
-Fresh independent and adversarial source reviews, the final review pair, the
-full required final suite, exact-head CI and delivery remain pending. These
-working results do not establish operating readiness or release any existing
-hold.
+The fresh final review pair, full required final suite, exact-head CI and
+delivery remain pending. Initial review and working validation do not establish
+operating readiness or release any existing hold.
 
 ## Explicit non-claims
 
