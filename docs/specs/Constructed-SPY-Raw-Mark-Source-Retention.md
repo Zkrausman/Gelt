@@ -129,8 +129,12 @@ lost response. The fixture then halts the candidate, confirms preview and
 confirmation remain unavailable, and compares the full retained source,
 result, receipt, consumer history, durable candidate and portfolio across
 readonly reopen. Archive file and directory identities, modification times,
-bytes and names remain unchanged, and the producer is not called again. This
-new acceptance fixture has not been run.
+bytes and names remain unchanged, and the producer is not called again. The
+new lost-response case passed once in parent-owned focused working validation
+(59 tests total: 10 archive, 2 raw-source consumer and 47 candidate integration;
+the 5.66-second case duration is not a benchmark). Worker types, import audit,
+full Go race suite and vet also passed. Independent review and exact-head final
+gates remain pending.
 
 ## Acceptance coverage
 
