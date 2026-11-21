@@ -36,6 +36,13 @@ fixture, solver, protocol, hash-byte and license details. Its committed example
 artifact is actual recorded numerical output, not fabricated production telemetry.
 Synthetic TS fixtures are labeled test-only and never inserted by startup.
 
+The scientific parity receipt checks each successful MCP response against that
+case's requested ticker order and requires one finite JSON-number weight per
+ticker before numerical verification or receipt construction. This check
+applies to nonunique cases as well as cases that compare the weight values.
+Focused regressions use in-memory tool responses, including a nonunique case. The
+frozen reference producer and archived evidence retain their original pins.
+
 # Typed inert artifact and operator storage
 
 - `v2/worker/src/research-contract.ts`: strict `gelt.research-evidence.v1`, only
