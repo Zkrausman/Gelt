@@ -128,6 +128,35 @@ final reviews, exact-source local reruns and hosted CI remain delivery gates.
 The evidence is scoped to the offline numerical reference and synthetic
 fixtures, with no claim of strategy, promotion, shadow or execution readiness.
 
+## Reported certificate magnitudes closeout
+
+This follow-up changes `research/paper2agent/parity.py`,
+`research/paper2agent/test_delivery.py`, and this specification. It checks the
+five reported certificate magnitudes against zero and their existing upper
+limits before constructing a receipt. It preserves signed zero, upper-limit
+acceptance, returned-weight feasibility, objective comparisons and the
+existing unique-weight rules. The change does not independently recalculate
+the full certificate.
+
+At pinned master `e295741abcb73d2012af544c0c8ffe324e532d75`, an in-memory
+test overlay observed that a negative finite value in any of the five fields
+passed the old check. Five negative cases failed the rejection assertion and
+the other 40 cases passed. This does not establish that the pinned adapter
+ever reported a negative magnitude.
+
+At `256efc5f104336903cbe964743e68f755510d109`, all 45 new cases passed, along
+with 25 existing focused parity cases. The Go race, vet and build checks,
+Linux V2 tests/build/offline smoke/protected HTTP checks, and four protected
+synthetic browser flows passed. The offline scientific source and fresh
+extraction each passed 97 tests, with 18 reference comparisons and 27 stdio
+parity cases. All six frozen pins and three archives matched the base.
+Separate independent functional and adversarial reviews reported no blocker
+or high-severity issues at that implementation commit.
+
+These results are evidence for the named predecessor. The specification
+closeout requires fresh final reviews and exact-head checks before delivery.
+The evidence covers the offline numerical tool and synthetic fixtures.
+
 ## Historical verification and acceptance limits
 
 Changed files: delivery/parity helpers, focused archive safety tests, adapter's
