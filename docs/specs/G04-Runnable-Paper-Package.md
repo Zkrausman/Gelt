@@ -87,7 +87,41 @@ claimed. The selected delivered MCP contract is finite JSON, not an unqualified
 claim that fourteen Python mutations were all identical transported requests.
 The positive-diagonal indefinite rejection has an explicit direct/real-MCP test.
 
-## Verification and acceptance limits
+## Returned-weight parity correction closeout
+
+The correction touches `research/paper2agent/parity.py`,
+`research/paper2agent/test_delivery.py`, and this specification. Parity verifies
+the returned vector's feasibility and recomputes its normalized objective.
+The verifier retains the existing reported KKT and unique-weight checks.
+This does not independently validate the full dual or KKT certificate.
+
+Separate independent functional and adversarial reviews accepted the complete
+implementation diff at `6eadc69b072340b5b177c66d7a9de491a6d36ae2` with no blocker
+or high-severity findings. Both noted that the self-consistent suboptimal-vector
+test could also fail the older reported-variance comparison. A test-only
+follow-up at `6bb6e4185a9a24a2f8ed3471c85fb09aa4b9b6a7` isolates the new check:
+the reported-to-reference and recomputed-to-reported differences are each
+within `1e-8`, while the recomputed-to-reference difference exceeds `1e-8`.
+The focused test passed, and fresh independent functional and adversarial
+reviews accepted the test-only delta with no blocker or high-severity findings.
+
+Local verification of the initial reviewed implementation passed 24 focused
+tests, 51 source tests, and 51 tests from a fresh candidate-bound extraction.
+The fresh package verified 19 files and passed 18 reference comparisons and
+27 finite-JSON stdio parity cases. Go race, vet, and build passed. Linux V2
+server, worker/web, script, build, offline smoke and protected HTTP checks
+passed, with 28 Windows-only skips in worker/web. All four protected synthetic
+browser flows passed on nonroot vendor Chrome with its native sandbox and
+Playwright 1.56.1. The captured narrow research view showed a partly clipped
+table column within its scroll region. All six frozen package pins and three
+committed archived artifacts matched the base.
+
+The results above are evidence for their named predecessor commits. Fresh
+final reviews, exact-source local reruns and hosted CI remain delivery gates.
+The evidence is scoped to the offline numerical reference and synthetic
+fixtures, with no claim of strategy, promotion, shadow or execution readiness.
+
+## Historical verification and acceptance limits
 
 Changed files: delivery/parity helpers, focused archive safety tests, adapter's
 additional direct/stdio PSD test, README, scientific workflow and this spec.
