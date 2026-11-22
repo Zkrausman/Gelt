@@ -36,6 +36,13 @@ fixture, solver, protocol, hash-byte and license details. Its committed example
 artifact is actual recorded numerical output, not fabricated production telemetry.
 Synthetic TS fixtures are labeled test-only and never inserted by startup.
 
+The scientific parity receipt checks each successful MCP response against that
+case's requested ticker order and requires one finite JSON-number weight per
+ticker before numerical verification or receipt construction. This check
+applies to nonunique cases as well as cases that compare the weight values.
+Focused regressions use in-memory tool responses, including a nonunique case. The
+frozen reference producer and archived evidence retain their original pins.
+
 # Typed inert artifact and operator storage
 
 - `v2/worker/src/research-contract.ts`: strict `gelt.research-evidence.v1`, only
@@ -80,7 +87,46 @@ request races, missing/corrupt data and reload states must not expose stale data
 fresh evidence. Runtime forwards only the explicit research-root configuration to
 the web role, never artifact-selected environment or endpoints.
 
-# Verification status
+# G04 parity receipt closeout
+
+The parity maintenance changes `research/paper2agent/parity.py`,
+`research/paper2agent/test_delivery.py` and this specification. Each successful
+response must provide the exact ticker sequence requested for that case and one
+finite JSON number per ticker before either numerical comparison or receipt
+construction. The in-memory tests cover malformed and valid responses, including
+rejections in a nonunique case. Unique cases retain weight comparisons.
+Nonunique cases retain objective and certificate checks. They rely on
+certificates reported by the pinned local tool and do not independently
+recompute feasibility from the returned vector. All six package pins and all
+three committed scientific artifacts remain byte-identical.
+
+Local Linux verification on the implementation reviewed at
+`5019382e0f1479c7abec1503bb3e2e773edf769a` recorded:
+
+- Go race, vet and build passed. V2 server, worker/web and script tests, import
+  inventory, build, offline smoke and protected research HTTP checks passed.
+  The Linux worker/web run skipped 28 Windows-only tests.
+- All 13 focused regressions and 40 source scientific tests passed. A fresh
+  package bound to that commit verified 19 files, passed 40 extracted tests and
+  all 18 reference comparisons, and passed 27 local finite-JSON stdio parity
+  cases. Two additional non-JSON checks exercised only the direct adapter.
+- All four protected browser flows passed using stock nonroot Chrome
+  158.0.8127.36 with its native sandbox and Playwright 1.56.1. History passed
+  11 checks, protected research 11 stages, G01 five cases plus protected detail,
+  and G03 nine stages. Desktop and narrow captures were inspected and owned
+  processes settled. The narrow research capture showed a partly clipped table
+  column within its scroll region. That display behavior was outside this
+  parity correction.
+
+Separate fresh independent functional and adversarial reviews accepted the
+complete implementation diff at that commit with no blocker or high-severity
+findings. The local results above are evidence for that implementation. Fresh
+reviews and exact-head verification of this closeout, plus exact-head hosted CI,
+are delivery gates. This work establishes a local numerical-reference and
+browser-fixture result. Shadow readiness, strategy viability, promotion and
+trading authorization are outside its scope.
+
+# Historical verification status
 
 Local prepublication verification on the assembled Node 24/Go 1.26.1 candidate:
 

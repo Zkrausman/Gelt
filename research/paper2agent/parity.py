@@ -4,6 +4,7 @@ import copy
 import hashlib
 import importlib.metadata
 import json
+import math
 from pathlib import Path
 import platform
 import sys
@@ -63,6 +64,17 @@ def upstream_reference(request):
     ef.min_volatility(); weights = ef._w.value
     return {'weights': weights.tolist(), 'variance': float(weights @ covariance @ weights)}
 
+def read_case_output(output, expected_tickers):
+    if not isinstance(output, dict) or output.get('tickers') != expected_tickers:
+        raise ValueError('MCP result tickers do not match the case request order')
+    weights = output.get('weights')
+    if not isinstance(weights, list) or len(weights) != len(expected_tickers):
+        raise ValueError('MCP result weight count does not match the case request')
+    if not all(type(weight) is int or (type(weight) is float and math.isfinite(weight))
+               for weight in weights):
+        raise ValueError('MCP result weights must be finite JSON numbers')
+    return output
+
 async def run_cases():
     receipts = []
     async with Client(transport()) as client:
@@ -75,7 +87,7 @@ async def run_cases():
             result = await client.call_tool('min_variance', {'request': request})
             if result.is_error:
                 raise ValueError('expected successful MCP case failed')
-            output = result.structured_content
+            output = read_case_output(result.structured_content, request['tickers'])
             direct = upstream_reference(request); oracle = active_set_oracle(request['covariance'])
             scale = float(np.max(np.abs(request['covariance']))) or 1.0
             if abs(output['variance'] - direct['variance']) / scale > 1e-8 or abs(output['variance'] - oracle['variance']) / scale > 1e-8:
