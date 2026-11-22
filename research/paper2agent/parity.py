@@ -18,6 +18,8 @@ from verify import transport
 from delivery import canonical, sha, supported, checked_archive
 
 ROOT = Path(__file__).resolve().parent
+FEASIBILITY_TOLERANCE = 1e-8
+OBJECTIVE_TOLERANCE = 1e-8
 
 def invalid_cases():
     cases = []
@@ -64,16 +66,48 @@ def upstream_reference(request):
     ef.min_volatility(); weights = ef._w.value
     return {'weights': weights.tolist(), 'variance': float(weights @ covariance @ weights)}
 
+def is_json_number(value):
+    return type(value) is int or (type(value) is float and math.isfinite(value))
+
 def read_case_output(output, expected_tickers):
     if not isinstance(output, dict) or output.get('tickers') != expected_tickers:
         raise ValueError('MCP result tickers do not match the case request order')
     weights = output.get('weights')
     if not isinstance(weights, list) or len(weights) != len(expected_tickers):
         raise ValueError('MCP result weight count does not match the case request')
-    if not all(type(weight) is int or (type(weight) is float and math.isfinite(weight))
-               for weight in weights):
+    if not all(is_json_number(weight) for weight in weights):
         raise ValueError('MCP result weights must be finite JSON numbers')
     return output
+
+def check_returned_weights(output, covariance):
+    weights = output['weights']
+    # Bound arbitrary-size JSON integers before converting them for arithmetic.
+    if max(-min(weights), max(weights) - 1) > FEASIBILITY_TOLERANCE:
+        raise ValueError('MCP result weights violate long-only bounds')
+    if abs(math.fsum(weights) - 1) > FEASIBILITY_TOLERANCE:
+        raise ValueError('MCP result weights are not fully invested')
+
+    matrix = np.asarray(covariance, dtype=float)
+    scale = float(np.max(np.abs(matrix)))
+    vector = np.asarray(weights, dtype=float)
+    objective = float(vector @ (matrix / scale) @ vector) if scale else 0.0
+    if not math.isfinite(objective):
+        raise ValueError('MCP result weights have a nonfinite normalized objective')
+
+    # At zero scale the existing parity convention compares raw variances.
+    divisor = scale or 1.0
+    variance = output.get('variance')
+    if not is_json_number(variance):
+        raise ValueError('MCP result variance must be a finite JSON number')
+    try:
+        normalized_variance = variance / divisor
+    except OverflowError as exc:
+        raise ValueError('MCP result variance is not finite at covariance scale') from exc
+    if not math.isfinite(normalized_variance):
+        raise ValueError('MCP result variance is not finite at covariance scale')
+    if abs(objective - normalized_variance) > OBJECTIVE_TOLERANCE:
+        raise ValueError('MCP result variance does not match the returned weights')
+    return objective, divisor
 
 async def run_cases():
     receipts = []
@@ -88,10 +122,15 @@ async def run_cases():
             if result.is_error:
                 raise ValueError('expected successful MCP case failed')
             output = read_case_output(result.structured_content, request['tickers'])
+            objective, divisor = check_returned_weights(output, request['covariance'])
             direct = upstream_reference(request); oracle = active_set_oracle(request['covariance'])
-            scale = float(np.max(np.abs(request['covariance']))) or 1.0
-            if abs(output['variance'] - direct['variance']) / scale > 1e-8 or abs(output['variance'] - oracle['variance']) / scale > 1e-8:
-                raise ValueError('source/oracle objective mismatch')
+            for reference in (direct, oracle):
+                variance = reference['variance']
+                normalized_reference = variance / divisor
+                if (not math.isfinite(normalized_reference)
+                        or abs(output['variance'] - variance) / divisor > OBJECTIVE_TOLERANCE
+                        or abs(objective - normalized_reference) > OBJECTIVE_TOLERANCE):
+                    raise ValueError('source/oracle objective mismatch')
             for field, limit in [('budget_residual', 1e-8), ('bound_violation', 1e-8), ('normalized_stationarity_residual', 1e-7), ('normalized_dual_violation', 1e-7), ('normalized_complementarity_residual', 1e-8)]:
                 if not np.isfinite(output[field]) or output[field] > limit:
                     raise ValueError('numerical certificate failed')

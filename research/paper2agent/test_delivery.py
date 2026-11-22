@@ -11,6 +11,25 @@ from delivery import build, extract, checked_archive, PREFIX, ROOT
 import parity
 
 
+def stub_nonunique_response(monkeypatch, request, output):
+    class FakeClient:
+        protocol_version = 'test'
+        server_info = SimpleNamespace(model_dump=lambda **kwargs: {})
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            pass
+        async def list_tools(self):
+            return [SimpleNamespace(name='min_variance', model_dump=lambda **kwargs: {})]
+        async def call_tool(self, name, arguments):
+            assert (name, arguments) == ('min_variance', {'request': request})
+            return SimpleNamespace(is_error=False, structured_content=output)
+
+    monkeypatch.setattr(parity, 'Client', lambda _: FakeClient())
+    monkeypatch.setattr(parity, 'transport', lambda: None)
+    monkeypatch.setattr(parity, 'valid_cases', lambda: [('synthetic-nonunique', request, False)])
+
+
 @pytest.mark.parametrize(('field', 'value', 'message'), [
     ('tickers', ['A', 'B'], 'tickers do not match'),
     ('tickers', ['B', 'C'], 'tickers do not match'),
@@ -29,25 +48,10 @@ def test_parity_rejects_invalid_response_before_numerical_references(monkeypatch
     output = {'tickers': ['B', 'A'], 'weights': [0.5, 0.5]}
     output[field] = value
 
-    class FakeClient:
-        protocol_version = 'test'
-        server_info = SimpleNamespace(model_dump=lambda **kwargs: {})
-        async def __aenter__(self):
-            return self
-        async def __aexit__(self, *args):
-            pass
-        async def list_tools(self):
-            return [SimpleNamespace(name='min_variance', model_dump=lambda **kwargs: {})]
-        async def call_tool(self, name, arguments):
-            assert (name, arguments) == ('min_variance', {'request': request})
-            return SimpleNamespace(is_error=False, structured_content=output)
-
     def unexpected_reference(*args):
         pytest.fail('malformed response reached a numerical reference')
 
-    monkeypatch.setattr(parity, 'Client', lambda _: FakeClient())
-    monkeypatch.setattr(parity, 'transport', lambda: None)
-    monkeypatch.setattr(parity, 'valid_cases', lambda: [('synthetic-nonunique', request, False)])
+    stub_nonunique_response(monkeypatch, request, output)
     monkeypatch.setattr(parity, 'upstream_reference', unexpected_reference)
     monkeypatch.setattr(parity, 'active_set_oracle', unexpected_reference)
     with pytest.raises(ValueError, match=message):
@@ -59,6 +63,69 @@ def test_parity_reads_valid_response_in_request_order(tickers):
     remaining = len(tickers) - 1
     output = {'tickers': tickers.copy(), 'weights': [0] + [1 / remaining] * remaining}
     assert parity.read_case_output(output, tickers) is output
+
+
+def parity_output(weights, variance):
+    return {
+        'tickers': ['B', 'A'],
+        'weights': weights,
+        'variance': variance,
+        'budget_residual': 0.0,
+        'bound_violation': 0.0,
+        'normalized_stationarity_residual': 0.0,
+        'normalized_dual_violation': 0.0,
+        'normalized_complementarity_residual': 0.0,
+    }
+
+
+@pytest.mark.parametrize(('weights', 'variance', 'covariance', 'message'), [
+    ([0.25, 0.5], 0, [[0, 0], [0, 0]], 'not fully invested'),
+    ([-0.25, 1.25], 0, [[0, 0], [0, 0]], 'violate long-only bounds'),
+    ([10**400, 0], 0, [[0, 0], [0, 0]], 'violate long-only bounds'),
+    ([0.5, 0.5], 0, [[0, 0], [0, 4]], 'variance does not match'),
+    ([0.5, 0.5], 1, [[0, 0], [0, 0]], 'variance does not match'),
+    ([0.5, 0.5], 10**400, [[0, 0], [0, 4]], 'not finite at covariance scale'),
+    ([0.5, 0.5], float('nan'), [[0, 0], [0, 4]], 'must be a finite JSON number'),
+    ([0.5, 0.5], False, [[0, 0], [0, 4]], 'must be a finite JSON number'),
+], ids=['budget', 'bounds', 'huge-weight', 'wrong-variance', 'zero-matrix',
+        'huge-variance', 'nonfinite-variance', 'boolean-variance'])
+def test_parity_rejects_unbound_returned_weights(monkeypatch, weights, variance, covariance, message):
+    request = {'tickers': ['B', 'A'], 'covariance': covariance}
+    stub_nonunique_response(monkeypatch, request, parity_output(weights, variance))
+
+    def unexpected_reference(*args):
+        pytest.fail('invalid returned weights or variance reached a numerical reference')
+
+    monkeypatch.setattr(parity, 'upstream_reference', unexpected_reference)
+    monkeypatch.setattr(parity, 'active_set_oracle', unexpected_reference)
+    with pytest.raises(ValueError, match=message):
+        asyncio.run(parity.run_cases())
+
+
+@pytest.mark.parametrize('variance', [0, 4])
+def test_parity_accepts_unequal_nonunique_optima(monkeypatch, variance):
+    covariance = [[variance, variance], [variance, variance]]
+    request = {'tickers': ['B', 'A'], 'covariance': covariance}
+    output = parity_output([0.75, 0.25], variance)
+    stub_nonunique_response(monkeypatch, request, output)
+    monkeypatch.setattr(parity, 'invalid_cases', lambda: [])
+    monkeypatch.setattr(parity, 'upstream_reference', lambda _: {'weights': [0.5, 0.5], 'variance': variance})
+    monkeypatch.setattr(parity, 'active_set_oracle', lambda _: {'weights': [1, 0], 'variance': variance})
+
+    [case] = asyncio.run(parity.run_cases())['cases']
+    assert case['outcome'] == 'passed'
+    assert case['mcp_output']['weights'] == [0.75, 0.25]
+
+
+def test_parity_rejects_self_consistent_but_nonoptimal_weights(monkeypatch):
+    request = {'tickers': ['B', 'A'], 'covariance': [[0, 0], [0, 4]]}
+    stub_nonunique_response(monkeypatch, request, parity_output([0.5, 0.5], 1))
+    reference = {'weights': [1, 0], 'variance': 0}
+    monkeypatch.setattr(parity, 'upstream_reference', lambda _: reference)
+    monkeypatch.setattr(parity, 'active_set_oracle', lambda _: reference)
+    with pytest.raises(ValueError, match='source/oracle objective mismatch'):
+        asyncio.run(parity.run_cases())
+
 
 def test_deterministic_package_fresh_extract_and_existing_destination_preserved(tmp_path):
     first = build(tmp_path / 'first', 'a' * 40)

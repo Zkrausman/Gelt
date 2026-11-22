@@ -56,6 +56,23 @@ are compared to independent direct pinned PyPortfolioOpt calls and active-set
 oracle objectives, with feasibility/KKT certificates enforced. Unique optima
 also compare weights; nonunique/boundary weights are not equated arbitrarily.
 
+The maintained parity verifier checks the returned long-only, fully invested
+vector at the adapter's existing `1e-8` feasibility limits, without changing
+any weight. It independently evaluates the quadratic objective from that vector
+and the request covariance divided by its maximum absolute entry. An exactly
+zero matrix contributes zero. The verifier checks the reported variance and
+both reference objectives with the existing `1e-8` normalized tolerance.
+This applies to nonunique and boundary cases as well as unique cases. Reported
+KKT checks remain in place. The verifier does not independently reproduce the
+full dual or KKT certificate.
+
+The correction touches `research/paper2agent/parity.py`, its in-memory
+regressions in `research/paper2agent/test_delivery.py`, and this specification.
+The cases isolate budget, bounds and variance failures, and accept unequal
+feasible vectors at the same nonunique optimum. All six frozen pins and all
+three committed evidence files retain their original bytes. Exact-source
+verification and reviews of this correction are tracked in the delivery packet.
+
 Eighteen finite-JSON error calls compare direct adapter rejection with actual
 MCP error results. They cover the twelve JSON-representable invalid-input
 mutations, positive-diagonal indefinite PSD matrix `[[1,2],[2,1]]`, and five
