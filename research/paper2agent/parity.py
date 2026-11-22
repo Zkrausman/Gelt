@@ -132,7 +132,8 @@ async def run_cases():
                         or abs(objective - normalized_reference) > OBJECTIVE_TOLERANCE):
                     raise ValueError('source/oracle objective mismatch')
             for field, limit in [('budget_residual', 1e-8), ('bound_violation', 1e-8), ('normalized_stationarity_residual', 1e-7), ('normalized_dual_violation', 1e-7), ('normalized_complementarity_residual', 1e-8)]:
-                if not np.isfinite(output[field]) or output[field] > limit:
+                magnitude = output[field]
+                if not np.isfinite(magnitude) or not 0 <= magnitude <= limit:
                     raise ValueError('numerical certificate failed')
             if unique:
                 np.testing.assert_allclose(output['weights'], direct['weights'], atol=1e-12, rtol=1e-12)

@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import io
+import math
 from pathlib import Path
 import stat
 from types import SimpleNamespace
@@ -149,6 +150,46 @@ def test_parity_rejects_stacked_variance_tolerances(monkeypatch):
     monkeypatch.setattr(parity, 'active_set_oracle', lambda _: reference)
     with pytest.raises(ValueError, match='source/oracle objective mismatch'):
         asyncio.run(parity.run_cases())
+
+
+@pytest.mark.parametrize(('field', 'limit'), [
+    ('budget_residual', 1e-8),
+    ('bound_violation', 1e-8),
+    ('normalized_stationarity_residual', 1e-7),
+    ('normalized_dual_violation', 1e-7),
+    ('normalized_complementarity_residual', 1e-8),
+])
+@pytest.mark.parametrize(('value_for_limit', 'accept'), [
+    pytest.param(lambda _: math.nextafter(0.0, -math.inf), False, id='negative'),
+    pytest.param(lambda _: 0.0, True, id='zero'),
+    pytest.param(lambda _: -0.0, True, id='negative-zero'),
+    pytest.param(lambda limit: limit / 2, True, id='positive'),
+    pytest.param(lambda limit: limit, True, id='at-limit'),
+    pytest.param(lambda limit: math.nextafter(limit, math.inf), False, id='over-limit'),
+    pytest.param(lambda _: math.nan, False, id='nan'),
+    pytest.param(lambda _: math.inf, False, id='positive-infinity'),
+    pytest.param(lambda _: -math.inf, False, id='negative-infinity'),
+])
+def test_parity_certificate_magnitude_interval(monkeypatch, field, limit, value_for_limit, accept):
+    request = {'tickers': ['B', 'A'], 'covariance': [[0, 0], [0, 0]]}
+    output = parity_output([0.5, 0.5], 0)
+    output[field] = value_for_limit(limit)
+    stub_nonunique_response(monkeypatch, request, output)
+    monkeypatch.setattr(parity, 'invalid_cases', lambda: [])
+    reference = {'weights': [0.5, 0.5], 'variance': 0}
+    monkeypatch.setattr(parity, 'upstream_reference', lambda _: reference)
+    monkeypatch.setattr(parity, 'active_set_oracle', lambda _: reference)
+
+    if not accept:
+        with pytest.raises(ValueError, match='numerical certificate failed'):
+            asyncio.run(parity.run_cases())
+        return
+
+    expected = parity.canonical(output)
+    [case] = asyncio.run(parity.run_cases())['cases']
+    assert case['outcome'] == 'passed'
+    assert parity.canonical(case['mcp_output']) == expected
+    assert case['output_sha256'] == hashlib.sha256(expected).hexdigest()
 
 
 def test_deterministic_package_fresh_extract_and_existing_destination_preserved(tmp_path):

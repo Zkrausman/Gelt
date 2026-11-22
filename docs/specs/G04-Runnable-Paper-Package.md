@@ -66,6 +66,13 @@ This applies to nonunique and boundary cases as well as unique cases. Reported
 KKT checks remain in place. The verifier does not independently reproduce the
 full dual or KKT certificate.
 
+The parity verifier requires five reported magnitudes to be finite and within
+their existing inclusive bounds. Budget, bound and normalized complementarity
+magnitudes use `[0, 1e-8]`; normalized stationarity and dual-violation
+magnitudes use `[0, 1e-7]`. Zero and negative zero are accepted and retained
+as reported. This checks reported magnitudes without recomputing the full
+certificate or changing the returned-weight and objective checks.
+
 The correction touches `research/paper2agent/parity.py`, its in-memory
 regressions in `research/paper2agent/test_delivery.py`, and this specification.
 The cases isolate budget, bounds and variance failures, and accept unequal
