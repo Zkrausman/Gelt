@@ -40,3 +40,21 @@ Synthetic process acceptance is not browser acceptance, market-data authenticity
 cost calibration, profitability or operating qualification. NOT_READY / CLOSED /
 DEFER and all existing acquisition, credential and uncertain-operation holds stay
 in place.
+
+## Legacy backtest compatibility clarification
+
+The operator skill now warns that an explicit data-or-days operand with neither
+a case-insensitive `.csv` suffix nor a valid integer can fall back to 100
+synthetic bars. The legacy CSV parser discards numeric syntax errors, so a
+nonnumeric `Volume` token may be carried forward as zero. Use the strict causal
+commands for supplied CSV and `diagnose-causal-csv` for syntax and bar-domain
+issues. The two changed files are `skills/gelt-operator/SKILL.md` and this
+specification. CLI behavior and operating scope are unchanged.
+
+Independent accuracy and adversarial reviews accepted the operator-note diff at
+`b32990d6570301131173241d8a21877953e25662` without blocker or high-severity
+findings. Source checks traced both warnings to the legacy dispatcher and bar
+validator. On that head, four focused synthetic CSV tests, Go race/vet/build,
+Linux V2 unit/build/smoke/protected HTTP checks, and the offline scientific
+source and fresh-package checks passed. Neither changed path enters a protected
+browser workflow. Fresh final reviews and exact-head checks cover this closeout.
