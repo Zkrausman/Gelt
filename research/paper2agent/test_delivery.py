@@ -127,6 +127,30 @@ def test_parity_rejects_self_consistent_but_nonoptimal_weights(monkeypatch):
         asyncio.run(parity.run_cases())
 
 
+def test_parity_rejects_stacked_variance_tolerances(monkeypatch):
+    scale = 4
+    request = {'tickers': ['B', 'A'], 'covariance': [[0, 0], [0, scale]]}
+    second_weight = 0.000125
+    reported_variance = 3.2e-8
+    reference = {'weights': [1, 0], 'variance': 0}
+    normalized_objective = second_weight ** 2
+    normalized_report = reported_variance / scale
+
+    # Each adjacent comparison passes on its own, but the objective from the
+    # returned vector is outside tolerance of the reference optimum.
+    assert abs(reported_variance - reference['variance']) / scale <= 1e-8
+    assert abs(normalized_objective - normalized_report) <= 1e-8
+    assert abs(normalized_objective - reference['variance'] / scale) > 1e-8
+
+    output = parity_output([1 - second_weight, second_weight], reported_variance)
+    stub_nonunique_response(monkeypatch, request, output)
+    monkeypatch.setattr(parity, 'invalid_cases', lambda: [])
+    monkeypatch.setattr(parity, 'upstream_reference', lambda _: reference)
+    monkeypatch.setattr(parity, 'active_set_oracle', lambda _: reference)
+    with pytest.raises(ValueError, match='source/oracle objective mismatch'):
+        asyncio.run(parity.run_cases())
+
+
 def test_deterministic_package_fresh_extract_and_existing_destination_preserved(tmp_path):
     first = build(tmp_path / 'first', 'a' * 40)
     second = build(tmp_path / 'second', 'a' * 40)
