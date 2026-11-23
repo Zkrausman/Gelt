@@ -93,6 +93,12 @@ CSV/generated-synthetic diagnostic. Without a CSV it generates wall-clock-seeded
 data; it is not deterministic historical evidence or a substitute for the
 supplied-CSV comparison workflow. Its registry and parser behavior also differ.
 
+If an explicit data-or-days operand has neither a case-insensitive `.csv` suffix
+nor a valid integer value, legacy `backtest` can fall back to 100 synthetic bars.
+In its CSV path, a nonnumeric `Volume` token with a syntax error can be read as
+zero. For supplied CSV use the strict causal commands above and
+`diagnose-causal-csv` to identify syntax or bar-domain issues.
+
 Commands such as `health`, `test-suite`, `risk`, `scan`, `macro`, `shadow`,
 `telemetry`, `dashboard`, authentication and trading can access configuration,
 integrations or operating state. Use them only within the actual task's existing
