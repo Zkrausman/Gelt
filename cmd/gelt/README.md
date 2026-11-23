@@ -72,10 +72,22 @@ Cancellation is checked before opening and after successful parsing/closing,
 then again before success. Read/parse/close failures take precedence over
 post-read cancellation. No I/O deadline or concurrent-file snapshot is promised.
 
+`gelt diagnose-causal-csv <DataFile.csv> --window <StartInclusiveUnix> <EndExclusiveUnix>`
+adds an exact interval check after every supplied row passes syntax and domain
+validation. Use canonical unsigned Unix seconds. START must match a row. END
+is an exclusive row timestamp or the final timestamp plus one.
+
+The report gives the scored row count and separate warmup results for the
+20-row BreakoutVol and MeanReversion profiles and the 50-row TrendConfluence
+profile. These thresholds count rows strictly before START. A valid interval
+can report either warmup as `insufficient`. The check covers the supplied CSV,
+interval and warmup only. Source authenticity, symbol, costs, strategy and
+operating admission require separate evidence.
+
 | Command | Literal target | Purpose and period |
 | --- | --- | --- |
 | `backtest-causal-aligned-window-compare` | none | Fixed three-family comparison over one exact interval |
-| `diagnose-causal-csv` | none | Locate a syntax/domain issue in complete supplied input |
+| `diagnose-causal-csv` | none | Check complete supplied input and optionally preflight an exact window |
 | `backtest-causal` | `BreakoutVol` | Reference signal/next-open replay |
 | `backtest-causal-funded` | `BreakoutVol` | Declared-cash affordability diagnostic, zero modeled costs |
 | `backtest-causal-fees` | `BreakoutVol` | Fixed and bps fees on filled sides |
