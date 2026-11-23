@@ -41,6 +41,38 @@ bounds, fee-inclusive entry cap, exact timestamp windows and finite-prefix
 reseed limitations are described without adding a strategy or calculation.
 The legacy backtest is accurately described as CSV/generated-synthetic.
 
+## Status and telemetry help clarification
+
+Global help describes `status` and `telemetry` as showing sample portfolio
+values and notes that they may contact a configured integration. The
+dispatcher supplies the example balances and positions regardless of the
+integration check. These commands remain outside the supplied-CSV chooser.
+The help row and its pure output assertion change without changing dispatch
+or telemetry generation.
+
+### Clarification delivery evidence
+
+- `cmd/gelt/offline_help.go` changes the global help description.
+- `cmd/gelt/offline_help_test.go` asserts the exact rendered row.
+- `docs/specs/Offline-Command-Discovery.md` records the clarification and its
+  verification.
+
+Working verification on `3e5edf80417b0be473b3eb759de973f072b6e913` passed.
+The focused help race run passed seven tests and 14 subtests. Go 1.26.1
+build, vet, and the full race suite passed, with tests in 25 packages.
+The existing process test exercised `status` only with isolated temporary
+homes and a loopback mock using a fake token. Linux V2 checks passed,
+including 2,052 worker/web tests, 77 server and script tests, import inventory,
+build, and offline and protected HTTP smoke tests. The worker/web run skipped
+28 tests. Scientific verification passed 97 source tests, 97 extracted-package
+tests, 18 reference checks, and 27 parity cases.
+
+Independent functional and distinct critical working reviews of the complete
+diff found no blocker or high-severity finding. Fresh final reviews and
+exact-head verification of this closeout are pending. The clarification does
+not affect a protected browser surface. The sections below retain the original
+offline command discovery delivery record.
+
 ## Changed files
 
 - `cmd/gelt/main.go`: intercept the closed help grammar before dispatch and use
