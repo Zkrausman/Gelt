@@ -126,3 +126,10 @@ to this CLI help surface.
   checked out the squash commit `b616fb4fcb7e6f91795a0fd4d04648c71717d765`.
 
 Both jobs passed Go build, race tests, and vet.
+
+## Monitor help clarification
+
+Global help identifies the trailing-stop and exit checks as operating on
+built-in sample positions. The existing command checks two fixed positions
+using adaptive thresholds that can reflect local configuration. A pure help
+assertion checks the exact row. The command implementation is unchanged.
