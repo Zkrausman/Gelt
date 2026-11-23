@@ -54,6 +54,25 @@ reports CSV, interval and warmup evidence. It never constructs an evaluator or
 engine or reads configuration. Source authenticity, symbol, costs, strategy
 and operating admission remain outside the check.
 
+### Window preflight delivery evidence
+
+`cmd/gelt/diagnose_causal_csv.go` adds the opt-in form and shares the original
+input lifecycle. `pkg/backtest/causal_window_preflight.go` reads interval and
+warmup metadata from the existing selectors. The focused CLI test, CLI README
+and this specification cover the new form and original output compatibility.
+
+Working verification on `3ae95eba281879a6c817d7c3a6b9a2a060ad83ac` passed
+13 focused tests and 41 subtests, Go build and vet, and Go race tests across
+25 packages. Linux V2 worker/web passed 2,052 tests with 28 skipped. The 77
+server and script tests, import inventory, build, and offline and protected
+HTTP smoke checks passed. Scientific verification passed 97 source tests,
+97 extracted-package tests, 18 reference checks and 27 parity cases.
+
+Both independent working reviews reported no blocker or high-severity finding.
+The spec now distinguishes one-operand success from the window report and
+the empty stdout of pre-output failures from a partial success write. Final
+review and exact-head verification of this closeout remain pending.
+
 ## Text and failure precedence
 
 Wrong arity emits fixed usage plus invalid_arguments in one stderr attempt,
@@ -66,7 +85,8 @@ still precedes a lexical fault in a later row. Parse failures precede close
 failure; successful parse/close precedes cancellation, domain and final
 cancellation checks. Context cannot interrupt a blocked read or set an I/O SLA.
 
-Failure exits 1 with empty stdout and one fixed diagnostic on stderr:
+A failure detected before the success write exits 1 with empty stdout and
+attempts one fixed diagnostic on stderr:
 
 ```text
 diagnose-causal-csv: CODE line=LINE field=FIELD reason=REASON
@@ -79,7 +99,7 @@ checked against actual parsed length. Unknown or inconsistent issues produce
 only `diagnose-causal-csv: diagnostic_unavailable`. No values, source rows,
 headers, filenames, paths or reader/OS/conversion/writer errors are formatted.
 
-Success exits 0 with empty stderr and the exact three-line body:
+One-operand success exits 0 with empty stderr and the exact three-line body:
 
 ```text
 Causal CSV syntax/domain check: passed
