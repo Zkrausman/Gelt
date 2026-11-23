@@ -31,7 +31,28 @@ Timestamp range, strict increase, Open/High/Low/Close ranges, Volume range and
 combined OHLC geometry. Timestamp is 1..253402300799; finite prices are
 0.01..1000000 and finite Volume 0..1e12. Geometry failures use field `OHLC`
 without assigning a culprit price. All rows are admitted before any future
-window selection; the diagnostic itself selects no window.
+window selection. The one-operand form selects no window.
+
+## Opt-in window preflight
+
+`gelt diagnose-causal-csv <CSV> --window <StartInclusiveUnix> <EndExclusiveUnix>`
+uses the existing bounded CSV admission, parse, and close path. Every supplied
+row must pass syntax and bar-domain checks, including rows outside the window.
+The original one-operand text, usage, and exit behavior are preserved.
+
+The preflight uses the existing canonical unsigned Unix operands and the same
+exact selectors as replay. START must match a row. END is an exclusive row
+timestamp or the final timestamp plus one. A valid nonempty interval reports
+the scored row count and independent 20- and 50-row warmup eligibility. Either
+warmup result can be `insufficient` on a successful interval check.
+
+After complete CSV validation, malformed operands or an invalid interval
+produce `diagnose-causal-csv: invalid_window line=none field=none reason=invalid_window`.
+Existing read, close, cancellation and output-failure behavior applies. Output
+remains bounded to 512 UTF-8 bytes with one write attempt. The preflight only
+reports CSV, interval and warmup evidence. It never constructs an evaluator or
+engine or reads configuration. Source authenticity, symbol, costs, strategy
+and operating admission remain outside the check.
 
 ## Text and failure precedence
 

@@ -24,7 +24,18 @@ type causalCSVDiagnostic struct {
 // runDiagnoseCausalCSV checks only the explicitly supplied file. It never
 // constructs an engine, resolves configuration or interprets trading inputs.
 func runDiagnoseCausalCSV(ctx context.Context, args []string, stdout, stderr io.Writer) int {
-	if len(args) != 1 {
+	return runDiagnoseCausalCSVWithOpen(ctx, args, stdout, stderr, func(path string) (io.ReadCloser, error) {
+		return openOfflineCSV(path)
+	})
+}
+
+func runDiagnoseCausalCSVWithOpen(ctx context.Context, args []string, stdout, stderr io.Writer, open func(string) (io.ReadCloser, error)) int {
+	var windowArgs []string
+	switch {
+	case len(args) == 1:
+	case len(args) == 4 && args[1] == "--window":
+		windowArgs = args[2:]
+	default:
 		return failDiagnoseCausalCSV(stderr, causalCSVDiagnostic{
 			Code: "invalid_arguments", Field: "none", Reason: "invalid_arguments",
 		}, true)
@@ -35,19 +46,19 @@ func runDiagnoseCausalCSV(ctx context.Context, args []string, stdout, stderr io.
 	if ctx.Err() != nil {
 		return failDiagnoseCausalCSV(stderr, canceledCausalCSVDiagnostic(), false)
 	}
-	f, err := openOfflineCSV(args[0])
+	f, err := open(args[0])
 	if err != nil {
 		return failDiagnoseCausalCSV(stderr, causalCSVDiagnostic{
 			Code: "input_file", Field: "none", Reason: "open_failed",
 		}, false)
 	}
-	return diagnoseCausalCSVRead(ctx, f, stdout, stderr)
+	return diagnoseCausalCSVRead(ctx, f, stdout, stderr, windowArgs...)
 }
 
 // diagnoseCausalCSVRead owns the admitted descriptor and makes exactly one
 // close attempt, even after a read or syntax failure. Context checks do not
 // interrupt a blocked read or impose a filesystem deadline.
-func diagnoseCausalCSVRead(ctx context.Context, input io.ReadCloser, stdout, stderr io.Writer) int {
+func diagnoseCausalCSVRead(ctx context.Context, input io.ReadCloser, stdout, stderr io.Writer, windowArgs ...string) int {
 	bars, issue := parseDetailedCausalCSV(input)
 	closeErr := input.Close()
 	if issue != nil {
@@ -73,9 +84,30 @@ func diagnoseCausalCSVRead(ctx context.Context, input io.ReadCloser, stdout, std
 	if ctx.Err() != nil {
 		return failDiagnoseCausalCSV(stderr, canceledCausalCSVDiagnostic(), false)
 	}
-	body, ok := diagnoseCausalCSVSuccess(len(bars))
-	if !ok {
-		return writeDiagnoseCausalCSVFailure(stderr, diagnoseCausalCSVUnavailable)
+	var body string
+	if len(windowArgs) == 0 {
+		var ok bool
+		body, ok = diagnoseCausalCSVSuccess(len(bars))
+		if !ok {
+			return writeDiagnoseCausalCSVFailure(stderr, diagnoseCausalCSVUnavailable)
+		}
+	} else {
+		var code backtest.CausalErrorCode
+		body, code = diagnoseCausalCSVWindowReport(ctx, bars, windowArgs)
+		switch code {
+		case "":
+		case backtest.CausalCanceled:
+			return failDiagnoseCausalCSV(stderr, canceledCausalCSVDiagnostic(), false)
+		case backtest.WindowInvalidWindow:
+			return failDiagnoseCausalCSV(stderr, causalCSVDiagnostic{
+				Code: "invalid_window", Field: "none", Reason: "invalid_window",
+			}, false)
+		default:
+			return writeDiagnoseCausalCSVFailure(stderr, diagnoseCausalCSVUnavailable)
+		}
+		if ctx.Err() != nil {
+			return failDiagnoseCausalCSV(stderr, canceledCausalCSVDiagnostic(), false)
+		}
 	}
 	if stdout != nil {
 		n, err := stdout.Write([]byte(body))
@@ -167,6 +199,8 @@ func causalCSVDiagnosticText(d causalCSVDiagnostic) (string, bool) {
 		valid = absent && d.Reason == "canceled"
 	case "invalid_arguments":
 		valid = absent && d.Reason == "invalid_arguments"
+	case "invalid_window":
+		valid = absent && d.Reason == "invalid_window"
 	}
 	if !valid {
 		return "", false
@@ -190,6 +224,38 @@ func diagnoseCausalCSVSuccess(rows int) (string, bool) {
 	body := fmt.Sprintf("Causal CSV syntax/domain check: passed\nData rows: %d\n"+
 		"Scope: unqualified input only; symbol, costs, warmup, strategy and operating admission not checked.\n", rows)
 	return body, validDiagnoseCausalCSVBody(body)
+}
+
+func diagnoseCausalCSVWindowReport(ctx context.Context, bars []backtest.OHLCV, args []string) (string, backtest.CausalErrorCode) {
+	if len(args) != 2 {
+		return "", backtest.WindowInvalidWindow
+	}
+	start, startOK := windowCLIUnix(args[0], true)
+	end, endOK := windowCLIUnix(args[1], false)
+	if !startOK || !endOK {
+		return "", backtest.WindowInvalidWindow
+	}
+	result, code := backtest.InspectValidatedCausalWindow(ctx, bars, backtest.DeclaredComparisonWindow{
+		StartInclusiveUnix: start, EndExclusiveUnix: end,
+	})
+	if code != "" {
+		return "", code
+	}
+	warmup20, warmup50 := "insufficient", "insufficient"
+	if result.Eligible20 {
+		warmup20 = "eligible"
+	}
+	if result.Eligible50 {
+		warmup50 = "eligible"
+	}
+	body := fmt.Sprintf("Causal CSV window preflight: passed\nScored rows: %d\n"+
+		"20-row warmup: %s\n50-row warmup: %s\n"+
+		"Scope: CSV, interval and warmup only; source authenticity, symbol, costs, strategy and operating admission not checked.\n",
+		result.ScoredRows, warmup20, warmup50)
+	if !validDiagnoseCausalCSVBody(body) {
+		return "", backtest.WindowInvalidResult
+	}
+	return body, ""
 }
 
 func failDiagnoseCausalCSV(stderr io.Writer, diagnostic causalCSVDiagnostic, usage bool) int {
