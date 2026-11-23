@@ -12,7 +12,7 @@ The goal of this initiative is to establish centralized repository context files
 
 ### 2.1 AGENTS.md
 Located at the repository root, `AGENTS.md` provides explicit instructions for autonomous AI agents reading the repository. It codifies the following guardrails:
-*   **Go Requirement:** Mandates Go 1.22+.
+*   **Go Requirement:** `go.mod` declares Go 1.25.0. Go CI uses 1.26.1.
 *   **Concurrency:** Requires thread-safe metrics injection and state modification using `sync.RWMutex`.
 *   **Telemetry:** Enforces the Zero-Fake-Telemetry rule; no mock data on production endpoints.
 *   **Database:** Restricts the embedded SQLite database to a single connection (`SetMaxOpenConns(1)`).
@@ -28,3 +28,22 @@ As AI tools become more integrated into the development workflow, setting explic
 *   [x] `AGENTS.md` created in repository root.
 *   [x] `.github/copilot-instructions.md` created.
 *   [x] `docs/specs/AI_Development_Readiness.md` documented.
+
+### Agent onboarding clarification
+
+`AGENTS.md` now describes checkout-relative commands, Node.js 22 for V2, and
+the existing Gelt operator skill for offline supplied-CSV work. It keeps the
+standard checks and the separately authorized integration command distinct.
+The changed paths are `AGENTS.md` and this specification.
+
+At candidate `d8b68830e4260f7f6e29d8551066b52ba4b528fa`, the independent
+static content review and the distinct critical review passed. The eight
+documentation links and Go build, race tests, and vet passed. Linux V2
+worker/web (2,052 passed, 28 Windows-only skips), server (18), scripts (59),
+inventory, build, offline smoke, and protected HTTP passed. Scientific tests
+passed from source and fresh extraction (97 each), with 18 reference
+comparisons and 27 local stdio parity cases. Neither changed path matches the
+protected-browser workflow filters.
+
+These checks apply to the named candidate. Final reviews and exact-head
+verification follow this closeout. Publication is pending.
