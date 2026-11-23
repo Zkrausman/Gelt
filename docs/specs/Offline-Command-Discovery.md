@@ -41,6 +41,15 @@ bounds, fee-inclusive entry cap, exact timestamp windows and finite-prefix
 reseed limitations are described without adding a strategy or calculation.
 The legacy backtest is accurately described as CSV/generated-synthetic.
 
+## Status and telemetry help clarification
+
+Global help describes `status` and `telemetry` as showing sample portfolio
+values and notes that they may contact a configured integration. The
+dispatcher supplies the example balances and positions regardless of the
+integration check. These commands remain outside the supplied-CSV chooser.
+The help row and its pure output assertion change without changing dispatch
+or telemetry generation. Delivery closeout follows independent review.
+
 ## Changed files
 
 - `cmd/gelt/main.go`: intercept the closed help grammar before dispatch and use

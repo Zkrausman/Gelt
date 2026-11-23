@@ -118,7 +118,7 @@ func globalHelp(version string) string {
 }
 
 const otherCommandHelp = `  version                              Show Gelt CLI version
-  status / telemetry                   Display live session telemetry & portfolio dashboard
+  status / telemetry                   Show sample portfolio values (may contact a configured integration)
   risk                                 Display configured equity risk governance limits
   options-risk                         Display configured options risk governance limits
   signals [SYMBOL]                     Show indicators and scores from generated demo closes
