@@ -133,3 +133,20 @@ Global help identifies the trailing-stop and exit checks as operating on
 built-in sample positions. The existing command checks two fixed positions
 using adaptive thresholds that can reflect local configuration. A pure help
 assertion checks the exact row. The command implementation is unchanged.
+
+The grouped delivery changes the global row in `cmd/gelt/offline_help.go`,
+its assertion in `cmd/gelt/offline_help_test.go`, and this specification.
+Working verification on `ffb8051db85a453c6b00076c7b5963a0bfd2667f`
+passed the focused help suite (7 tests and 14 subtests), Go build, vet and
+race (25 tested packages), Linux V2 checks (2,052 worker/web tests passed,
+28 skipped, and 77 server/script tests passed), import inventory, build,
+and offline and protected HTTP smoke tests. Scientific verification passed
+97 source tests, 97 extracted-package tests, 18 reference checks and
+27 parity cases.
+
+The Go race suite used isolated temporary homes and a fake-token loopback
+mock for the existing `status` fixture. Help rendering tests exercised the
+`monitor` row in memory. The changed files do not affect a protected browser
+surface. Independent functional and critical working reviews found no blocker
+or high-severity finding. Final review and exact-head verification of this
+closeout are pending.
