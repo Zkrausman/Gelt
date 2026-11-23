@@ -10,9 +10,11 @@ timestamp: 2026-07-27T00:00:00Z
 Welcome to the Gelt Trading Engine repository. This document provides core architectural constraints and engineering guardrails for AI coding assistants and autonomous agents interacting with this codebase.
 
 ## 1. Core Language & Tooling
-*   **Go Version:** This is a Go-based project requiring **Go 1.22 or newer**.
-*   **Testing:** Use `go test ./...` for standard tests. Use `./gelt.exe test-suite` for integrated test suites.
-*   **Execution Environment:** Autonomous agents run in a cloud VM where the repository is cloned directly into the `/app` directory. All relative paths and tests must assume `/app` as the root working directory.
+*   **Checkout and commands:** Run repository commands from the checkout root (`git rev-parse --show-toplevel`). Paths below are relative to that root.
+*   **Go:** [go.mod](go.mod) declares Go 1.25.0. Use Go 1.26.1 to match [Go CI](.github/workflows/ci.yml).
+*   **V2:** [V2 CI](.github/workflows/v2.yml) uses Node.js 22. See the [V2 README](v2/README.md) for the locked setup and root-relative commands.
+*   **Verification:** Use `go test ./...` for standard tests. For delivery, follow the [ticket-delivery skill](.agents/skills/ticket-delivery/SKILL.md) and the exact-source gates below. The `./gelt.exe test-suite` integration command requires separately authorized operational scope.
+*   **Offline operator workflow:** Start with the [Gelt operator skill](skills/gelt-operator/SKILL.md) and `./gelt.exe help offline` for supplied-CSV work. Keep verification in the authorized offline scope and use synthetic or supplied inputs as specified. Offline work does not authorize provider, broker, account, or order operations.
 
 ## 2. Concurrency & State Management
 *   **Thread-Safe Metrics & Caching:** All shared state, particularly metrics injection and cached data (e.g., in `pkg/data` and `pkg/macro`), must be protected using `sync.RWMutex`.
@@ -57,8 +59,7 @@ The rules above continue to govern all V1 Go code; Go 1.26.1 build/race/vet CI
 is preserved. V2 alone uses Node 22/TypeScript, Next.js/React `v2/web`, upstream
 market/analysis `v2/server` and separate non-executing `v2/worker`. This approved
 supplement does not migrate or erase V1 language/telemetry/concurrency policy.
-Use repository-relative paths (the Squire worktree is `/ticket/workspace`), not
-an assumed host `/app`, for these additive checks. Install via the retained
+Run these additive checks from the checkout root. Install via the retained
 `v2/package-lock.json`; run V2 unit tests/build/offline smoke alongside Go checks.
 See `docs/specs/ZAR-213-V2-Baseline.md` and `v2/README.md` for the precise commands.
 
