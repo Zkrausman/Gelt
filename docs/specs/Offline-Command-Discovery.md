@@ -12,8 +12,13 @@ title: Supplied-CSV offline command discovery
 > usage, exit 1, and no operand echo. Help grammar and all recognized dispatch
 > behavior remain governed by the existing contracts.
 
-The CLI exposes its nine existing strict supplied-CSV routes in global help and
-a separate offline chooser. `help`, `--help` and `-h` accept no topic, `offline`,
+The original delivery exposed nine strict supplied-CSV routes in global help
+and a separate offline chooser. The current
+[supplied-CSV command table](../../cmd/gelt/README.md#supplied-csv-offline-analysis)
+documents eleven entries, including the later
+`backtest-causal-aligned-window-compare` and `diagnose-causal-csv` commands.
+
+In the original delivery, `help`, `--help` and `-h` accept no topic, `offline`,
 or exactly one of the nine causal names. Each causal name also accepts a sole
 `--help` or `-h` operand. Detailed output directly reuses the existing usage
 constant and adds purpose, literal target, profile and common input/cost/window
@@ -109,3 +114,39 @@ Independent and distinct adversarial final review, compiled process integration,
 and fresh exact-head delivery checks remain separate gates; these working
 checks are not final delivery acceptance. Browser UI acceptance is inapplicable
 to this CLI help surface.
+
+## PR #85 hosted Go verification
+
+- The [pull request Go job](https://github.com/Zkrausman/Gelt/actions/runs/45141641341/job/137580816751)
+  checked out GitHub's integration commit
+  `9e4a82b67def43a13ee0efa947b4e5d535fa5853`. Its tree
+  `cf7ed18818aef65e9656e5f2f67a8a9c2bb86448` matches both the reviewed PR
+  head and the squash commit.
+- The [master Go job](https://github.com/Zkrausman/Gelt/actions/runs/45142171584/job/137582588937)
+  checked out the squash commit `b616fb4fcb7e6f91795a0fd4d04648c71717d765`.
+
+Both jobs passed Go build, race tests, and vet.
+
+## Monitor help clarification
+
+Global help identifies the trailing-stop and exit checks as operating on
+built-in sample positions. The existing command checks two fixed positions
+using adaptive thresholds that can reflect local configuration. A pure help
+assertion checks the exact row. The command implementation is unchanged.
+
+The grouped delivery changes the global row in `cmd/gelt/offline_help.go`,
+its assertion in `cmd/gelt/offline_help_test.go`, and this specification.
+Working verification on `ffb8051db85a453c6b00076c7b5963a0bfd2667f`
+passed the focused help suite (7 tests and 14 subtests), Go build, vet and
+race (25 tested packages), Linux V2 checks (2,052 worker/web tests passed,
+28 skipped, and 77 server/script tests passed), import inventory, build,
+and offline and protected HTTP smoke tests. Scientific verification passed
+97 source tests, 97 extracted-package tests, 18 reference checks and
+27 parity cases.
+
+The Go race suite used isolated temporary homes and a fake-token loopback
+mock for the existing `status` fixture. Help rendering tests exercised the
+`monitor` row in memory. The changed files do not affect a protected browser
+surface. Independent functional and critical working reviews found no blocker
+or high-severity finding. Final review and exact-head verification of this
+closeout are pending.

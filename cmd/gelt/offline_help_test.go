@@ -80,6 +80,9 @@ func TestOfflineHelpGlobalAndChooser(t *testing.T) {
 	if !strings.Contains(global, "\n  status / telemetry                   Show sample portfolio values (may contact a configured integration)\n") {
 		t.Error("global help must identify sample portfolio values and the possible integration check")
 	}
+	if !strings.Contains(global, "\n  monitor                              Check trailing stops and exit triggers for built-in sample positions\n") {
+		t.Error("global help must identify the built-in sample positions used by monitor")
+	}
 	for _, text := range []string{"(owned-test-version)", "gelt help offline", "gelt help NAME", "Other commands:", "dashboard / serve", "buy <SYMBOL>", "[DataFile.csv | Days]", "CSV/generated-synthetic diagnostic"} {
 		if !strings.Contains(global, text) {
 			t.Errorf("global help missing %q", text)
